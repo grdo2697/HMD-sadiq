@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل الموظفين</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>تسجيل الموظفين</h2>
+    <input type="text" id="searchInput" placeholder="ابحث عن اسم الموظف واضغط Enter" onkeydown="handleSearch(event)">
+    <input type="text" id="name" placeholder="اسم الموظف">
+    <input type="text" id="id" placeholder="رقم الموظف">
+    <input type="text" id="role" placeholder="المنصب الوظيفي">
+    <select id="status">
+      <option value="نشط">نشط</option>
+      <option value="غير نشط">غير نشط</option>
+    </select>
+    <button onclick="addEmployee()">إضافة الموظف</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>الرقم</th>
+          <th>المنصب</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const sheetID = '1tib7_66g-JyXTbQvk-41ylCRtlpgOOPjx6DGezKjvxA';
+    const sheetName = 'Sheet1';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyr_z7_EhjhhyZp1ivT9RIPKP5UUMzNYkhe-QCJIMAYw3-7_nAFUBwTfS1mhsYVSK3uVg/exec';
+
+    async function fetchEmployees() {
+      const url = `https://opensheet.elk.sh/${sheetID}/${sheetName}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      allData = data;
+      displayEmployees(data);
+    }
+
+    function displayEmployees(data) {
+      const table = document.getElementById("employeeTable");
+      table.innerHTML = "";
+      data.forEach(emp => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${emp["الاسم"]}</td>
+          <td>${emp["الرقم"]}</td>
+          <td>${emp["المنصب"]}</td>
+          <td>${emp["الحالة"]}</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function handleSearch(e) {
+      if (e.key === "Enter") {
+        const keyword = e.target.value.trim().toLowerCase();
+        const filtered = allData.filter(emp => emp["الاسم"].toLowerCase().includes(keyword));
+        displayEmployees(filtered);
+      }
+    }
+
+    async function addEmployee() {
+      const name = document.getElementById("name").value;
+      const id = document.getElementById("id").value;
+      const role = document.getElementById("role").value;
+      const status = document.getElementById("status").value;
+
+      if (!name || !id || !role) {
+        alert("يرجى تعبئة جميع الحقول");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("الاسم", name);
+      formData.append("الرقم", id);
+      formData.append("المنصب", role);
+      formData.append("الحالة", status);
+
+      await fetch(scriptURL, { method: 'POST', body: formData });
+      alert("تمت إضافة الموظف بنجاح!");
+      location.reload();
+    }
+
+    let allData = [];
+    fetchEmployees();
+  </script>
+</body>
+</html>
