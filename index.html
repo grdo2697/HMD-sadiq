@@ -2,124 +2,136 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>البحث عن موظف</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل الموظفين</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
     body {
-      font-family: 'Cairo', sans-serif;
-      background: linear-gradient(to bottom right, #f1f3f6, #dbe4f0);
+      font-family: 'Arial', sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
       margin: 0;
-      padding: 0;
     }
-    header {
-      background: linear-gradient(to left, #4b6cb7, #182848);
-      color: white;
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
       padding: 20px;
-      text-align: center;
-      font-size: 2em;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .search-container {
-      padding: 30px 20px;
+    h2 {
       text-align: center;
+      margin-bottom: 20px;
     }
-    .search-container input {
-      width: 60%;
-      padding: 12px;
-      font-size: 1.1em;
-      border-radius: 8px;
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
       border: 1px solid #ccc;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .search-container button {
-      padding: 12px 25px;
-      font-size: 1em;
-      border: none;
       border-radius: 8px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-      margin-right: 10px;
-      transition: background 0.3s;
+      font-size: 16px;
     }
-    .search-container button:hover {
-      background-color: #0056b3;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
     }
-    .list-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 20px;
-      gap: 20px;
-    }
-    .card {
-      background-color: white;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 300px;
-      text-align: right;
-      transition: transform 0.2s;
-    }
-    .card:hover {
-      transform: scale(1.03);
-    }
-    .card h3 {
-      margin: 0 0 10px 0;
-      color: #2c3e50;
-    }
-    .card p {
-      margin: 5px 0;
-      color: #555;
-    }
-    footer {
-      background-color: #182848;
-      color: white;
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
       text-align: center;
-      padding: 15px;
-      margin-top: 40px;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>تسجيل الموظفين</h2>
+    <input type="text" id="searchInput" placeholder="ابحث عن اسم الموظف واضغط Enter" onkeydown="handleSearch(event)">
+    <input type="text" id="name" placeholder="اسم الموظف">
+    <input type="text" id="id" placeholder="رقم الموظف">
+    <input type="text" id="role" placeholder="المنصب الوظيفي">
+    <select id="status">
+      <option value="نشط">نشط</option>
+      <option value="غير نشط">غير نشط</option>
+    </select>
+    <button onclick="addEmployee()">إضافة الموظف</button>
 
-  <header>البحث عن موظف</header>
-  <div class="search-container">
-    <input type="text" id="searchInput" placeholder="اكتب جزء من الاسم هنا..." oninput="filterList()" />
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>الرقم</th>
+          <th>المنصب</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTable"></tbody>
+    </table>
   </div>
-  <div class="list-container" id="listContainer"></div>
-  <footer>&copy; 2025 جميع الحقوق محفوظة - HMD SADIQ</footer>
 
   <script>
-    const people = [...Array(100).keys()].map(i => ({
-      name: "موظف " + (i+1),
-      position: (i % 2 === 0 ? "قائد" : "مساعد"),
-      id: 7700000000 + i
-    }));
+    const sheetID = '1tib7_66g-JyXTbQvk-41ylCRtlpgOOPjx6DGezKjvxA';
+    const sheetName = 'Sheet1';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyr_z7_EhjhhyZp1ivT9RIPKP5UUMzNYkhe-QCJIMAYw3-7_nAFUBwTfS1mhsYVSK3uVg/exec';
 
-    const listContainer = document.getElementById("listContainer");
+    async function fetchEmployees() {
+      const url = `https://opensheet.elk.sh/${sheetID}/${sheetName}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      allData = data;
+      displayEmployees(data);
+    }
 
-    function filterList() {
-      const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
-      listContainer.innerHTML = "";
-      const matches = people.filter(p => p.name.toLowerCase().includes(searchTerm));
-      if (matches.length === 0) {
-        listContainer.innerHTML = "<p>ماكو هيچ موظف حاجي محمد الجواد.</p>";
-        return;
-      }
-      matches.forEach(result => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = \`
-          <h3>\${result.name}</h3>
-          <p><strong>المنصب:</strong> \${result.position}</p>
-          <p><strong>رقم الموظف:</strong> \${result.id}</p>
-        \`;
-        listContainer.appendChild(card);
+    function displayEmployees(data) {
+      const table = document.getElementById("employeeTable");
+      table.innerHTML = "";
+      data.forEach(emp => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${emp["الاسم"]}</td>
+          <td>${emp["الرقم"]}</td>
+          <td>${emp["المنصب"]}</td>
+          <td>${emp["الحالة"]}</td>
+        `;
+        table.appendChild(row);
       });
     }
-  </script>
 
+    function handleSearch(e) {
+      if (e.key === "Enter") {
+        const keyword = e.target.value.trim().toLowerCase();
+        const filtered = allData.filter(emp => emp["الاسم"].toLowerCase().includes(keyword));
+        displayEmployees(filtered);
+      }
+    }
+
+    async function addEmployee() {
+      const name = document.getElementById("name").value;
+      const id = document.getElementById("id").value;
+      const role = document.getElementById("role").value;
+      const status = document.getElementById("status").value;
+
+      if (!name || !id || !role) {
+        alert("يرجى تعبئة جميع الحقول");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("الاسم", name);
+      formData.append("الرقم", id);
+      formData.append("المنصب", role);
+      formData.append("الحالة", status);
+
+      await fetch(scriptURL, { method: 'POST', body: formData });
+      alert("تمت إضافة الموظف بنجاح!");
+      location.reload();
+    }
+
+    let allData = [];
+    fetchEmployees();
+  </script>
 </body>
 </html>
