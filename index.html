@@ -1,143 +1,236 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>صفحة البحث عن موظف</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            direction: rtl;
-            margin: 40px;
-            background-color: #f9f9f9;
-        }
-        h1, h2 {
-            color: #333;
-        }
-        .search-box, .results, .options, .export {
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input, select, button {
-            padding: 6px 10px;
-            margin-top: 5px;
-            width: 100%;
-            max-width: 300px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        table, th, td {
-            border: 1px solid #aaa;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-        .button-group button {
-            width: auto;
-            margin-left: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>البحث عن موظف</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(to bottom right, #f1f3f6, #dbe4f0);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: linear-gradient(to left, #4b6cb7, #182848);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 2em;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .search-container {
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    .search-container input {
+      width: 60%;
+      padding: 12px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .search-container button {
+      padding: 12px 25px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background 0.3s;
+    }
+
+    .search-container button:hover {
+      background-color: #0056b3;
+    }
+
+    .list-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .card {
+      background-color: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 300px;
+      text-align: right;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .card h3 {
+      margin: 0 0 10px 0;
+      color: #2c3e50;
+    }
+
+    .card p {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    footer {
+      background-color: #182848;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin-top: 40px;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>صفحة البحث عن موظف</h1>
+  <header>
+    البحث عن موظف
+  </header>
 
-    <div class="search-box">
-        <h2>معايير البحث</h2>
-        <label>اسم الموظف: <input type="text"></label>
-        <label>رقم الموظف: <input type="number"></label>
-        <label>الدرجة الوظيفية:
-            <select>
-                <option>الكل</option>
-                <option>مدير قسم</option>
-                <option>أخصائي أول</option>
-                <option>مشرف عام</option>
-                <option>مساعد إداري</option>
-                <option>فني دعم تقني</option>
-            </select>
-        </label>
-        <label>الحالة:
-            <select>
-                <option>الكل</option>
-                <option>قيد العمل</option>
-                <option>فسخ عقد</option>
-            </select>
-        </label>
-        <div class="button-group">
-            <button>بحث</button>
-            <button>إعادة تعيين</button>
-        </div>
-    </div>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="اكتب جزء من الاسم هنا..." oninput="filterList()" />
+  </div>
 
-    <div class="results">
-        <h2>نتائج البحث</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>رقم الموظف</th>
-                    <th>اسم الموظف</th>
-                    <th>الدرجة الوظيفية</th>
-                    <th>الحالة</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1001</td>
-                    <td>محمد أحمد</td>
-                    <td>مدير قسم</td>
-                    <td>قيد العمل</td>
-                </tr>
-                <tr>
-                    <td>1002</td>
-                    <td>فاطمة خالد</td>
-                    <td>أخصائي أول</td>
-                    <td>فسخ عقد</td>
-                </tr>
-                <tr>
-                    <td>1003</td>
-                    <td>عبدالله حسين</td>
-                    <td>مشرف عام</td>
-                    <td>قيد العمل</td>
-                </tr>
-                <tr>
-                    <td>1004</td>
-                    <td>نورة محمد</td>
-                    <td>مساعد إداري</td>
-                    <td>فسخ عقد</td>
-                </tr>
-                <tr>
-                    <td>1005</td>
-                    <td>سالم عبدالعزيز</td>
-                    <td>فني دعم تقني</td>
-                    <td>قيد العمل</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+  <div class="list-container" id="listContainer">
+    <!-- نتائج البحث -->
+  </div>
 
-    <div class="options">
-        <h2>خيارات إضافية</h2>
-        <p>فرز حسب: [اسم الموظف | رقم الموظف | الدرجة الوظيفية | الحالة]</p>
-        <p>تصفية حسب الدرجة الوظيفية: [كل الدرجات | مدير | أخصائي | مشرف | مساعد | فني]</p>
-    </div>
+  <footer>
+    &copy; 2025 جميع الحقوق محفوظة - HMD SADIQ
+  </footer>
 
-    <div class="export">
-        <h2>خيارات التصدير والطباعة</h2>
-        <button>طباعة</button>
-        <button>تحميل كـ PDF</button>
-        <button>تحميل كـ Excel</button>
-    </div>
+  <script>
+    const people = [
+      { name: "غيث علاء صبري", position: "مساعد", id: 7762255489 },
+      { name: "يوسف فؤاد", position: "قائد", id: 7735972963 },
+      { name: "حسن نصيف", position: "قائد", id: 7730364833 },
+      { name: "علي ستار", position: "قائد", id: 7860100630 },
+      { name: "علي طارق", position: "قائد", id: 7859632428 },
+      { name: "مشتاق علي", position: "قائد", id: 7710288047 },
+      { name: "منتظر علي", position: "قائد", id: 7859632418 },
+      { name: "احمد احسان عبدالهادي", position: "قائد", id: 7718901061 },
+      { name: "احمد قاسم جهاد", position: "قائد", id: 7838884556 },
+      { name: "حبيب قادر دواي", position: "قائد", id: 7872337629 },
+      { name: "حسن حسين ابراهيم", position: "قائد", id: 7869642829 },
+      { name: "حسن طالب عباس", position: "قائد", id: 7730364833 },
+      { name: "حسن مهند سعد", position: "قائد", id: 7735177416 },
+      { name: "حسين صادق حسوني", position: "قائد", id: 7860547605 },
+      { name: "حسين صباح وحيد", position: "قائد", id: 7723682080 },
+      { name: "حسين علي جلاب", position: "قائد", id: 7735937660 },
+      { name: "حسين عماد هاشم", position: "قائد", id: 7705566354 },
+      { name: "حيدر عباس", position: "قائد", id: 7768534045 },
+      { name: "زين العابدين محمد", position: "قائد", id: 7765266112 },
+      { name: "سجاد حسن", position: "قائد", id: 7765266058 },
+      { name: "سجاد صادق طعمة", position: "قائد", id: 7737517480 },
+      { name: "سعود احمد", position: "قائد", id: 7721425420 },
+      { name: "ضياء علاء رضا", position: "مساعد", id: 7861060341 },
+      { name: "عباس فاضل ابراهيم", position: "قائد", id: 7732907684 },
+      { name: "علي صادق مهدي", position: "قائد", id: 7761718722 },
+      { name: "غيث ليث احمد", position: "قائد", id: 7739774389 },
+      { name: "كرار صالح", position: "قائد", id: 7717565762 },
+      { name: "محمد الصادق ميثم", position: "قائد", id: 7773117475 },
+      { name: "محمود مرتضى محمد", position: "قائد", id: 7863236203 },
+      { name: "مصطفى عباس صابر", position: "قائد", id: 7858454544 },
+      { name: "مصطفى عصام عبد الهادي", position: "قائد", id: 7736438810 },
+      { name: "مصطفى نزار قاسم", position: "قائد", id: 7730070492 },
+      { name: "مقتدى حسين علي", position: "قائد", id: 7838081421 },
+      { name: "منتظر مهدي وناس", position: "قائد", id: 7752653424 },
+      { name: "مهدي حسن صادق", position: "قائد", id: 7715763275 },
+      { name: "هشام يحيى عبد", position: "قائد", id: 7807898421 },
+      { name: "يوسف عصام صالح", position: "قائد", id: 7755653246 },
+      { name: "احمد حسين حمزه", position: "قائد", id: 7739641875 },
+      { name: "كرار حيدر زناد", position: "قائد", id: 7714768255 },
+      { name: "منتظر مهدي كاظم", position: "مساعد", id: 7814612037 },
+      { name: "منتظر حسين", position: "مساعد", id: 7737350194 },
+      { name: "مصطفى طاهر حسين", position: "مساعد", id: 7826554670 },
+      { name: "مصطفى احمد غازي", position: "مساعد", id: 7775210401 },
+      { name: "مسلم اكرم اسماعيل", position: "مساعد", id: 7770230191 },
+      { name: "مرتضى حسن عبدالهادي", position: "مساعد", id: 7757827175 },
+      { name: "محمد صادق عادل", position: "مساعد", id: 7801872753 },
+      { name: "محمد جواد كاظم", position: "مساعد", id: 7703213350 },
+      { name: "كرار جواد كاظم", position: "مساعد", id: 7738039793 },
+      { name: "علي موعود محمد", position: "مساعد", id: 775967978 },
+      { name: "علي عثمان", position: "مساعد", id: 7715785108 },
+      { name: "عبدالله علاء كاظم", position: "مساعد", id: 7723428814 },
+      { name: "ضرغام رائد صالج", position: "مساعد", id: 7722296390 },
+      { name: "سمير نزار قاسم", position: "مساعد", id: 7721816419 },
+      { name: "سجاد علي كاظم", position: "مساعد", id: 7773310247 },
+      { name: "سجاد سعد مطشر", position: "مساعد", id: 7736647902 },
+      { name: "رامي حيدر جاسم", position: "مساعد", id: 7726853781 },
+      { name: "حسين علي طه", position: "مساعد", id: 7819268764 },
+      { name: "حسن صفاء", position: "مساعد", id: 7861980608 },
+      { name: "بكر رشيد", position: "مساعد", id: 7719380616 },
+      { name: "ياسر عامر ظاهر", position: "مساعد", id: 7848322552 },
+      { name: "ياسر كريم", position: "مساعد", id: 7710278781 },
+      { name: "ابراهيم عصام تركان", position: "مساعد", id: 7746684134 },
+      { name: "حاتم كريم شنون", position: "مساعد", id: 7705206372 },
+      { name: "حسين سامي", position: "مساعد", id: 7834315627 },
+      { name: "محمد حسن وحيد", position: "مساعد", id: 7764111577 },
+      { name: "حسن سمير ناصر", position: "مساعد", id: 7764109102 },
+      { name: "حسين علاء عبد عبد الحسين", position: "مساعد", id: 7765997419 },
+      { name: "سجاد محمد كاظم", position: "مساعد", id: 7752655083 },
+      { name: "منتظر رياض عبدالرحمن", position: "مساعد", id: 7730806946 },
+      { name: "حسن احمد حسن", position: "مساعد", id: 7730134777 },
+      { name: "محمد موفق عبد الكريم", position: "مساعد", id: 7713185277 },
+      { name: "صادق احمد حمزه", position: "مساعد", id: 7734419580 },
+      { name: "ولاء كاظم", position: "مساعد", id: 7713976005 },
+      { name: "مهدي علي", position: "مساعد", id: 7768604796 },
+      { name: "حيدر موسى", position: "مساعد", id: 7765350765 },
+      { name: "حسن صفاء عناد", position: "مساعد", id: 7861980608 },
+      { name: "منتظر عباس نعيم", position: "مساعد", id: 7708767298 },
+      { name: "امير اسعد حسين", position: "مساعد", id: 7867381821 },
+      { name: "محمد علي عزيز", position: "مساعد", id: 7860750721 },
+      { name: "علي مهند ذهب", position: "مساعد", id: 7716010029 },
+      { name: "احمد حيدر كريم", position: "مساعد", id: 7763797493 },
+      { name: "محمد ستار عبد سلمان", position: "مساعد", id: 7752685570 },
+      { name: "رضا عبدالحسن مسعد", position: "مساعد", id: 7871860069 },
+      { name: "عباس عبد الرضا حمدان", position: "قائد", id: 7756511702 },
+      { name: "كرار رياض", position: "قائد", id: 7759730188 },
+      { name: "سجاد رعد ورود", position: "قائد", id: 7747133225 },
+      { name: "مصطفى عماد قاسم", position: "قائد", id: 7764132788 },
+      { name: "احمد مرتضى", position: "قائد", id: 7700343358 },
+      { name: "مومل محمد صالح", position: "قائد", id: 7765694501 },
+      { name: "حر بسام رهيف", position: "قائد", id: 7700330375 }
+    ];
+
+    const listContainer = document.getElementById("listContainer");
+
+    function filterList() {
+      const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+      listContainer.innerHTML = "";
+
+      const matches = people.filter(p => p.name.toLowerCase().includes(searchTerm));
+
+      if (matches.length === 0) {
+        listContainer.innerHTML = "<p>ماكو هيچ موظف حاجي محمد الجواد.</p>";
+        return;
+      }
+
+      matches.forEach(result => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${result.name}</h3>
+          <p><strong>المنصب:</strong> ${result.position}</p>
+          <p><strong>رقم الموظف:</strong> ${result.id}</p>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+  </script>
 
 </body>
 </html>
