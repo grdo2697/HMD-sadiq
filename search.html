@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>صفحة البحث عن موظف</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            margin: 40px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .search-box, .results, .options, .export {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, button {
+            padding: 6px 10px;
+            margin-top: 5px;
+            width: 100%;
+            max-width: 300px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .button-group button {
+            width: auto;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>صفحة البحث عن موظف</h1>
+
+    <div class="search-box">
+        <h2>معايير البحث</h2>
+        <label>اسم الموظف: <input type="text"></label>
+        <label>رقم الموظف: <input type="number"></label>
+        <label>الدرجة الوظيفية:
+            <select>
+                <option>الكل</option>
+                <option>مدير قسم</option>
+                <option>أخصائي أول</option>
+                <option>مشرف عام</option>
+                <option>مساعد إداري</option>
+                <option>فني دعم تقني</option>
+            </select>
+        </label>
+        <label>الحالة:
+            <select>
+                <option>الكل</option>
+                <option>قيد العمل</option>
+                <option>فسخ عقد</option>
+            </select>
+        </label>
+        <div class="button-group">
+            <button>بحث</button>
+            <button>إعادة تعيين</button>
+        </div>
+    </div>
+
+    <div class="results">
+        <h2>نتائج البحث</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>رقم الموظف</th>
+                    <th>اسم الموظف</th>
+                    <th>الدرجة الوظيفية</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1001</td>
+                    <td>محمد أحمد</td>
+                    <td>مدير قسم</td>
+                    <td>قيد العمل</td>
+                </tr>
+                <tr>
+                    <td>1002</td>
+                    <td>فاطمة خالد</td>
+                    <td>أخصائي أول</td>
+                    <td>فسخ عقد</td>
+                </tr>
+                <tr>
+                    <td>1003</td>
+                    <td>عبدالله حسين</td>
+                    <td>مشرف عام</td>
+                    <td>قيد العمل</td>
+                </tr>
+                <tr>
+                    <td>1004</td>
+                    <td>نورة محمد</td>
+                    <td>مساعد إداري</td>
+                    <td>فسخ عقد</td>
+                </tr>
+                <tr>
+                    <td>1005</td>
+                    <td>سالم عبدالعزيز</td>
+                    <td>فني دعم تقني</td>
+                    <td>قيد العمل</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="options">
+        <h2>خيارات إضافية</h2>
+        <p>فرز حسب: [اسم الموظف | رقم الموظف | الدرجة الوظيفية | الحالة]</p>
+        <p>تصفية حسب الدرجة الوظيفية: [كل الدرجات | مدير | أخصائي | مشرف | مساعد | فني]</p>
+    </div>
+
+    <div class="export">
+        <h2>خيارات التصدير والطباعة</h2>
+        <button>طباعة</button>
+        <button>تحميل كـ PDF</button>
+        <button>تحميل كـ Excel</button>
+    </div>
+
+</body>
+</html>
