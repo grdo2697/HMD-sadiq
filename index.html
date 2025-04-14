@@ -1,47 +1,52 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>دليل الموظفين الاحترافي</title>
+  <title>العصر الذكي</title>
   <style>
     :root {
-      --primary: #4f46e5;
-      --secondary: #6366f1;
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
       --background: #f8fafc;
-      --text: #1e293b;
-      --border: #e2e8f0;
-      --hover-bg: #f1f5f9;
-      --button: linear-gradient(135deg, var(--primary), var(--secondary));
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover-bg: #e0f2fe;
+      --accent: #facc15;
     }
+
     .dark-mode {
       --background: #0f172a;
       --text: #f8fafc;
       --border: #334155;
       --hover-bg: #1e293b;
     }
+
     * {
-      font-family: 'Cairo', sans-serif;
+      font-family: 'Cairo', 'Segoe UI', sans-serif;
       box-sizing: border-box;
     }
+
     body {
       background: var(--background);
       color: var(--text);
       margin: 0;
       transition: all 0.3s ease;
     }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem 1rem;
     }
+
     header {
-      background: var(--button);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       padding: 2rem 1rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       border-radius: 0 0 20px 20px;
     }
+
     h1 {
       color: white;
       margin: 0;
@@ -49,6 +54,7 @@
       text-align: center;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
     .controls {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -59,9 +65,13 @@
       border-radius: 12px;
       margin: 2rem 0;
     }
+
     .input-group {
       position: relative;
+      display: flex;
+      align-items: center;
     }
+
     .search-input {
       width: 100%;
       padding: 0.8rem 2.5rem 0.8rem 1rem;
@@ -69,70 +79,96 @@
       border-radius: 8px;
       background: var(--background);
       color: var(--text);
+      transition: all 0.3s ease;
     }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+
     .search-icon {
       position: absolute;
       left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
       color: #64748b;
     }
+
     button {
-      padding: 0.8rem 1.2rem;
+      padding: 0.8rem 1.5rem;
       border: none;
       border-radius: 8px;
-      background: var(--button);
-      color: white;
-      font-weight: bold;
+      background: var(--accent);
+      color: #1e293b;
       cursor: pointer;
-      transition: 0.3s ease;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
     }
+
     button:hover {
-      filter: brightness(1.1);
+      background: #fcd34d;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
+
     select {
       padding: 0.8rem;
       border: 2px solid var(--border);
       border-radius: 8px;
       background: var(--background);
       color: var(--text);
+      width: 100%;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       background: var(--background);
       border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
+
     th, td {
       padding: 1rem;
+      text-align: right;
       border-bottom: 1px solid var(--border);
     }
+
     th {
-      background: rgba(99, 102, 241, 0.1);
+      background: rgba(14, 165, 233, 0.1);
       color: var(--primary);
+      font-weight: 600;
     }
+
     tr:hover {
       background: var(--hover-bg);
     }
-    footer {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #94a3b8;
-      padding: 2rem 1rem;
-    }
+
     .toggle-dark {
       position: fixed;
       top: 1rem;
       left: 1rem;
+      background: var(--background);
+      border: 2px solid var(--border);
       border-radius: 50%;
       width: 40px;
       height: 40px;
       display: grid;
       place-items: center;
-      background: var(--background);
-      border: 2px solid var(--border);
       cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
     }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
@@ -142,22 +178,31 @@
   <header>
     <h1>دليل موظفي الشركة</h1>
   </header>
+  
   <div class="container">
     <div class="controls">
       <div class="input-group">
-        <input type="text" id="search" class="search-input" placeholder="ادخل اسم الموظف للبحث...">
+        <input type="text" id="search" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." 
+               onkeyup="filterEmployees()">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="11" cy="11" r="8" stroke-width="2"/>
           <path d="M21 21l-4.35-4.35" stroke-width="2"/>
         </svg>
       </div>
-      <button onclick="filterEmployees()">🔍 بحث</button>
-      <select id="filter-role" onchange="filterEmployees()"><option value="">كل المناصب</option></select>
-      <select id="filter-status" onchange="filterEmployees()"><option value="">كل الحالات</option></select>
+
+      <select id="filter-role" onchange="filterEmployees()">
+        <option value="">كل المناصب</option>
+      </select>
+
+      <select id="filter-status" onchange="filterEmployees()">
+        <option value="">كل الحالات</option>
+      </select>
+
       <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
       <button onclick="clearTable()">🗑️ مسح الكل</button>
-      <button onclick="window.print()">🖨️ طباعة</button>
+      <button onclick="print()">🖨️ طباعة</button>
     </div>
+
     <table>
       <thead>
         <tr>
@@ -170,9 +215,10 @@
       <tbody id="employee-body"></tbody>
     </table>
   </div>
-  <footer>© جميع الحقوق محفوظة - العصر الذكي 2025</footer>
+
   <script>
     let allEmployees = [];
+
     async function fetchEmployees() {
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
@@ -181,27 +227,40 @@
         displayEmployees(allEmployees);
       } catch (err) {
         alert("فشل تحميل البيانات");
+        console.error(err);
       }
     }
+
     function displayEmployees(data) {
       const tbody = document.getElementById("employee-body");
       tbody.innerHTML = "";
       data.forEach(emp => {
-        const row = `<tr><td>${emp.name}</td><td>${emp.id}</td><td>${emp.role}</td><td>${emp.status}</td></tr>`;
+        const row = `<tr>
+          <td>${emp.name}</td>
+          <td>${emp.id}</td>
+          <td>${emp.role}</td>
+          <td>${emp.status}</td>
+        </tr>`;
         tbody.innerHTML += row;
       });
     }
+
     function filterEmployees() {
       const search = document.getElementById("search").value.toLowerCase();
       const role = document.getElementById("filter-role").value;
       const status = document.getElementById("filter-status").value;
       const filtered = allEmployees.filter(emp => {
-        return emp.name.toLowerCase() === search &&
-          (role === "" || emp.role === role) &&
-          (status === "" || emp.status === status);
+        return (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search))
+          && (role === "" || emp.role === role)
+          && (status === "" || emp.status === status);
       });
       displayEmployees(filtered);
     }
+
+    function clearTable() {
+      document.getElementById("employee-body").innerHTML = "";
+    }
+
     function updateFilters() {
       const roleSelect = document.getElementById("filter-role");
       const statusSelect = document.getElementById("filter-status");
@@ -210,12 +269,11 @@
       roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join("");
       statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join("");
     }
-    function clearTable() {
-      document.getElementById("employee-body").innerHTML = "";
-    }
+
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
+
     fetchEmployees();
   </script>
 </body>
