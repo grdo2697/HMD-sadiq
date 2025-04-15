@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - HMD</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    #user-info {
+      margin-top: 20px;
+      text-align: center;
+    }
+    img {
+      border-radius: 50%;
+    }
+    .login-btn {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>تسجيل الدخول باستخدام Google</h2>
+  <div id="g_id_onload"
+       data-client_id="233861885672-vurt9gu3mqiqr83grq9pl8m6pcrk4b79.apps.googleusercontent.com"
+       data-context="signin"
+       data-ux_mode="popup"
+       data-callback="handleCredentialResponse"
+       data-auto_prompt="false">
+  </div>
+  <div class="g_id_signin" data-type="standard"></div>
+
+  <div id="user-info" style="display:none;">
+    <h3>مرحباً، <span id="user-name"></span>!</h3>
+    <p><strong>البريد:</strong> <span id="user-email"></span></p>
+    <img id="user-image" src="" alt="User Image" width="100">
+  </div>
+
+  <script>
+    function handleCredentialResponse(response) {
+      const data = parseJwt(response.credential);
+      document.getElementById('user-name').textContent = data.name;
+      document.getElementById('user-email').textContent = data.email;
+      document.getElementById('user-image').src = data.picture;
+      document.getElementById('user-info').style.display = 'block';
+    }
+
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    }
+  </script>
+</body>
+</html>
