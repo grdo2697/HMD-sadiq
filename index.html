@@ -4,122 +4,113 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
-      --background: #f8fafc;
+      --accent: #facc15;
+      --background: #f9fafb;
       --text: #0f172a;
       --border: #cbd5e1;
-      --hover-bg: #e0f2fe;
-      --accent: #facc15;
+      --hover: #e0f2fe;
     }
 
     .dark-mode {
       --background: #0f172a;
-      --text: #f8fafc;
+      --text: #f9fafb;
       --border: #334155;
-      --hover-bg: #1e293b;
+      --hover: #1e293b;
     }
 
     * {
-      font-family: 'Cairo', 'Segoe UI', sans-serif;
+      font-family: 'Cairo', sans-serif;
       box-sizing: border-box;
-    }
-
-    body {
-      background: var(--background);
-      color: var(--text);
-      margin: 0;
       transition: all 0.3s ease;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
     }
 
     header {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       padding: 2rem 1rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      border-radius: 0 0 20px 20px;
+      border-radius: 0 0 30px 30px;
+      text-align: center;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
       color: white;
+      font-size: 2.5rem;
       margin: 0;
-      font-size: 2.2rem;
-      text-align: center;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem 1rem;
     }
 
     .controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.5);
       padding: 1.5rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      margin: 2rem 0;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      backdrop-filter: blur(8px);
     }
 
     .input-group {
       position: relative;
-      display: flex;
-      align-items: center;
     }
 
     .search-input {
       width: 100%;
-      padding: 0.8rem 2.5rem 0.8rem 1rem;
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
       border: 2px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       background: var(--background);
       color: var(--text);
-      transition: all 0.3s ease;
-    }
-
-    .search-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+      font-size: 1rem;
     }
 
     .search-icon {
       position: absolute;
       left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
       color: #64748b;
     }
 
-    button {
-      padding: 0.8rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      background: var(--accent);
-      color: #1e293b;
+    select, button {
+      padding: 0.8rem;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      font-size: 1rem;
+      background: var(--background);
+      color: var(--text);
       cursor: pointer;
+    }
+
+    button {
+      background: linear-gradient(to right, var(--accent), #fde047);
+      border: none;
       font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.2s ease;
+      color: #1e293b;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
     button:hover {
-      background: #fcd34d;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    select {
-      padding: 0.8rem;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      background: var(--background);
-      color: var(--text);
-      width: 100%;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     table {
@@ -128,62 +119,66 @@
       background: var(--background);
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     }
 
     th, td {
       padding: 1rem;
-      text-align: right;
       border-bottom: 1px solid var(--border);
+      text-align: right;
     }
 
     th {
       background: rgba(14, 165, 233, 0.1);
       color: var(--primary);
-      font-weight: 600;
     }
 
     tr:hover {
-      background: var(--hover-bg);
+      background-color: var(--hover);
     }
 
     .toggle-dark {
       position: fixed;
       top: 1rem;
       left: 1rem;
+      width: 45px;
+      height: 45px;
       background: var(--background);
+      color: var(--text);
       border: 2px solid var(--border);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
       display: grid;
       place-items: center;
       cursor: pointer;
     }
 
-    @media (max-width: 768px) {
-      .controls {
-        grid-template-columns: 1fr;
-      }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
 
-      h1 {
-        font-size: 1.8rem;
-      }
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .controls { grid-template-columns: 1fr; }
     }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+
   <header>
-    <h1>موظفين شركه العصر الذكي</h1>
+    <h1>موظفين شركة العصر الذكي</h1>
   </header>
-  
+
   <div class="container">
     <div class="controls">
       <div class="input-group">
-        <input type="text" id="search" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." 
-               onkeyup="filterEmployees()">
+        <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="11" cy="11" r="8" stroke-width="2"/>
           <path d="M21 21l-4.35-4.35" stroke-width="2"/>
@@ -215,6 +210,10 @@
       <tbody id="employee-body"></tbody>
     </table>
   </div>
+
+  <footer>
+    جميع الحقوق محفوظة &copy; <span id="year"></span> |لدى- محمد الجواد
+  </footer>
 
   <script>
     let allEmployees = [];
@@ -249,11 +248,11 @@
       const search = document.getElementById("search").value.toLowerCase();
       const role = document.getElementById("filter-role").value;
       const status = document.getElementById("filter-status").value;
-      const filtered = allEmployees.filter(emp => {
-        return (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search))
-          && (role === "" || emp.role === role)
-          && (status === "" || emp.status === status);
-      });
+      const filtered = allEmployees.filter(emp =>
+        (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search)) &&
+        (role === "" || emp.role === role) &&
+        (status === "" || emp.status === status)
+      );
       displayEmployees(filtered);
     }
 
@@ -266,6 +265,7 @@
       const statusSelect = document.getElementById("filter-status");
       const roles = [...new Set(allEmployees.map(e => e.role))];
       const statuses = [...new Set(allEmployees.map(e => e.status))];
+
       roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join("");
       statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join("");
     }
@@ -274,6 +274,7 @@
       document.body.classList.toggle("dark-mode");
     }
 
+    document.getElementById("year").textContent = new Date().getFullYear();
     fetchEmployees();
   </script>
 </body>
