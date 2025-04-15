@@ -6,165 +6,83 @@
   <title>العصر الذكي - الموظفين</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #0ea5e9;
-      --secondary: #38bdf8;
-      --accent: #facc15;
-      --background: #f9fafb;
-      --text: #0f172a;
-      --border: #cbd5e1;
-      --hover: #e0f2fe;
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      color: #1e293b;
     }
 
     .dark-mode {
-      --background: #0f172a;
-      --text: #f9fafb;
-      --border: #334155;
-      --hover: #1e293b;
-    }
-
-    * {
-      font-family: 'Cairo', sans-serif;
-      box-sizing: border-box;
-      transition: all 0.3s ease;
-    }
-
-    body {
-      margin: 0;
-      background: var(--background);
-      color: var(--text);
+      background-color: #0f172a;
+      color: #f1f5f9;
     }
 
     header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      padding: 2rem 1rem;
-      border-radius: 0 0 30px 30px;
-      text-align: center;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
+      background-color: #0ea5e9;
       color: white;
-      font-size: 2.5rem;
-      margin: 0;
-      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
     }
 
     .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 2rem 1rem;
+      padding: 1rem;
     }
 
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      backdrop-filter: blur(8px);
-    }
-
-    .input-group {
-      position: relative;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 0.8rem 1rem 0.8rem 2.5rem;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      background: var(--background);
-      color: var(--text);
+    input, select, button {
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
       font-size: 1rem;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #64748b;
-    }
-
-    select, button {
-      padding: 0.8rem;
-      border-radius: 10px;
-      border: 2px solid var(--border);
-      font-size: 1rem;
-      background: var(--background);
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    button {
-      background: linear-gradient(to right, var(--accent), #fde047);
-      border: none;
-      font-weight: bold;
-      color: #1e293b;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: var(--background);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      margin-top: 1rem;
     }
 
     th, td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-      text-align: right;
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      text-align: center;
     }
 
     th {
-      background: rgba(14, 165, 233, 0.1);
-      color: var(--primary);
+      background-color: #38bdf8;
+      color: white;
     }
 
-    tr:hover {
-      background-color: var(--hover);
+    tr:nth-child(even) {
+      background-color: #f1f5f9;
+    }
+
+    .dark-mode table {
+      border-color: #334155;
+    }
+
+    .dark-mode tr:nth-child(even) {
+      background-color: #1e293b;
+    }
+
+    .dark-mode th {
+      background-color: #0284c7;
     }
 
     .toggle-dark {
       position: fixed;
       top: 1rem;
       left: 1rem;
-      width: 45px;
-      height: 45px;
-      background: var(--background);
-      color: var(--text);
-      border: 2px solid var(--border);
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
+      background-color: #0ea5e9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
       cursor: pointer;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background: var(--background);
-      color: var(--text);
-      font-size: 0.9rem;
-      border-top: 1px solid var(--border);
-      margin-top: 2rem;
-    }
-
-    @media (max-width: 768px) {
-      h1 { font-size: 2rem; }
-      .controls { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -176,106 +94,108 @@
   </header>
 
   <div class="container">
-    <div class="controls">
-      <div class="input-group">
-        <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8" stroke-width="2"/>
-          <path d="M21 21l-4.35-4.35" stroke-width="2"/>
-        </svg>
-      </div>
+    <input type="text" id="searchInput" placeholder="ابحث باسم الموظف" onkeydown="if(event.key==='Enter'){search()}">
+    <select id="filterStatus" onchange="filterTable()">
+      <option value="">كل الحالات</option>
+      <option value="دوام">دوام</option>
+      <option value="مجاز">مجاز</option>
+      <option value="موقوف">موقوف</option>
+      <option value="مطرود">مطرود</option>
+    </select>
+    <select id="filterJob" onchange="filterTable()">
+      <option value="">كل المناصب</option>
+      <option value="مبرمج">مبرمج</option>
+      <option value="مدير">مدير</option>
+      <option value="مشرف">مشرف</option>
+    </select>
+    <button onclick="clearFilters()">مسح الكل</button>
+    <button onclick="logout()">🚪 تسجيل الخروج</button>
 
-      <select id="filter-role" onchange="filterEmployees()">
-        <option value="">كل المناصب</option>
-      </select>
-
-      <select id="filter-status" onchange="filterEmployees()">
-        <option value="">كل الحالات</option>
-      </select>
-
-      <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
-      <button onclick="clearTable()">🗑️ مسح الكل</button>
-      <button onclick="print()">🖨️ طباعة</button>
-    </div>
-
-    <table>
+    <table id="employeesTable">
       <thead>
         <tr>
           <th>اسم الموظف</th>
-          <th>الرقم</th>
+          <th>رقم الموظف</th>
           <th>المنصب</th>
           <th>الحالة</th>
         </tr>
       </thead>
-      <tbody id="employee-body"></tbody>
+      <tbody id="tableBody"></tbody>
     </table>
   </div>
 
-  <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> |لدى- محمد الجواد
-  </footer>
-
   <script>
-    let allEmployees = [];
+    // فحص تسجيل الدخول
+    const username = localStorage.getItem("username");
+    const password = localStorage.getItem("password");
 
-    async function fetchEmployees() {
-      try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
-        allEmployees = await res.json();
-        updateFilters();
-        displayEmployees(allEmployees);
-      } catch (err) {
-        alert("فشل تحميل البيانات");
-        console.error(err);
-      }
+    if (!username || !password) {
+      window.location.href = "login.html";
     }
 
-    function displayEmployees(data) {
-      const tbody = document.getElementById("employee-body");
-      tbody.innerHTML = "";
-      data.forEach(emp => {
-        const row = `<tr>
-          <td>${emp.name}</td>
-          <td>${emp.id}</td>
-          <td>${emp.role}</td>
-          <td>${emp.status}</td>
-        </tr>`;
-        tbody.innerHTML += row;
-      });
+    function logout() {
+      localStorage.removeItem("username");
+      localStorage.removeItem("password");
+      window.location.href = "login.html";
     }
 
-    function filterEmployees() {
-      const search = document.getElementById("search").value.toLowerCase();
-      const role = document.getElementById("filter-role").value;
-      const status = document.getElementById("filter-status").value;
-      const filtered = allEmployees.filter(emp =>
-        (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search)) &&
-        (role === "" || emp.role === role) &&
-        (status === "" || emp.status === status)
-      );
-      displayEmployees(filtered);
-    }
-
-    function clearTable() {
-      document.getElementById("employee-body").innerHTML = "";
-    }
-
-    function updateFilters() {
-      const roleSelect = document.getElementById("filter-role");
-      const statusSelect = document.getElementById("filter-status");
-      const roles = [...new Set(allEmployees.map(e => e.role))];
-      const statuses = [...new Set(allEmployees.map(e => e.status))];
-
-      roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join("");
-      statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join("");
-    }
-
+    // الوضع الليلي
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
 
-    document.getElementById("year").textContent = new Date().getFullYear();
-    fetchEmployees();
+    // تحميل البيانات من Google Sheets
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec";
+
+    fetch(scriptURL)
+      .then(res => res.json())
+      .then(data => renderTable(data))
+      .catch(err => console.error("Error loading data", err));
+
+    function renderTable(data) {
+      const tableBody = document.getElementById("tableBody");
+      tableBody.innerHTML = "";
+      data.forEach(emp => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${emp.name}</td>
+          <td>${emp.number}</td>
+          <td>${emp.job}</td>
+          <td>${emp.status}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function search() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const rows = document.querySelectorAll("#tableBody tr");
+      rows.forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        row.style.display = name.includes(query) ? "" : "none";
+      });
+    }
+
+    function filterTable() {
+      const statusFilter = document.getElementById("filterStatus").value;
+      const jobFilter = document.getElementById("filterJob").value;
+      const rows = document.querySelectorAll("#tableBody tr");
+      rows.forEach(row => {
+        const job = row.cells[2].textContent;
+        const status = row.cells[3].textContent;
+        const matchJob = !jobFilter || job === jobFilter;
+        const matchStatus = !statusFilter || status === statusFilter;
+        row.style.display = matchJob && matchStatus ? "" : "none";
+      });
+    }
+
+    function clearFilters() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("filterStatus").value = "";
+      document.getElementById("filterJob").value = "";
+      search();
+      filterTable();
+    }
   </script>
 </body>
 </html>
