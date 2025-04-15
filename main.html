@@ -169,13 +169,6 @@
   </style>
 </head>
 <body>
-  <!-- ✅ كود التحقق من وجود اليوزر -->
-  <script>
-    if (!localStorage.getItem("username") || !localStorage.getItem("password")) {
-      window.location.href = "login.html";
-    }
-  </script>
-
   <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
 
   <header>
@@ -223,6 +216,14 @@
   </footer>
 
   <script>
+    // ✅ التحقق من اليوزر والباسورد
+    const username = localStorage.getItem("username");
+    const password = localStorage.getItem("password");
+
+    if (!username || !password) {
+      window.location.href = "login.html";
+    }
+
     let allEmployees = [];
 
     async function fetchEmployees() {
