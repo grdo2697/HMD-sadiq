@@ -1,85 +1,76 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تسجيل الدخول - شركة العصر الذكي</title>
+  <meta charset="UTF-8">
+  <title>تسجيل الدخول - العصر الذكي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: 'Arial', sans-serif;
       background-color: #f3f4f6;
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
+      font-family: sans-serif;
     }
-
-    .login-container {
-      background-color: white;
+    .box {
+      background: white;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 90%;
       max-width: 400px;
       text-align: center;
-      direction: rtl;
     }
-
     h2 {
       margin-bottom: 20px;
-      color: #333;
     }
-
     input {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
       border-radius: 8px;
       font-size: 16px;
     }
-
     button {
       background-color: #0284c7;
       color: white;
       border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
+      padding: 12px;
       width: 100%;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
-
     button:hover {
       background-color: #0369a1;
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
+  <div class="box">
     <h2>تسجيل الدخول</h2>
-    <form onsubmit="return loginUser()">
-      <input type="email" id="email" placeholder="البريد الإلكتروني" required />
-      <input type="password" id="password" placeholder="كلمة المرور" required />
-      <button type="submit">تسجيل الدخول</button>
+    <form onsubmit="return login()">
+      <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+      <input type="password" id="password" placeholder="كلمة المرور" required>
+      <button type="submit">دخول</button>
     </form>
   </div>
 
   <script>
-    function loginUser() {
+    function login() {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      // تحقق مؤقت (تقدر تغيره لاحقًا)
       if (email === "admin@alasr.com" && password === "123456") {
-        // تحويل لواجهة الموظفين
-        window.location.href = "index.html"; // أو أي صفحة واجهة ثانية عندك
+        window.location.href = "index.html";
       } else {
-        alert("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+        alert("بيانات الدخول غير صحيحة");
       }
 
-      return false; // يمنع إعادة تحميل الصفحة
+      return false;
     }
   </script>
 </body>
