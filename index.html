@@ -323,6 +323,12 @@
       window.location.href = "https://grdo2697.github.io/HMD-sadiq/ratings.html";  // الانتقال لصفحة التقييمات
     }
 
+    // دالة لتسجيل الخروج
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";  // العودة إلى صفحة تسجيل الدخول
+    }
+
     document.getElementById("year").textContent = new Date().getFullYear();
     fetchEmployees();
   </script>
