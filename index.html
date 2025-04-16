@@ -195,7 +195,7 @@
 
       <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
       <button onclick="clearTable()">🗑️ مسح الكل</button>
-      <button onclick="print()">🖨️ طباعة</button>
+      <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
     </div>
 
     <table>
@@ -215,7 +215,6 @@
     جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
   </footer>
 
-  <!-- 🔒 حماية الوصول -->
   <script>
     const allowedUsers = [
       { username: "siana", password: "Aa112233" },
@@ -234,9 +233,12 @@
       localStorage.clear();
       window.location.href = "login.html";
     }
-  </script>
 
-  <script>
+    // ✅ زر التنزيل يظهر فقط لليوزر hr
+    if (user === "hr") {
+      document.getElementById("excelBtn").style.display = "inline-block";
+    }
+
     let allEmployees = [];
 
     async function fetchEmployees() {
@@ -293,6 +295,24 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
+    }
+
+    function downloadExcel() {
+      const table = document.querySelector("table");
+      let csv = "";
+      const rows = table.querySelectorAll("tr");
+      for (let row of rows) {
+        let cols = row.querySelectorAll("th, td");
+        let rowData = Array.from(cols).map(col => `"${col.innerText}"`).join(",");
+        csv += rowData + "\n";
+      }
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "employees.csv");
+      link.click();
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
