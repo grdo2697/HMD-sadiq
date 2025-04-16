@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>عرض التقييمات</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تقييمات الموظفين</title>
   <style>
     body {
-      font-family: 'Cairo', sans-serif;
-      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      background-color: #f9f9f9;
       color: #333;
       padding: 20px;
     }
@@ -16,97 +16,116 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      text-align: right;
     }
     th, td {
       padding: 10px;
-      border: 1px solid #ccc;
+      text-align: right;
+      border: 1px solid #ddd;
     }
     th {
       background-color: #f2f2f2;
     }
-    .dark-mode {
-      background-color: #121212;
-      color: white;
-    }
-    .toggle-dark {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      padding: 10px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
-
-  <header>
-    <h1>عرض التقييمات</h1>
-  </header>
-
-  <table id="reviews-table">
+  <h1>تقييمات الموظفين</h1>
+  
+  <table id="reviewsTable">
     <thead>
       <tr>
         <th>اسم الموظف</th>
         <th>القسم</th>
         <th>الدرجة الوظيفية</th>
         <th>التقييم الكلي</th>
-        <th>التقييم حسب عدد العمليات</th>
+        <th>التقييم حسب العمليات</th>
         <th>عدد أيام التقييم</th>
       </tr>
     </thead>
     <tbody>
-      <!-- التقييمات ستظهر هنا -->
+      <!-- البيانات ستظهر هنا -->
     </tbody>
   </table>
 
-  <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
-  </footer>
+  <h2>إضافة تقييم جديد</h2>
+  <form id="reviewForm">
+    <label for="name">اسم الموظف:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="department">القسم:</label><br>
+    <input type="text" id="department" name="department" required><br><br>
+
+    <label for="jobGrade">الدرجة الوظيفية:</label><br>
+    <input type="number" id="jobGrade" name="jobGrade" required><br><br>
+
+    <label for="overallRating">التقييم الكلي:</label><br>
+    <input type="number" id="overallRating" name="overallRating" required><br><br>
+
+    <label for="operationRating">التقييم حسب العمليات:</label><br>
+    <input type="number" id="operationRating" name="operationRating" required><br><br>
+
+    <label for="ratingDays">عدد أيام التقييم:</label><br>
+    <input type="number" id="ratingDays" name="ratingDays" required><br><br>
+
+    <button type="submit">إضافة التقييم</button>
+  </form>
 
   <script>
-    // تحقق من تسجيل دخول المستخدم
-    const user = localStorage.getItem("username");
-    if (user !== "hr") {
-      window.location.href = "login.html";  // إعادة توجيه المستخدمين غير "hr" إلى صفحة تسجيل الدخول
+    // دالة لتحميل التقييمات من Google Sheets
+    function loadReviews() {
+      fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec")
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.getElementById("reviewsTable").getElementsByTagName('tbody')[0];
+          data.forEach(review => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+              <td>${review.name}</td>
+              <td>${review.department}</td>
+              <td>${review.jobGrade}</td>
+              <td>${review.overallRating}</td>
+              <td>${review.operationRating}</td>
+              <td>${review.ratingDays}</td>
+            `;
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching reviews:', error);
+        });
     }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
-    }
+    // دالة لإرسال البيانات إلى Google Apps Script عبر POST
+    document.getElementById('reviewForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const data = {
+        name: document.getElementById('name').value,
+        department: document.getElementById('department').value,
+        jobGrade: document.getElementById('jobGrade').value,
+        overallRating: document.getElementById('overallRating').value,
+        operationRating: document.getElementById('operationRating').value,
+        ratingDays: document.getElementById('ratingDays').value
+      };
 
-    async function fetchReviews() {
-      try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
-        const reviews = await res.json();
-        displayReviews(reviews);
-      } catch (err) {
-        alert("فشل تحميل التقييمات");
-        console.error(err);
-      }
-    }
-
-    function displayReviews(reviews) {
-      const tbody = document.getElementById("reviews-table").getElementsByTagName("tbody")[0];
-      reviews.forEach(review => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${review.name}</td>
-          <td>${review.department}</td>
-          <td>${review.jobGrade}</td>
-          <td>${review.overallRating}</td>
-          <td>${review.operationRating}</td>
-          <td>${review.ratingDays}</td>
-        `;
-        tbody.appendChild(row);
+      fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.text())
+      .then(text => {
+        alert(text);  // إشعار للمستخدم أنه تم إضافة التقييم بنجاح
+        loadReviews();  // تحديث التقييمات
+        document.getElementById('reviewForm').reset();  // إعادة تعيين النموذج
+      })
+      .catch(error => {
+        console.error('Error posting review:', error);
       });
-    }
+    });
 
-    // عرض التقييمات عند تحميل الصفحة
-    fetchReviews();
-
-    document.getElementById("year").textContent = new Date().getFullYear();
+    // تحميل التقييمات عند تحميل الصفحة
+    window.onload = loadReviews;
   </script>
 </body>
 </html>
