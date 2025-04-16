@@ -122,7 +122,7 @@
     <h1>عرض التقييمات</h1>
   </header>
 
-  <div class="container">
+  <div class="container" id="reviews-container" style="display: none;">
     <div class="controls">
       <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
       <input type="text" id="searchInput" placeholder="بحث...">
@@ -149,6 +149,16 @@
   </footer>
 
   <script>
+    // التحقق من صلاحية الوصول
+    const userRole = localStorage.getItem("userRole"); // الحصول على الدور من LocalStorage
+    if (userRole !== "hr") {
+      alert("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
+      window.location.href = "index.html"; // التحويل إلى صفحة أخرى إذا لم يكن "hr"
+    } else {
+      document.getElementById("reviews-container").style.display = "block"; // عرض التقييمات إذا كان "hr"
+      fetchReviews();  // جلب التقييمات عند تحميل الصفحة
+    }
+
     async function fetchReviews() {
       try {
         const response = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
@@ -162,7 +172,6 @@
 
     function displayReviews(reviews) {
       const tbody = document.getElementById("reviews-body");
-      tbody.innerHTML = "";  // إفراغ المحتوى الحالي
       reviews.forEach(review => {
         const row = `
           <tr>
@@ -209,7 +218,6 @@
     document.getElementById("searchInput").addEventListener("input", searchReviews);
 
     document.getElementById("year").textContent = new Date().getFullYear();
-    fetchReviews();  // جلب التقييمات عند تحميل الصفحة
   </script>
 </body>
 </html>
