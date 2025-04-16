@@ -212,8 +212,28 @@
   </div>
 
   <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> |لدى- محمد الجواد
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
   </footer>
+
+  <!-- 🔒 حماية الوصول -->
+  <script>
+    const allowedUsers = [
+      { username: "admin", password: "1234" },
+      { username: "user1", password: "1111" },
+      { username: "user2", password: "2222" },
+      { username: "sajad", password: "2025" }
+    ];
+
+    const user = localStorage.getItem("username");
+    const pass = localStorage.getItem("password");
+
+    const valid = allowedUsers.find(u => u.username === user && u.password === pass);
+
+    if (!valid) {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
 
   <script>
     let allEmployees = [];
