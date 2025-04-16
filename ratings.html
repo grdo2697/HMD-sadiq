@@ -15,7 +15,106 @@
     header {
       background: linear-gradient(135deg, #0ea5e9, #38bdf8);
       color: white;
-      padding: 2rem;
+      padding: 2rem;<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تقييمات الموظفين</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    .back {
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>تقييمات الموظفين</h1>
+
+  <div id="notAllowed" class="hidden">
+    <p>❌ هذه الصفحة مخصصة للـ HR فقط</p>
+  </div>
+
+  <div id="ratingsSection" class="hidden">
+    <table id="ratingsTable">
+      <thead>
+        <tr>
+          <th>اسم الموظف</th>
+          <th>الأداء</th>
+          <th>السلوك</th>
+          <th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="back">
+    <a href="index.html">🔙 رجوع إلى الصفحة الرئيسية</a>
+  </div>
+
+  <script>
+    const user = localStorage.getItem("user");
+
+    if (user === "hr") {
+      document.getElementById("ratingsSection").classList.remove("hidden");
+
+      fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec")
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector("#ratingsTable tbody");
+          data.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${row.name}</td>
+              <td>${row.performance}</td>
+              <td>${row.behavior}</td>
+              <td>${row.notes}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }).catch(err => {
+          alert("حدث خطأ أثناء تحميل البيانات");
+          console.error(err);
+        });
+    } else {
+      document.getElementById("notAllowed").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
+
       text-align: center;
       border-radius: 0 0 30px 30px;
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
