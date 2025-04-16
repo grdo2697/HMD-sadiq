@@ -305,25 +305,4 @@
       const rows = table.querySelectorAll("tr");
       for (let row of rows) {
         let cols = row.querySelectorAll("th, td");
-        let rowData = Array.from(cols).map(col => `"${col.innerText}"`).join(",");
-        csv += rowData + "\n";
-      }
-
-      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "employees.csv");
-      link.click();
-    }
-
-    // دالة لعرض التقييمات
-    function viewReviews() {
-      alert("عرض التقييمات سيتم هنا.");
-    }
-
-    document.getElementById("year").textContent = new Date().getFullYear();
-    fetchEmployees();
-  </script>
-</body>
-</html>
+        let rowData = Array.from(cols).map(col => `"${col.innerText
