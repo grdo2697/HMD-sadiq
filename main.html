@@ -212,14 +212,21 @@
   </div>
 
   <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> |لدى- محمد الجواد
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
   </footer>
 
   <script>
-    // ✅ التحقق إذا اليوزر والباسورد موجودين، إذا لا رجع المستخدم إلى صفحة تسجيل الدخول
+    // ✅ تحقق من تسجيل الدخول أولاً
     if (!localStorage.getItem("username") || !localStorage.getItem("password")) {
       window.location.href = "login.html";
     }
+
+    // ✅ مراقبة مستمرة لتسجيل الدخول
+    setInterval(() => {
+      if (!localStorage.getItem("username") || !localStorage.getItem("password")) {
+        window.location.href = "login.html";
+      }
+    }, 1000);
 
     let allEmployees = [];
 
