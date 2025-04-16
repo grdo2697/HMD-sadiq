@@ -1,131 +1,171 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تقييمات الموظفين</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>عرض التقييمات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      direction: rtl;
-      background-color: #f9f9f9;
-      color: #333;
-      padding: 20px;
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --accent: #facc15;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
     }
+
+    .dark-mode {
+      --background: #0f172a;
+      --text: #f9fafb;
+      --border: #334155;
+      --hover: #1e293b;
+    }
+
+    * {
+      font-family: 'Cairo', sans-serif;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2rem 1rem;
+      border-radius: 0 0 30px 30px;
+      text-align: center;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin: 0;
+      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem 1rem;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      background: var(--background);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     }
+
     th, td {
-      padding: 10px;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
       text-align: right;
-      border: 1px solid #ddd;
     }
+
     th {
-      background-color: #f2f2f2;
+      background: rgba(14, 165, 233, 0.1);
+      color: var(--primary);
+    }
+
+    tr:hover {
+      background-color: var(--hover);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    .back-button {
+      background: var(--primary);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .back-button:hover {
+      background: var(--secondary);
     }
   </style>
 </head>
 <body>
-  <h1>تقييمات الموظفين</h1>
-  
-  <table id="reviewsTable">
-    <thead>
-      <tr>
-        <th>اسم الموظف</th>
-        <th>القسم</th>
-        <th>الدرجة الوظيفية</th>
-        <th>التقييم الكلي</th>
-        <th>التقييم حسب العمليات</th>
-        <th>عدد أيام التقييم</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- البيانات ستظهر هنا -->
-    </tbody>
-  </table>
+  <header>
+    <h1>تقييمات الموظفين</h1>
+  </header>
 
-  <h2>إضافة تقييم جديد</h2>
-  <form id="reviewForm">
-    <label for="name">اسم الموظف:</label><br>
-    <input type="text" id="name" name="name" required><br><br>
+  <div class="container">
+    <button class="back-button" onclick="window.location.href='index.html'">رجوع إلى موظفين الشركة</button>
 
-    <label for="department">القسم:</label><br>
-    <input type="text" id="department" name="department" required><br><br>
+    <table>
+      <thead>
+        <tr>
+          <th>اسم الموظف</th>
+          <th>التقييم</th>
+          <th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody id="reviews-body"></tbody>
+    </table>
+  </div>
 
-    <label for="jobGrade">الدرجة الوظيفية:</label><br>
-    <input type="number" id="jobGrade" name="jobGrade" required><br><br>
-
-    <label for="overallRating">التقييم الكلي:</label><br>
-    <input type="number" id="overallRating" name="overallRating" required><br><br>
-
-    <label for="operationRating">التقييم حسب العمليات:</label><br>
-    <input type="number" id="operationRating" name="operationRating" required><br><br>
-
-    <label for="ratingDays">عدد أيام التقييم:</label><br>
-    <input type="number" id="ratingDays" name="ratingDays" required><br><br>
-
-    <button type="submit">إضافة التقييم</button>
-  </form>
+  <footer>
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
+  </footer>
 
   <script>
-    // دالة لتحميل التقييمات من Google Sheets
-    function loadReviews() {
-      fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec")
-        .then(response => response.json())
-        .then(data => {
-          const tableBody = document.getElementById("reviewsTable").getElementsByTagName('tbody')[0];
-          data.forEach(review => {
-            const row = tableBody.insertRow();
-            row.innerHTML = `
-              <td>${review.name}</td>
-              <td>${review.department}</td>
-              <td>${review.jobGrade}</td>
-              <td>${review.overallRating}</td>
-              <td>${review.operationRating}</td>
-              <td>${review.ratingDays}</td>
-            `;
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching reviews:', error);
-        });
+    const user = localStorage.getItem("username");
+
+    // التأكد من المستخدم
+    if (user !== "hr") {
+      window.location.href = "login.html";
     }
 
-    // دالة لإرسال البيانات إلى Google Apps Script عبر POST
-    document.getElementById('reviewForm').addEventListener('submit', function(event) {
-      event.preventDefault();
-      
-      const data = {
-        name: document.getElementById('name').value,
-        department: document.getElementById('department').value,
-        jobGrade: document.getElementById('jobGrade').value,
-        overallRating: document.getElementById('overallRating').value,
-        operationRating: document.getElementById('operationRating').value,
-        ratingDays: document.getElementById('ratingDays').value
-      };
+    let allReviews = [];
 
-      fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.text())
-      .then(text => {
-        alert(text);  // إشعار للمستخدم أنه تم إضافة التقييم بنجاح
-        loadReviews();  // تحديث التقييمات
-        document.getElementById('reviewForm').reset();  // إعادة تعيين النموذج
-      })
-      .catch(error => {
-        console.error('Error posting review:', error);
+    async function fetchReviews() {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec");
+        allReviews = await res.json();
+        displayReviews(allReviews);
+      } catch (err) {
+        alert("فشل تحميل البيانات");
+        console.error(err);
+      }
+    }
+
+    function displayReviews(data) {
+      const tbody = document.getElementById("reviews-body");
+      tbody.innerHTML = "";
+      data.forEach(review => {
+        const row = `<tr>
+          <td>${review.name}</td>
+          <td>${review.rating}</td>
+          <td>${review.comments}</td>
+        </tr>`;
+        tbody.innerHTML += row;
       });
-    });
+    }
 
-    // تحميل التقييمات عند تحميل الصفحة
-    window.onload = loadReviews;
+    document.getElementById("year").textContent = new Date().getFullYear();
+    fetchReviews();
   </script>
 </body>
 </html>
