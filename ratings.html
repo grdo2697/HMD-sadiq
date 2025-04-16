@@ -56,6 +56,25 @@
       padding: 2rem 1rem;
     }
 
+    .controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--secondary);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -89,37 +108,27 @@
       border-top: 1px solid var(--border);
       margin-top: 2rem;
     }
-
-    .back-button {
-      background: var(--primary);
-      color: white;
-      padding: 0.8rem 1.5rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-bottom: 2rem;
-      font-size: 1rem;
-    }
-
-    .back-button:hover {
-      background: var(--secondary);
-    }
   </style>
 </head>
 <body>
   <header>
-    <h1>تقييمات الموظفين</h1>
+    <h1>عرض التقييمات</h1>
   </header>
 
   <div class="container">
-    <button class="back-button" onclick="window.location.href='index.html'">رجوع إلى موظفين الشركة</button>
+    <div class="controls">
+      <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
+    </div>
 
     <table>
       <thead>
         <tr>
           <th>اسم الموظف</th>
-          <th>التقييم</th>
-          <th>ملاحظات</th>
+          <th>القسم</th>
+          <th>الدرجة الوظيفية</th>
+          <th>التقييم الكلي</th>
+          <th>التقييم حسب عدد العمليات</th>
+          <th>عدد أيام التقييم</th>
         </tr>
       </thead>
       <tbody id="reviews-body"></tbody>
@@ -131,41 +140,37 @@
   </footer>
 
   <script>
-    const user = localStorage.getItem("username");
-
-    // التأكد من المستخدم
-    if (user !== "hr") {
-      window.location.href = "login.html";
-    }
-
-    let allReviews = [];
-
     async function fetchReviews() {
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec");
-        allReviews = await res.json();
-        displayReviews(allReviews);
-      } catch (err) {
-        alert("فشل تحميل البيانات");
-        console.error(err);
+        const response = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
+        const reviews = await response.json();
+        displayReviews(reviews);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        alert("حدث خطأ أثناء جلب التقييمات.");
       }
     }
 
-    function displayReviews(data) {
+    function displayReviews(reviews) {
       const tbody = document.getElementById("reviews-body");
-      tbody.innerHTML = "";
-      data.forEach(review => {
-        const row = `<tr>
-          <td>${review.name}</td>
-          <td>${review.rating}</td>
-          <td>${review.comments}</td>
-        </tr>`;
+      tbody.innerHTML = "";  // إفراغ المحتوى الحالي
+      reviews.forEach(review => {
+        const row = `
+          <tr>
+            <td>${review.name}</td>
+            <td>${review.department}</td>
+            <td>${review.jobGrade}</td>
+            <td>${review.overallRating}</td>
+            <td>${review.operationRating}</td>
+            <td>${review.ratingDays}</td>
+          </tr>
+        `;
         tbody.innerHTML += row;
       });
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
-    fetchReviews();
+    fetchReviews();  // جلب التقييمات عند تحميل الصفحة
   </script>
 </body>
 </html>
