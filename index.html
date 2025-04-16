@@ -196,9 +196,7 @@
       <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
       <button onclick="clearTable()">🗑️ مسح الكل</button>
       <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
-      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button>
-      <!-- زر تسجيل الخروج -->
-      <button onclick="logout()">🚪 تسجيل الخروج</button>
+      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button> <!-- زر التقييمات -->
     </div>
 
     <table>
@@ -219,14 +217,113 @@
   </footer>
 
   <script>
-    // كود تسجيل الخروج
-    function logout() {
+    const allowedUsers = [
+      { username: "siana", password: "Aa112233" },
+      { username: "Corleone", password: "20032003" },      
+      { username: "sales", password: "Aa332211" },
+      { username: "trke", password: "Aa1122335" },
+      { username: "hr", password: "102030" }
+    ];
+
+    const user = localStorage.getItem("username");
+    const pass = localStorage.getItem("password");
+
+    const valid = allowedUsers.find(u => u.username === user && u.password === pass);
+
+    if (!valid) {
       localStorage.clear();
       window.location.href = "login.html";
     }
 
-    // باقي السكربتات موجودة هنا...
+    // ✅ زر التنزيل وزر التقييمات يظهر فقط لليوزر hr
+    if (user === "hr") {
+      document.getElementById("excelBtn").style.display = "inline-block";
+      document.getElementById("reviewBtn").style.display = "inline-block";  // عرض زر التقييمات
+    }
 
+    let allEmployees = [];
+
+    async function fetchEmployees() {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
+        allEmployees = await res.json();
+        updateFilters();
+        displayEmployees(allEmployees);
+      } catch (err) {
+        alert("فشل تحميل البيانات");
+        console.error(err);
+      }
+    }
+
+    function displayEmployees(data) {
+      const tbody = document.getElementById("employee-body");
+      tbody.innerHTML = "";
+      data.forEach(emp => {
+        const row = `<tr>
+          <td>${emp.name}</td>
+          <td>${emp.id}</td>
+          <td>${emp.role}</td>
+          <td>${emp.status}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function filterEmployees() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const role = document.getElementById("filter-role").value;
+      const status = document.getElementById("filter-status").value;
+      const filtered = allEmployees.filter(emp =>
+        (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search)) &&
+        (role === "" || emp.role === role) &&
+        (status === "" || emp.status === status)
+      );
+      displayEmployees(filtered);
+    }
+
+    function clearTable() {
+      document.getElementById("employee-body").innerHTML = "";
+    }
+
+    function updateFilters() {
+      const roleSelect = document.getElementById("filter-role");
+      const statusSelect = document.getElementById("filter-status");
+      const roles = [...new Set(allEmployees.map(e => e.role))];
+      const statuses = [...new Set(allEmployees.map(e => e.status))];
+
+      roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join("");
+      statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join("");
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function downloadExcel() {
+      const table = document.querySelector("table");
+      let csv = "";
+      const rows = table.querySelectorAll("tr");
+      for (let row of rows) {
+        let cols = row.querySelectorAll("th, td");
+        let rowData = Array.from(cols).map(col => `"${col.innerText}"`).join(",");
+        csv += rowData + "\n";
+      }
+
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "employees.csv");
+      link.click();
+    }
+
+    // دالة لعرض التقييمات
+    function viewReviews() {
+      window.location.href = "https://grdo2697.github.io/HMD-sadiq/ratings.html";  // الانتقال لصفحة التقييمات
+    }
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+    fetchEmployees();
   </script>
 </body>
 </html>
