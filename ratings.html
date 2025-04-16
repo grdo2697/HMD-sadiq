@@ -75,6 +75,13 @@
       background: var(--secondary);
     }
 
+    input {
+      padding: 0.5rem;
+      margin: 0 1rem;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -117,8 +124,9 @@
 
   <div class="container">
     <div class="controls">
-      <!-- تعديل الرابط هنا -->
-      <button onclick="window.location.href='https://grdo2697.github.io/HMD-sadiq/ratings.html'">رجوع إلى موظفي الشركة</button>
+      <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
+      <input type="text" id="searchInput" placeholder="بحث...">
+      <button onclick="exportToExcel()">تصدير إلى Excel</button>
     </div>
 
     <table>
@@ -169,6 +177,36 @@
         tbody.innerHTML += row;
       });
     }
+
+    function searchReviews() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        const department = row.cells[1].textContent.toLowerCase();
+        if (name.includes(searchInput) || department.includes(searchInput)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    function exportToExcel() {
+      const table = document.querySelector('table');
+      const rows = Array.from(table.rows);
+      const csvData = rows.map(row => {
+        return Array.from(row.cells).map(cell => cell.textContent).join(',');
+      }).join('\n');
+
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'reviews.csv';
+      link.click();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", searchReviews);
 
     document.getElementById("year").textContent = new Date().getFullYear();
     fetchReviews();  // جلب التقييمات عند تحميل الصفحة
