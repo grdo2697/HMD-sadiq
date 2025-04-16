@@ -3,201 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تقييمات الموظفين - العصر الذكي</title>
+  <title>عرض التقييمات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
       font-family: 'Cairo', sans-serif;
-      background: #f9fafb;
-      color: #0f172a;
-    }
-    header {
-      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-      color: white;
-      padding: 2rem;<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>تقييمات الموظفين</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-    }
-
-    h1 {
+      background-color: #f4f4f4;
       color: #333;
+      padding: 20px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      background-color: white;
+      text-align: right;
     }
-
     th, td {
-      border: 1px solid #ddd;
       padding: 10px;
+      border: 1px solid #ccc;
     }
-
     th {
-      background-color: #eee;
+      background-color: #f2f2f2;
     }
-
-    .back {
-      margin-top: 20px;
+    .dark-mode {
+      background-color: #121212;
+      color: white;
     }
-
-    .hidden {
-      display: none;
+    .toggle-dark {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      padding: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>تقييمات الموظفين</h1>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
 
-  <div id="notAllowed" class="hidden">
-    <p>❌ هذه الصفحة مخصصة للـ HR فقط</p>
-  </div>
-
-  <div id="ratingsSection" class="hidden">
-    <table id="ratingsTable">
-      <thead>
-        <tr>
-          <th>اسم الموظف</th>
-          <th>الأداء</th>
-          <th>السلوك</th>
-          <th>ملاحظات</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div class="back">
-    <a href="index.html">🔙 رجوع إلى الصفحة الرئيسية</a>
-  </div>
-
-  <script>
-    const user = localStorage.getItem("user");
-
-    if (user === "hr") {
-      document.getElementById("ratingsSection").classList.remove("hidden");
-
-      fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec")
-        .then(res => res.json())
-        .then(data => {
-          const tbody = document.querySelector("#ratingsTable tbody");
-          data.forEach(row => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${row.name}</td>
-              <td>${row.performance}</td>
-              <td>${row.behavior}</td>
-              <td>${row.notes}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }).catch(err => {
-          alert("حدث خطأ أثناء تحميل البيانات");
-          console.error(err);
-        });
-    } else {
-      document.getElementById("notAllowed").classList.remove("hidden");
-    }
-  </script>
-</body>
-</html>
-
-      text-align: center;
-      border-radius: 0 0 30px 30px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      margin: 0;
-    }
-    table {
-      width: 90%;
-      margin: 2rem auto;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    }
-    th, td {
-      padding: 1rem;
-      border-bottom: 1px solid #cbd5e1;
-      text-align: center;
-    }
-    th {
-      background-color: #e0f2fe;
-      color: #0ea5e9;
-    }
-    tr:hover {
-      background: #f1f5f9;
-    }
-    .hidden { display: none; }
-  </style>
-</head>
-<body>
   <header>
-    <h1>تقييمات الموظفين</h1>
+    <h1>عرض التقييمات</h1>
   </header>
 
-  <table id="evaluation-table">
+  <table id="reviews-table">
     <thead>
       <tr>
-        <th>الاسم</th>
-        <th>القسم</th>
-        <th>المسمى</th>
+        <th>اسم الموظف</th>
+        <th>الرقم</th>
         <th>التقييم</th>
-        <th>الملاحظات</th>
         <th>التاريخ</th>
       </tr>
     </thead>
-    <tbody id="evaluation-body"></tbody>
+    <tbody>
+      <!-- التقييمات ستظهر هنا -->
+    </tbody>
   </table>
 
-  <script>
-    const allowedUser = "hr";
-    const loggedUser = localStorage.getItem("username");
+  <footer>
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
+  </footer>
 
-    if (loggedUser !== allowedUser) {
-      alert("غير مصرح لك بالدخول إلى هذه الصفحة");
-      window.location.href = "index.html";
+  <script>
+    // تحقق من تسجيل دخول المستخدم
+    const user = localStorage.getItem("username");
+    if (user !== "hr") {
+      window.location.href = "login.html";  // إعادة توجيه المستخدمين غير "hr" إلى صفحة تسجيل الدخول
     }
 
-    async function loadEvaluations() {
-      try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec");
-        const data = await res.json();
-        const tbody = document.getElementById("evaluation-body");
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
 
-        data.forEach(row => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${row.A || ""}</td>
-            <td>${row.B || ""}</td>
-            <td>${row.C || ""}</td>
-            <td>${row.D || ""}</td>
-            <td>${row.E || ""}</td>
-            <td>${row.F || ""}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (error) {
-        alert("فشل في تحميل التقييمات");
-        console.error(error);
+    async function fetchReviews() {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
+        const reviews = await res.json();
+        displayReviews(reviews);
+      } catch (err) {
+        alert("فشل تحميل التقييمات");
+        console.error(err);
       }
     }
 
-    loadEvaluations();
+    function displayReviews(reviews) {
+      const tbody = document.getElementById("reviews-table").getElementsByTagName("tbody")[0];
+      reviews.forEach(review => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${review.name}</td>
+          <td>${review.id}</td>
+          <td>${review.rating}</td>
+          <td>${review.date}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // عرض التقييمات عند تحميل الصفحة
+    fetchReviews();
+
+    document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
