@@ -212,15 +212,12 @@
   </div>
 
   <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
+    جميع الحقوق محفوظة &copy; <span id="year"></span> |لدى- محمد الجواد
   </footer>
 
   <script>
-    // ✅ التحقق من اليوزر والباسورد
-    const username = localStorage.getItem("username");
-    const password = localStorage.getItem("password");
-
-    if (!username || !password) {
+    // ✅ التحقق إذا اليوزر والباسورد موجودين، إذا لا رجع المستخدم إلى صفحة تسجيل الدخول
+    if (!localStorage.getItem("username") || !localStorage.getItem("password")) {
       window.location.href = "login.html";
     }
 
