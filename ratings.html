@@ -49,9 +49,11 @@
     <thead>
       <tr>
         <th>اسم الموظف</th>
-        <th>الرقم</th>
-        <th>التقييم</th>
-        <th>التاريخ</th>
+        <th>القسم</th>
+        <th>الدرجة الوظيفية</th>
+        <th>التقييم الكلي</th>
+        <th>التقييم حسب عدد العمليات</th>
+        <th>عدد أيام التقييم</th>
       </tr>
     </thead>
     <tbody>
@@ -91,9 +93,11 @@
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${review.name}</td>
-          <td>${review.id}</td>
-          <td>${review.rating}</td>
-          <td>${review.date}</td>
+          <td>${review.department}</td>
+          <td>${review.jobGrade}</td>
+          <td>${review.overallRating}</td>
+          <td>${review.operationRating}</td>
+          <td>${review.ratingDays}</td>
         `;
         tbody.appendChild(row);
       });
