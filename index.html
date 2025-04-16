@@ -196,6 +196,7 @@
       <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
       <button onclick="clearTable()">🗑️ مسح الكل</button>
       <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
+      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button> <!-- زر التقييمات -->
     </div>
 
     <table>
@@ -234,9 +235,10 @@
       window.location.href = "login.html";
     }
 
-    // ✅ زر التنزيل يظهر فقط لليوزر hr
+    // ✅ زر التنزيل وزر التقييمات يظهر فقط لليوزر hr
     if (user === "hr") {
       document.getElementById("excelBtn").style.display = "inline-block";
+      document.getElementById("reviewBtn").style.display = "inline-block";  // عرض زر التقييمات
     }
 
     let allEmployees = [];
@@ -313,6 +315,11 @@
       link.setAttribute("href", url);
       link.setAttribute("download", "employees.csv");
       link.click();
+    }
+
+    // دالة لعرض التقييمات
+    function viewReviews() {
+      alert("عرض التقييمات سيتم هنا.");
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
