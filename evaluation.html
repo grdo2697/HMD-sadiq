@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تقييمات الموظفين - العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Cairo', sans-serif;
+      background: #f9fafb;
+      color: #0f172a;
+    }
+    header {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      border-radius: 0 0 30px 30px;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      margin: 0;
+    }
+    table {
+      width: 90%;
+      margin: 2rem auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid #cbd5e1;
+      text-align: center;
+    }
+    th {
+      background-color: #e0f2fe;
+      color: #0ea5e9;
+    }
+    tr:hover {
+      background: #f1f5f9;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>تقييمات الموظفين</h1>
+  </header>
+
+  <table id="evaluation-table">
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>القسم</th>
+        <th>المسمى</th>
+        <th>التقييم</th>
+        <th>الملاحظات</th>
+        <th>التاريخ</th>
+      </tr>
+    </thead>
+    <tbody id="evaluation-body"></tbody>
+  </table>
+
+  <script>
+    const allowedUser = "hr";
+    const loggedUser = localStorage.getItem("username");
+
+    if (loggedUser !== allowedUser) {
+      alert("غير مصرح لك بالدخول إلى هذه الصفحة");
+      window.location.href = "index.html";
+    }
+
+    async function loadEvaluations() {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbyAqOQOai7iyRXUDtm2y79HFhezOUqgfJZz60MNwhZG_VuC41370NNgPu0rRbsIX8bsFQ/exec");
+        const data = await res.json();
+        const tbody = document.getElementById("evaluation-body");
+
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.A || ""}</td>
+            <td>${row.B || ""}</td>
+            <td>${row.C || ""}</td>
+            <td>${row.D || ""}</td>
+            <td>${row.E || ""}</td>
+            <td>${row.F || ""}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        alert("فشل في تحميل التقييمات");
+        console.error(error);
+      }
+    }
+
+    loadEvaluations();
+  </script>
+</body>
+</html>
