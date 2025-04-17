@@ -93,6 +93,14 @@
         document.getElementById("error").style.display = "block";
       }
     }
+
+    document.getElementById("username").addEventListener("input", () => {
+      document.getElementById("error").style.display = "none";
+    });
+
+    document.getElementById("password").addEventListener("input", () => {
+      document.getElementById("error").style.display = "none";
+    });
   </script>
 </body>
 </html>
