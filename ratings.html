@@ -60,6 +60,8 @@
       display: flex;
       justify-content: flex-end;
       margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
     button {
@@ -77,7 +79,6 @@
 
     input {
       padding: 0.5rem;
-      margin: 0 1rem;
       border-radius: 5px;
       border: 1px solid var(--border);
     }
@@ -149,8 +150,8 @@
   </footer>
 
 <script>
-  const userRole = localStorage.getItem("userRole");
-  if (userRole !== "hr") {
+  const user = localStorage.getItem("username");
+  if (user !== "hr") {
     alert("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
     window.location.href = "index.html";
   } else {
@@ -214,10 +215,7 @@
     link.click();
   }
 
-  // إضافة مستمع حدث للبحث
   document.getElementById("searchInput").addEventListener("input", searchReviews);
-
-  // إضافة السنة الحالية في الفوتر
   document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
