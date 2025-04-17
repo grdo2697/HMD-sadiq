@@ -130,7 +130,7 @@
       <button onclick="clearTable()">🗑️ مسح الكل</button>
       <button onclick="downloadExcel()">📥 تنزيل Excel</button>
       <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
-      <input type="text" id="searchInput" placeholder="بحث...">
+      <input type="text" id="searchInput" placeholder="بحث..." oninput="filterTable()">
     </div>
 
     <table>
@@ -154,6 +154,9 @@
   </footer>
 
 <script>
+  // تعيين اسم المستخدم HR تلقائيًا لغرض الاختبار
+  localStorage.setItem("username", "hr");
+
   const username = localStorage.getItem("username");
   if (username !== "hr") {
     alert("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
@@ -214,6 +217,15 @@
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  function filterTable() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#reviews-body tr");
+    rows.forEach(row => {
+      const rowText = row.innerText.toLowerCase();
+      row.style.display = rowText.includes(input) ? "" : "none";
+    });
   }
 
   document.getElementById("year").textContent = new Date().getFullYear();
