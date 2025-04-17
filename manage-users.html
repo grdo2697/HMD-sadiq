@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة اليوزرات - صلاحيات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --accent: #facc15;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+
+    .dark-mode {
+      --background: #0f172a;
+      --text: #f9fafb;
+      --border: #334155;
+      --hover: #1e293b;
+    }
+
+    * {
+      font-family: 'Cairo', sans-serif;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2rem 1rem;
+      border-radius: 0 0 30px 30px;
+      text-align: center;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin: 0;
+      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem 1rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+    }
+
+    button {
+      padding: 0.8rem 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: var(--secondary);
+    }
+
+    input, select {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    th {
+      background: rgba(14, 165, 233, 0.1);
+      color: var(--primary);
+    }
+
+    tr:hover {
+      background-color: var(--hover);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>إدارة اليوزرات وصلاحياتهم</h1>
+  </header>
+
+  <div class="container" id="users-container" style="display: none;">
+    <h2>مرحبًا، <span id="username-display"></span></h2>
+
+    <div class="controls">
+      <input type="text" id="new-username" placeholder="اسم المستخدم الجديد" />
+      <select id="permissions">
+        <option value="download">📥 تنزيل Excel</option>
+        <option value="view">📋 عرض التقييمات</option>
+      </select>
+      <button onclick="addUser()">إضافة يوزر</button>
+    </div>
+
+    <h3>قائمة اليوزرات:</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>اسم المستخدم</th>
+          <th>الصلاحيات</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="users-list"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
+  </footer>
+
+<script>
+  const username = localStorage.getItem("username");
+  if (username !== "hr") {
+    alert("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
+    window.location.href = "index.html";
+  } else {
+    document.getElementById("users-container").style.display = "block";
+    document.getElementById("username-display").textContent = username;
+    loadUsers();
+  }
+
+  function addUser() {
+    const newUsername = document.getElementById("new-username").value;
+    const permissions = document.getElementById("permissions").value;
+
+    if (!newUsername) {
+      alert("يرجى إدخال اسم المستخدم.");
+      return;
+    }
+
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    users.push({ username: newUsername, permissions: [permissions] });
+    localStorage.setItem("users", JSON.stringify(users));
+    document.getElementById("new-username").value = "";
+    loadUsers();
+  }
+
+  function loadUsers() {
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    const usersList = document.getElementById("users-list");
+    usersList.innerHTML = "";
+
+    users.forEach((user, index) => {
+      const row = `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.permissions.join(", ")}</td>
+          <td>
+            <button onclick="removeUser(${index})">حذف</button>
+            <button onclick="editUser(${index})">تعديل الصلاحيات</button>
+          </td>
+        </tr>
+      `;
+      usersList.innerHTML += row;
+    });
+  }
+
+  function removeUser(index) {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    users.splice(index, 1);
+    localStorage.setItem("users", JSON.stringify(users));
+    loadUsers();
+  }
+
+  function editUser(index) {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    const user = users[index];
+
+    const newPermissions = prompt("أدخل الصلاحيات الجديدة (فصل بين الصلاحيات بـ ,)", user.permissions.join(","));
+    if (newPermissions !== null) {
+      user.permissions = newPermissions.split(",").map(p => p.trim());
+      localStorage.setItem("users", JSON.stringify(users));
+      loadUsers();
+    }
+  }
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
