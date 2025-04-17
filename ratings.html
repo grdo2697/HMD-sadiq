@@ -126,7 +126,6 @@
     <div class="controls">
       <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
       <input type="text" id="searchInput" placeholder="بحث...">
-      <button onclick="exportToExcel()">تصدير إلى Excel</button>
     </div>
 
     <table>
@@ -185,37 +184,6 @@
       tbody.innerHTML += row;
     });
   }
-
-  function searchReviews() {
-    const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const name = row.cells[0].textContent.toLowerCase();
-      const department = row.cells[1].textContent.toLowerCase();
-      if (name.includes(searchInput) || department.includes(searchInput)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  }
-
-  function exportToExcel() {
-    const table = document.querySelector('table');
-    const rows = Array.from(table.rows);
-    const csvData = rows.map(row => {
-      return Array.from(row.cells).map(cell => cell.textContent).join(',');
-    }).join('\n');
-
-    const blob = new Blob([csvData], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'reviews.csv';
-    link.click();
-  }
-
-  // إضافة مستمع حدث للبحث
-  document.getElementById("searchInput").addEventListener("input", searchReviews);
 
   // إضافة السنة الحالية في الفوتر
   document.getElementById("year").textContent = new Date().getFullYear();
