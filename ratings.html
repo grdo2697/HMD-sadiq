@@ -127,6 +127,9 @@
       <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
       <input type="text" id="searchInput" placeholder="بحث...">
       <button onclick="exportToExcel()">تصدير إلى Excel</button>
+      <button onclick="filterByJobGrade('قائد')">تصفية حسب قائد</button>
+      <button onclick="filterByJobGrade('مساعد')">تصفية حسب مساعد</button>
+      <button onclick="clearFilter()">إزالة الفلتر</button>
     </div>
 
     <table>
@@ -172,9 +175,10 @@
 
     function displayReviews(reviews) {
       const tbody = document.getElementById("reviews-body");
+      tbody.innerHTML = ''; // Clear any existing rows before adding new ones
       reviews.forEach(review => {
         const row = `
-          <tr>
+          <tr data-grade="${review.jobGrade}">
             <td>${review.name}</td>
             <td>${review.department}</td>
             <td>${review.jobGrade}</td>
@@ -198,6 +202,24 @@
         } else {
           row.style.display = 'none';
         }
+      });
+    }
+
+    function filterByJobGrade(grade) {
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        if (row.dataset.grade !== grade) {
+          row.style.display = 'none';
+        } else {
+          row.style.display = '';
+        }
+      });
+    }
+
+    function clearFilter() {
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        row.style.display = '';
       });
     }
 
