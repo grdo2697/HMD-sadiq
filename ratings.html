@@ -137,6 +137,7 @@
           <th>التقييم الكلي</th>
           <th>التقييم حسب عدد العمليات</th>
           <th>عدد أيام التقييم</th>
+          <th>تاريخ التقييم</th>
         </tr>
       </thead>
       <tbody id="reviews-body"></tbody>
@@ -170,6 +171,7 @@
 
   function displayReviews(reviews) {
     const tbody = document.getElementById("reviews-body");
+    tbody.innerHTML = ""; // تفريغ الجدول أولاً
     reviews.forEach(review => {
       const row = `
         <tr>
@@ -179,6 +181,7 @@
           <td>${review.overallRating}</td>
           <td>${review.operationRating}</td>
           <td>${review.ratingDays}</td>
+          <td>${review.reviewDate}</td>
         </tr>
       `;
       tbody.innerHTML += row;
