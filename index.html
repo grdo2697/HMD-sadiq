@@ -206,6 +206,9 @@
       <button onclick="clearTable()">🗑️ مسح الكل</button>
       <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
       <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button>
+
+      <!-- زر الانتقال إلى صفحة إدارة اليوزرات -->
+      <button onclick="window.location.href='manage-users.html'">إدارة اليوزرات</button>
     </div>
 
     <table>
@@ -255,78 +258,66 @@
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
         allEmployees = await res.json();
-        updateFilters();
         displayEmployees(allEmployees);
-      } catch (err) {
-        alert("فشل تحميل البيانات");
-        console.error(err);
+      } catch (error) {
+        console.error("Error fetching employees:", error);
       }
     }
 
-    function displayEmployees(data) {
+    function displayEmployees(employees) {
       const tbody = document.getElementById("employee-body");
       tbody.innerHTML = "";
-      data.forEach(emp => {
-        const row = `<tr>
-          <td>${emp.name}</td>
-          <td>${emp.id}</td>
-          <td>${emp.role}</td>
-          <td>${emp.status}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+      employees.forEach(employee => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${employee.name}</td>
+          <td>${employee.number}</td>
+          <td>${employee.role}</td>
+          <td>${employee.status}</td>
+        `;
+        tbody.appendChild(tr);
       });
     }
 
     function filterEmployees() {
-      const search = document.getElementById("search").value.toLowerCase();
-      const role = document.getElementById("filter-role").value;
-      const status = document.getElementById("filter-status").value;
-      const filtered = allEmployees.filter(emp =>
-        (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search)) &&
-        (role === "" || emp.role === role) &&
-        (status === "" || emp.status === status)
-      );
-      displayEmployees(filtered);
+      const searchQuery = document.getElementById("search").value.toLowerCase();
+      const roleFilter = document.getElementById("filter-role").value.toLowerCase();
+      const statusFilter = document.getElementById("filter-status").value.toLowerCase();
+
+      const filteredEmployees = allEmployees.filter(emp => {
+        const matchesSearch = emp.name.toLowerCase().includes(searchQuery) || emp.number.toLowerCase().includes(searchQuery);
+        const matchesRole = roleFilter ? emp.role.toLowerCase().includes(roleFilter) : true;
+        const matchesStatus = statusFilter ? emp.status.toLowerCase().includes(statusFilter) : true;
+        return matchesSearch && matchesRole && matchesStatus;
+      });
+
+      displayEmployees(filteredEmployees);
     }
 
     function clearTable() {
       document.getElementById("employee-body").innerHTML = "";
     }
 
-    function updateFilters() {
-      const roleSelect = document.getElementById("filter-role");
-      const statusSelect = document.getElementById("filter-status");
-      const roles = [...new Set(allEmployees.map(e => e.role))];
-      const statuses = [...new Set(allEmployees.map(e => e.status))];
+    function downloadExcel() {
+      const headers = ["اسم الموظف", "الرقم", "المنصب", "الحالة"];
+      const rows = allEmployees.map(emp => [emp.name, emp.number, emp.role, emp.status]);
 
-      roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join("");
-      statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join("");
+      const sheet = [headers, ...rows];
+      const csv = sheet.map(row => row.join(",")).join("\n");
+
+      const hiddenElement = document.createElement("a");
+      hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+      hiddenElement.target = "_blank";
+      hiddenElement.download = "employees.csv";
+      hiddenElement.click();
+    }
+
+    function viewReviews() {
+      window.location.href = "ratings.html";
     }
 
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
-    }
-
-    function downloadExcel() {
-      const table = document.querySelector("table");
-      let csv = "";
-      const rows = table.querySelectorAll("tr");
-      for (let row of rows) {
-        let cols = row.querySelectorAll("th, td");
-        let rowData = Array.from(cols).map(col => `"${col.innerText}"`).join(",");
-        csv += rowData + "\n";
-      }
-
-      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "employees.csv");
-      link.click();
-    }
-
-    function viewReviews() {
-      window.location.href = "https://grdo2697.github.io/HMD-sadiq/ratings.html";
     }
 
     function logout() {
@@ -335,6 +326,7 @@
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
+
     fetchEmployees();
   </script>
 </body>
