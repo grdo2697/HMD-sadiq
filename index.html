@@ -249,6 +249,8 @@
       document.getElementById("reviewBtn").style.display = "inline-block";
     }
 
+    document.getElementById("year").textContent = new Date().getFullYear();
+
     let allEmployees = [];
 
     async function fetchEmployees() {
@@ -326,7 +328,7 @@
     }
 
     function viewReviews() {
-      window.location.href = "https://grdo2697.github.io/HMD-sadiq/ratings.html";
+      window.location.href = "ratings.html";
     }
 
     function logout() {
@@ -334,8 +336,7 @@
       window.location.href = "login.html";
     }
 
-    document.getElementById("year").textContent = new Date().getFullYear();
-    fetchEmployees();
+    window.onload = fetchEmployees;
   </script>
 </body>
 </html>
