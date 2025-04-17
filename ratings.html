@@ -127,9 +127,6 @@
       <button onclick="window.location.href='index.html'">رجوع إلى موظفي الشركة</button>
       <input type="text" id="searchInput" placeholder="بحث...">
       <button onclick="exportToExcel()">تصدير إلى Excel</button>
-      <button onclick="filterByJobGrade('قائد')">تصفية حسب قائد</button>
-      <button onclick="filterByJobGrade('مساعد')">تصفية حسب مساعد</button>
-      <button onclick="clearFilter()">إزالة الفلتر</button>
     </div>
 
     <table>
@@ -152,14 +149,13 @@
   </footer>
 
   <script>
-    // التحقق من صلاحية الوصول
-    const userRole = localStorage.getItem("userRole"); // الحصول على الدور من LocalStorage
+    const userRole = localStorage.getItem("userRole");
     if (userRole !== "hr") {
       alert("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
-      window.location.href = "index.html"; // التحويل إلى صفحة أخرى إذا لم يكن "hr"
+      window.location.href = "index.html";
     } else {
-      document.getElementById("reviews-container").style.display = "block"; // عرض التقييمات إذا كان "hr"
-      fetchReviews();  // جلب التقييمات عند تحميل الصفحة
+      document.getElementById("reviews-container").style.display = "block";
+      fetchReviews();
     }
 
     async function fetchReviews() {
@@ -175,10 +171,9 @@
 
     function displayReviews(reviews) {
       const tbody = document.getElementById("reviews-body");
-      tbody.innerHTML = ''; // Clear any existing rows before adding new ones
       reviews.forEach(review => {
         const row = `
-          <tr data-grade="${review.jobGrade}">
+          <tr>
             <td>${review.name}</td>
             <td>${review.department}</td>
             <td>${review.jobGrade}</td>
@@ -205,24 +200,6 @@
       });
     }
 
-    function filterByJobGrade(grade) {
-      const rows = document.querySelectorAll('tbody tr');
-      rows.forEach(row => {
-        if (row.dataset.grade !== grade) {
-          row.style.display = 'none';
-        } else {
-          row.style.display = '';
-        }
-      });
-    }
-
-    function clearFilter() {
-      const rows = document.querySelectorAll('tbody tr');
-      rows.forEach(row => {
-        row.style.display = '';
-      });
-    }
-
     function exportToExcel() {
       const table = document.querySelector('table');
       const rows = Array.from(table.rows);
@@ -238,7 +215,6 @@
     }
 
     document.getElementById("searchInput").addEventListener("input", searchReviews);
-
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
