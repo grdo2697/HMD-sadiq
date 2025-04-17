@@ -173,6 +173,7 @@
     const tbody = document.getElementById("reviews-body");
     tbody.innerHTML = "";
     reviews.forEach(review => {
+      console.log("Review Date:", review.reviewDate);  // تحقق من القيمة الفعلية هنا
       const row = `
         <tr>
           <td>${review.name}</td>
@@ -181,7 +182,7 @@
           <td>${review.overallRating}</td>
           <td>${review.operationRating}</td>
           <td>${review.ratingDays}</td>
-          <td>${review.ratingDate}</td>
+          <td>${review.reviewDate}</td>
         </tr>
       `;
       tbody.innerHTML += row;
