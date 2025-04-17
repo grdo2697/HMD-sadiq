@@ -137,10 +137,10 @@
       background-color: var(--hover);
     }
 
-    .toggle-dark {
+    .toggle-dark,
+    .logout-btn {
       position: fixed;
       top: 1rem;
-      left: 1rem;
       width: 45px;
       height: 45px;
       background: var(--background);
@@ -150,6 +150,14 @@
       display: grid;
       place-items: center;
       cursor: pointer;
+    }
+
+    .toggle-dark {
+      left: 1rem;
+    }
+
+    .logout-btn {
+      left: 4.5rem;
     }
 
     footer {
@@ -170,6 +178,7 @@
 </head>
 <body>
   <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
 
   <header>
     <h1>موظفين شركة العصر الذكي</h1>
@@ -196,7 +205,7 @@
       <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
       <button onclick="clearTable()">🗑️ مسح الكل</button>
       <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
-      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button> <!-- زر التقييمات -->
+      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button>
     </div>
 
     <table>
@@ -219,7 +228,7 @@
   <script>
     const allowedUsers = [
       { username: "siana", password: "Aa112233" },
-      { username: "Corleone", password: "20032003" },      
+      { username: "Corleone", password: "20032003" },
       { username: "sales", password: "Aa332211" },
       { username: "trke", password: "Aa1122335" },
       { username: "hr", password: "102030" }
@@ -235,10 +244,9 @@
       window.location.href = "login.html";
     }
 
-    // ✅ زر التنزيل وزر التقييمات يظهر فقط لليوزر hr
     if (user === "hr") {
       document.getElementById("excelBtn").style.display = "inline-block";
-      document.getElementById("reviewBtn").style.display = "inline-block";  // عرض زر التقييمات
+      document.getElementById("reviewBtn").style.display = "inline-block";
     }
 
     let allEmployees = [];
@@ -317,9 +325,13 @@
       link.click();
     }
 
-    // دالة لعرض التقييمات
     function viewReviews() {
-      window.location.href = "https://grdo2697.github.io/HMD-sadiq/ratings.html";  // الانتقال لصفحة التقييمات
+      window.location.href = "https://grdo2697.github.io/HMD-sadiq/ratings.html";
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
