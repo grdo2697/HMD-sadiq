@@ -88,6 +88,15 @@
       if (valid) {
         localStorage.setItem("username", user);
         localStorage.setItem("password", pass);
+
+        // فقط إذا كان HR نخزن صلاحيات
+        if (user.toLowerCase() === "hr") {
+          const hrPermissions = ["📥 تنزيل Excel", "📋 عرض التقييمات"];
+          localStorage.setItem("permissions", JSON.stringify(hrPermissions));
+        } else {
+          localStorage.removeItem("permissions");
+        }
+
         window.location.href = "index.html";
       } else {
         document.getElementById("error").style.display = "block";
