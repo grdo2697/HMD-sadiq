@@ -3,58 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إدارة المستخدمين</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet>
+  <title>إدارة المستخدمين - العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* نفس أنماط index.html مع تعديلات طفيفة */
     :root {
       --primary: #0ea5e9;
-      --danger: #e74c3c;
-      --success: #2ecc71;
+      --secondary: #38bdf8;
+      --accent: #facc15;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+      --danger: #ef4444;
+    }
+
+    .dark-mode {
+      --background: #0f172a;
+      --text: #f9fafb;
+      --border: #334155;
+      --hover: #1e293b;
+    }
+
+    * {
+      font-family: 'Cairo', sans-serif;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--background);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2rem 1rem;
+      border-radius: 0 0 30px 30px;
+      text-align: center;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      color: white;
+      font-size: 2rem;
+      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
     }
 
     .user-form {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255, 255, 255, 0.5);
       padding: 1.5rem;
-      border-radius: 15px;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      backdrop-filter: blur(8px);
       margin-bottom: 2rem;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+      margin: 0.5rem 0;
     }
 
     .permissions-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 1rem;
       margin: 1rem 0;
+    }
+
+    .permissions-grid label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem;
+      background: var(--background);
+      border-radius: 8px;
+      border: 2px solid var(--border);
+    }
+
+    button {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(to right, var(--accent), #fde047);
+      color: #1e293b;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    th {
+      background: rgba(14, 165, 233, 0.1);
+      color: var(--primary);
+    }
+
+    tr:hover {
+      background-color: var(--hover);
+    }
+
+    .logout-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 45px;
+      height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .permissions-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .user-form {
+        padding: 1rem;
+      }
     }
   </style>
 </head>
 <body>
-  <script>
-    // التحقق من صلاحية المدير
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (!currentUser || currentUser.username !== "hr") {
-      alert("غير مصرح بالدخول!");
-      window.location.href = "login.html";
-    }
-  </script>
+  <button class="logout-btn" onclick="logout()">🚪</button>
 
-  <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
-  
+  <header>
+    <h1>إدارة المستخدمين</h1>
+  </header>
+
   <div class="container">
-    <h1>👥 إدارة المستخدمين</h1>
-    
     <div class="user-form">
-      <h3>➕ إضافة مستخدم جديد</h3>
-      <input type="text" id="newUsername" placeholder="اسم المستخدم">
-      <input type="password" id="newPassword" placeholder="كلمة المرور">
+      <div class="input-group">
+        <input type="text" id="newUsername" placeholder="اسم المستخدم">
+      </div>
       
+      <div class="input-group">
+        <input type="password" id="newPassword" placeholder="كلمة المرور">
+      </div>
+
       <div class="permissions-grid">
         <label><input type="checkbox" id="perm1"> عرض البيانات</label>
         <label><input type="checkbox" id="perm2"> التصدير</label>
         <label><input type="checkbox" id="perm3"> إدارة المستخدمين</label>
       </div>
-      
-      <button onclick="addUser()">حفظ</button>
+
+      <button onclick="addUser()">💾 حفظ المستخدم</button>
     </div>
 
     <table>
@@ -70,29 +204,46 @@
   </div>
 
   <script>
-    let users = JSON.parse(localStorage.getItem("users")) || [];
+    // نظام الجلسات
+    const SECRET_KEY = "smart_era_secret_@2024";
     
-    // عرض المستخدمين
-    function renderUsers() {
-      const tbody = document.getElementById("usersList");
-      tbody.innerHTML = "";
-      
-      users.forEach((user, index) => {
-        const row = `
-          <tr>
-            <td>${user.username}</td>
-            <td>${user.permissions.join("، ")}</td>
-            <td>
-              <button onclick="editUser(${index})">✏️ تعديل</button>
-              <button onclick="deleteUser(${index})" style="background: var(--danger)">🗑️ حذف</button>
-            </td>
-          </tr>
-        `;
-        tbody.innerHTML += row;
-      });
+    function validateSession() {
+      try {
+        const encrypted = sessionStorage.getItem('auth');
+        if (!encrypted) return false;
+        
+        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch (error) {
+        logout();
+        return false;
+      }
     }
 
-    // إضافة مستخدم جديد
+    const currentSession = validateSession();
+    if (!currentSession || currentSession.role !== 'admin') {
+      alert('غير مصرح بالدخول!');
+      window.location.href = 'login.html';
+    }
+
+    let users = JSON.parse(localStorage.getItem("users") || [];
+
+    function renderUsers() {
+      const tbody = document.getElementById("usersList");
+      tbody.innerHTML = users.map((user, index) => `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.permissions.join("، ")}</td>
+          <td>
+            <button onclick="editUser(${index})">✏️ تعديل</button>
+            <button onclick="deleteUser(${index})" style="background: ${currentSession.user === user.username ? 'var(--danger)' : 'var(--accent)'}">
+              🗑️ حذف
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
     function addUser() {
       const newUser = {
         username: document.getElementById("newUsername").value,
@@ -107,15 +258,13 @@
       users.push(newUser);
       localStorage.setItem("users", JSON.stringify(users));
       renderUsers();
+      clearForm();
     }
 
-    // تعديل المستخدم
     function editUser(index) {
       const user = users[index];
       document.getElementById("newUsername").value = user.username;
       document.getElementById("newPassword").value = user.password;
-      
-      // تحديد الصلاحيات
       document.getElementById("perm1").checked = user.permissions.includes("عرض البيانات");
       document.getElementById("perm2").checked = user.permissions.includes("التصدير");
       document.getElementById("perm3").checked = user.permissions.includes("إدارة المستخدمين");
@@ -125,22 +274,25 @@
       renderUsers();
     }
 
-    // حذف المستخدم
     function deleteUser(index) {
       const deletedUser = users[index];
-      
-      if (deletedUser.username === currentUser.username) {
+      if (deletedUser.username === currentSession.user) {
         logout();
       }
-      
       users.splice(index, 1);
       localStorage.setItem("users", JSON.stringify(users));
       renderUsers();
     }
 
-    // تسجيل الخروج
+    function clearForm() {
+      document.getElementById("newUsername").value = "";
+      document.getElementById("newPassword").value = "";
+      document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+    }
+
     function logout() {
-      localStorage.removeItem("currentUser");
+      sessionStorage.removeItem('auth');
+      localStorage.removeItem('users');
       window.location.href = "login.html";
     }
 
