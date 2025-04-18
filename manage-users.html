@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>إدارة المستخدمين - العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
+    /* أنماط متوافقة مع index.html */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -28,11 +30,10 @@
       font-family: 'Cairo', sans-serif;
       box-sizing: border-box;
       transition: all 0.3s ease;
-      margin: 0;
-      padding: 0;
     }
 
     body {
+      margin: 0;
       background: var(--background);
       color: var(--text);
     }
@@ -43,7 +44,6 @@
       border-radius: 0 0 30px 30px;
       text-align: center;
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
     }
 
     h1 {
@@ -59,12 +59,12 @@
     }
 
     .user-form {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.1);
       padding: 1.5rem;
       border-radius: 16px;
+      margin-bottom: 2rem;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       backdrop-filter: blur(8px);
-      margin-bottom: 2rem;
     }
 
     .input-group {
@@ -175,11 +175,11 @@
   <div class="container">
     <div class="user-form">
       <div class="input-group">
-        <input type="text" id="newUsername" placeholder="اسم المستخدم">
+        <input type="text" id="newUsername" placeholder="اسم المستخدم" required>
       </div>
       
       <div class="input-group">
-        <input type="password" id="newPassword" placeholder="كلمة المرور">
+        <input type="password" id="newPassword" placeholder="كلمة المرور" required>
       </div>
 
       <div class="permissions-grid">
@@ -204,39 +204,42 @@
   </div>
 
   <script>
-    // نظام الجلسات
+    // نظام الجلسات المشترك
     const SECRET_KEY = "smart_era_secret_@2024";
     
-    function validateSession() {
+    function decryptSession() {
       try {
         const encrypted = sessionStorage.getItem('auth');
-        if (!encrypted) return false;
+        if (!encrypted) return null;
         
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
         return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
       } catch (error) {
         logout();
-        return false;
+        return null;
       }
     }
 
-    const currentSession = validateSession();
-    if (!currentSession || currentSession.role !== 'admin') {
-      alert('غير مصرح بالدخول!');
-      window.location.href = 'login.html';
+    // التحقق من صلاحيات المدير
+    const currentSession = decryptSession();
+    if (!currentSession || !currentSession.permissions?.includes('admin')) {
+      alert('⚠️ صلاحيات غير كافية للوصول لهذه الصفحة');
+      window.location.href = 'index.html';
     }
 
-    let users = JSON.parse(localStorage.getItem("users") || [];
-
+    // إدارة بيانات المستخدمين
+    let users = JSON.parse(localStorage.getItem("users") || '[]');
+    
     function renderUsers() {
       const tbody = document.getElementById("usersList");
       tbody.innerHTML = users.map((user, index) => `
         <tr>
           <td>${user.username}</td>
-          <td>${user.permissions.join("، ")}</td>
+          <td>${user.permissions?.join('، ') || 'لا يوجد'}</td>
           <td>
             <button onclick="editUser(${index})">✏️ تعديل</button>
-            <button onclick="deleteUser(${index})" style="background: ${currentSession.user === user.username ? 'var(--danger)' : 'var(--accent)'}">
+            <button onclick="deleteUser(${index})" 
+              style="background: ${user.username === currentSession.user ? 'var(--danger)' : 'var(--accent)'}">
               🗑️ حذف
             </button>
           </td>
@@ -244,60 +247,99 @@
       `).join('');
     }
 
+    function validateUser(username, password) {
+      if (!username || !password) throw new Error('يرجى ملء جميع الحقول');
+      if (username.length < 3) throw new Error('اسم المستخدم يجب أن يكون 3 أحرف على الأقل');
+      if (password.length < 6) throw new Error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+    }
+
     function addUser() {
-      const newUser = {
-        username: document.getElementById("newUsername").value,
-        password: document.getElementById("newPassword").value,
-        permissions: []
-      };
+      try {
+        const newUser = {
+          username: document.getElementById("newUsername").value.trim(),
+          password: document.getElementById("newPassword").value.trim(),
+          permissions: []
+        };
 
-      if (document.getElementById("perm1").checked) newUser.permissions.push("عرض البيانات");
-      if (document.getElementById("perm2").checked) newUser.permissions.push("التصدير");
-      if (document.getElementById("perm3").checked) newUser.permissions.push("إدارة المستخدمين");
+        validateUser(newUser.username, newUser.password);
+        
+        if (users.some(u => u.username === newUser.username)) {
+          throw new Error('اسم المستخدم موجود مسبقاً');
+        }
 
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-      renderUsers();
-      clearForm();
+        // إضافة الصلاحيات
+        if (document.getElementById("perm1").checked) newUser.permissions.push('view');
+        if (document.getElementById("perm2").checked) newUser.permissions.push('export');
+        if (document.getElementById("perm3").checked) newUser.permissions.push('admin');
+
+        users.push(newUser);
+        localStorage.setItem("users", JSON.stringify(users));
+        renderUsers();
+        clearForm();
+        
+      } catch (error) {
+        alert(error.message);
+      }
     }
 
     function editUser(index) {
       const user = users[index];
-      document.getElementById("newUsername").value = user.username;
-      document.getElementById("newPassword").value = user.password;
-      document.getElementById("perm1").checked = user.permissions.includes("عرض البيانات");
-      document.getElementById("perm2").checked = user.permissions.includes("التصدير");
-      document.getElementById("perm3").checked = user.permissions.includes("إدارة المستخدمين");
-      
-      users.splice(index, 1);
-      localStorage.setItem("users", JSON.stringify(users));
-      renderUsers();
+      try {
+        document.getElementById("newUsername").value = user.username;
+        document.getElementById("newPassword").value = user.password;
+        
+        document.getElementById("perm1").checked = user.permissions?.includes('view');
+        document.getElementById("perm2").checked = user.permissions?.includes('export');
+        document.getElementById("perm3").checked = user.permissions?.includes('admin');
+
+        users.splice(index, 1);
+        localStorage.setItem("users", JSON.stringify(users));
+        renderUsers();
+        
+      } catch (error) {
+        alert('حدث خطأ أثناء التعديل: ' + error.message);
+      }
     }
 
     function deleteUser(index) {
-      const deletedUser = users[index];
-      if (deletedUser.username === currentSession.user) {
-        logout();
+      try {
+        const deletedUser = users[index];
+        if (deletedUser.username === currentSession.user) {
+          if (!confirm('هل تريد حذف حسابك؟ سيتم تسجيل خروجك تلقائياً')) return;
+          logout();
+        }
+        
+        users.splice(index, 1);
+        localStorage.setItem("users", JSON.stringify(users));
+        renderUsers();
+        
+      } catch (error) {
+        alert('حدث خطأ أثناء الحذف: ' + error.message);
       }
-      users.splice(index, 1);
-      localStorage.setItem("users", JSON.stringify(users));
-      renderUsers();
     }
 
     function clearForm() {
       document.getElementById("newUsername").value = "";
       document.getElementById("newPassword").value = "";
-      document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     }
 
     function logout() {
       sessionStorage.removeItem('auth');
-      localStorage.removeItem('users');
-      window.location.href = "login.html";
+      window.location.href = 'login.html';
     }
 
     // التحميل الأولي
-    renderUsers();
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!users.length) {
+        localStorage.setItem("users", JSON.stringify([{
+          username: "hr",
+          password: "100200300",
+          permissions: ["admin"]
+        }]));
+      }
+      renderUsers();
+    });
   </script>
 </body>
 </html>
