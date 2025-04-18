@@ -65,7 +65,7 @@
     // تحسين التحقق من الصلاحيات
     function verifyAdminPermissions() {
       const session = decryptSession();
-      const isHrAdmin = session?.user === 'hr' && session?.permissions?.includes('admin');
+      const isHrAdmin = session?.user === 'hradmin' && session?.permissions?.includes('admin');
       
       if (!isHrAdmin) {
         alert('⚠️ يلزم صلاحيات المدير للوصول لهذه الصفحة');
