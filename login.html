@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل الدخول - العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
     body {
       font-family: 'Cairo', sans-serif;
@@ -49,6 +50,7 @@
       border-radius: 8px;
       font-size: 1.1rem;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
 
     button:hover {
@@ -56,59 +58,97 @@
     }
 
     .error {
-      color: red;
+      color: #ef4444;
       margin-top: 1rem;
       display: none;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
     <h2>تسجيل الدخول</h2>
-    <input type="text" id="username" placeholder="اسم المستخدم" />
-    <input type="password" id="password" placeholder="كلمة المرور" />
-    <button onclick="login()">دخول</button>
-    <div id="error" class="error">اسم المستخدم أو كلمة المرور غير صحيحة</div>
+    <input type="text" id="username" placeholder="اسم المستخدم" aria-label="اسم المستخدم">
+    <input type="password" id="password" placeholder="كلمة المرور" aria-label="كلمة المرور">
+    <button onclick="handleLogin()">دخول</button>
+    <div id="error" class="error">بيانات الدخول غير صحيحة</div>
   </div>
 
   <script>
-    const users = JSON.parse(localStorage.getItem("users")) || [
-      { username: "siana", password: "Aa112233" },
-      { username: "Corleone", password: "20032003" },
-      { username: "sales", password: "Aa332211" },
-      { username: "trke", password: "Aa1122335" },
-      { username: "hr", password: "100200300" }
-    ];
+    const SECRET_KEY = "smart_era_secret_@2024";
+    const USERS_KEY = "smart_era_users";
 
-    function login() {
-      const user = document.getElementById("username").value.trim();
-      const pass = document.getElementById("password").value.trim();
-      const valid = users.find(u => u.username === user && u.password === pass);
+    function encryptSession(data) {
+      return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString();
+    }
 
-      if (valid) {
-        localStorage.setItem("username", user);
-        localStorage.setItem("password", pass);
-
-        if (user.toLowerCase() === "hr") {
-          const hrPermissions = ["📥 تنزيل Excel", "📋 عرض التقييمات"];
-          localStorage.setItem("permissions", JSON.stringify(hrPermissions));
-        } else {
-          localStorage.removeItem("permissions");
-        }
-
-        window.location.href = "index.html";
-      } else {
-        document.getElementById("error").style.display = "block";
+    function getStoredUsers() {
+      const encrypted = localStorage.getItem(USERS_KEY);
+      if (!encrypted) return [];
+      
+      try {
+        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch {
+        return [];
       }
     }
 
-    document.getElementById("username").addEventListener("input", () => {
-      document.getElementById("error").style.display = "none";
+    function handleLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const users = getStoredUsers();
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        // إنشاء جلسة مشفرة
+        const sessionData = {
+          user: user.username,
+          permissions: user.permissions || [],
+          timestamp: new Date().getTime()
+        };
+
+        const encryptedSession = encryptSession(sessionData);
+        sessionStorage.setItem('auth', encryptedSession);
+
+        window.location.href = 'index.html';
+      } else {
+        showError();
+      }
+    }
+
+    function showError() {
+      const errorEl = document.getElementById('error');
+      errorEl.style.display = 'block';
+      setTimeout(() => errorEl.style.display = 'none', 3000);
+    }
+
+    // تهيئة المستخدمين الافتراضيين إذا لم يوجد
+    function initializeDefaultUsers() {
+      const existingUsers = getStoredUsers();
+      if (existingUsers.length === 0) {
+        const defaultUsers = [
+          { username: "hr", password: "100200300", permissions: ["admin", "view", "export"] },
+          { username: "siana", password: "Aa112233", permissions: [] },
+          { username: "Corleone", password: "20032003", permissions: [] },
+          { username: "sales", password: "Aa332211", permissions: [] },
+          { username: "trke", password: "Aa1122335", permissions: [] }
+        ];
+        
+        const encrypted = CryptoJS.AES.encrypt(JSON.stringify(defaultUsers), SECRET_KEY).toString();
+        localStorage.setItem(USERS_KEY, encrypted);
+      }
+    }
+
+    // إخفاء الرسالة عند الكتابة
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', () => {
+        document.getElementById('error').style.display = 'none';
+      });
     });
 
-    document.getElementById("password").addEventListener("input", () => {
-      document.getElementById("error").style.display = "none";
-    });
+    // التهيئة الأولية عند التحميل
+    document.addEventListener('DOMContentLoaded', initializeDefaultUsers);
   </script>
 </body>
 </html>
