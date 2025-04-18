@@ -1,8 +1,9 @@
+<!-- login.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تسجيل الدخول - العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -15,7 +16,6 @@
       justify-content: center;
       height: 100vh;
     }
-
     .login-container {
       background: white;
       padding: 2rem;
@@ -25,40 +25,19 @@
       max-width: 400px;
       text-align: center;
     }
-
-    h2 {
-      color: #0ea5e9;
-      margin-bottom: 1.5rem;
+    h2 { color: #0ea5e9; margin-bottom: 1.5rem; }
+    input, button {
+      width: 100%; padding: 0.75rem; margin: 0.5rem 0;
+      border-radius: 8px; font-size: 1rem;
     }
-
-    input {
-      width: 100%;
-      padding: 0.75rem;
-      margin: 0.5rem 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-    }
-
+    input { border: 1px solid #ccc; }
     button {
-      width: 100%;
-      padding: 0.8rem;
-      background-color: #0ea5e9;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
+      background-color: #0ea5e9; color: white; border: none;
+      font-size: 1.1rem; cursor: pointer;
     }
-
-    button:hover {
-      background-color: #0284c7;
-    }
-
+    button:hover { background-color: #0284c7; }
     .error {
-      color: red;
-      margin-top: 1rem;
-      display: none;
+      color: red; margin-top: 1rem; display: none;
     }
   </style>
 </head>
@@ -72,30 +51,26 @@
   </div>
 
   <script>
-    const users = JSON.parse(localStorage.getItem("users")) || [
-      { username: "siana", password: "Aa112233" },
-      { username: "Corleone", password: "20032003" },
-      { username: "sales", password: "Aa332211" },
-      { username: "trke", password: "Aa1122335" },
-      { username: "hr", password: "100200300" }
-    ];
+    if (!localStorage.getItem("users")) {
+      const defaultUsers = [
+        { username: "siana", password: "Aa112233", permissions: [] },
+        { username: "Corleone", password: "20032003", permissions: [] },
+        { username: "sales", password: "Aa332211", permissions: [] },
+        { username: "trke", password: "Aa1122335", permissions: [] },
+        { username: "hr", password: "100200300", permissions: ["📋 عرض التقييمات", "📥 تنزيل Excel"] }
+      ];
+      localStorage.setItem("users", JSON.stringify(defaultUsers));
+    }
 
     function login() {
       const user = document.getElementById("username").value.trim();
       const pass = document.getElementById("password").value.trim();
-      const valid = users.find(u => u.username === user && u.password === pass);
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const validUser = users.find(u => u.username === user && u.password === pass);
 
-      if (valid) {
+      if (validUser) {
         localStorage.setItem("username", user);
-        localStorage.setItem("password", pass);
-
-        if (user.toLowerCase() === "hr") {
-          const hrPermissions = ["📥 تنزيل Excel", "📋 عرض التقييمات"];
-          localStorage.setItem("permissions", JSON.stringify(hrPermissions));
-        } else {
-          localStorage.removeItem("permissions");
-        }
-
+        localStorage.setItem("permissions", JSON.stringify(validUser.permissions || []));
         window.location.href = "index.html";
       } else {
         document.getElementById("error").style.display = "block";
@@ -105,10 +80,117 @@
     document.getElementById("username").addEventListener("input", () => {
       document.getElementById("error").style.display = "none";
     });
-
     document.getElementById("password").addEventListener("input", () => {
       document.getElementById("error").style.display = "none";
     });
+  </script>
+</body>
+</html>
+
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الرئيسية</title>
+</head>
+<body onload="checkAuthAndPermissions()">
+  <h1>مرحباً بك</h1>
+  <button id="excelBtn" style="display:none">📥 تنزيل Excel</button>
+  <button id="ratingsBtn" style="display:none">📋 عرض التقييمات</button>
+
+  <script>
+    function checkAuthAndPermissions() {
+      const username = localStorage.getItem("username");
+      const permissions = JSON.parse(localStorage.getItem("permissions")) || [];
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const stillExists = users.find(u => u.username === username);
+
+      if (!username || !stillExists) {
+        localStorage.clear();
+        window.location.href = "login.html";
+        return;
+      }
+
+      if (permissions.includes("📥 تنزيل Excel")) {
+        document.getElementById("excelBtn").style.display = "inline-block";
+      }
+      if (permissions.includes("📋 عرض التقييمات")) {
+        document.getElementById("ratingsBtn").style.display = "inline-block";
+      }
+    }
+  </script>
+</body>
+</html>
+
+<!-- manage-users.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إدارة المستخدمين</title>
+  <style>
+    body { font-family: 'Cairo', sans-serif; padding: 20px; background: #f0f4f8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    input, select, button { margin: 5px; padding: 6px; }
+    .danger { color: red; cursor: pointer; }
+  </style>
+</head>
+<body onload="loadUsers()">
+  <h2>إدارة المستخدمين</h2>
+  <input type="text" id="newUser" placeholder="اسم المستخدم" />
+  <input type="password" id="newPass" placeholder="كلمة المرور" />
+  <select id="newPermissions" multiple>
+    <option value="📥 تنزيل Excel">📥 تنزيل Excel</option>
+    <option value="📋 عرض التقييمات">📋 عرض التقييمات</option>
+  </select>
+  <button onclick="addUser()">➕ إضافة</button>
+
+  <table>
+    <thead><tr><th>المستخدم</th><th>الصلاحيات</th><th>حذف</th></tr></thead>
+    <tbody id="userTable"></tbody>
+  </table>
+
+  <script>
+    function loadUsers() {
+      const user = localStorage.getItem("username");
+      if (user !== "hr") return window.location.href = "login.html";
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const tbody = document.getElementById("userTable");
+      tbody.innerHTML = "";
+      users.forEach((u, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${u.username}</td>
+          <td>${(u.permissions || []).join(', ')}</td>
+          <td><span class="danger" onclick="deleteUser(${i})">🗑️</span></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addUser() {
+      const username = document.getElementById("newUser").value.trim();
+      const password = document.getElementById("newPass").value.trim();
+      const permissions = Array.from(document.getElementById("newPermissions").selectedOptions).map(opt => opt.value);
+
+      if (!username || !password) return alert("أدخل الاسم وكلمة المرور");
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      if (users.find(u => u.username === username)) return alert("المستخدم موجود مسبقاً");
+
+      users.push({ username, password, permissions });
+      localStorage.setItem("users", JSON.stringify(users));
+      loadUsers();
+    }
+
+    function deleteUser(index) {
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      users.splice(index, 1);
+      localStorage.setItem("users", JSON.stringify(users));
+      loadUsers();
+    }
   </script>
 </body>
 </html>
