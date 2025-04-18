@@ -305,7 +305,7 @@
       const session = decryptSession();
       if (!session) return;
 
-      const isAdmin = session.user === 'hr' && session.permissions?.includes('admin');
+      const isAdmin = session.user === 'hradmin' && session.permissions?.includes('admin');
       const canViewRatings = session.permissions?.includes('view_ratings');
 
       document.getElementById('excelBtn').style.display = isAdmin ? 'inline-block' : 'none';
