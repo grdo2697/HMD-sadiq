@@ -294,7 +294,13 @@
         if (!encrypted) throw new Error('No session found');
         
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        const sessionData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        
+        if (!sessionData.permissions || !sessionData.permissions.length) {
+          throw new Error('Invalid session permissions');
+        }
+        
+        return sessionData;
       } catch (error) {
         logout();
         return null;
@@ -305,12 +311,20 @@
       const session = decryptSession();
       if (!session) return;
 
-      const isAdmin = session.user === 'hradmin' && session.permissions?.includes('admin');
+      const isAdmin = session.permissions?.includes('admin');
+      const canExport = session.permissions?.includes('export');
+      const canManageUsers = session.permissions?.includes('manage_users');
+      const canView = session.permissions?.includes('view');
       const canViewRatings = session.permissions?.includes('view_ratings');
 
-      document.getElementById('excelBtn').style.display = isAdmin ? 'inline-block' : 'none';
-      document.getElementById('manageUsersBtn').style.display = isAdmin ? 'inline-block' : 'none';
+      document.getElementById('excelBtn').style.display = canExport ? 'inline-block' : 'none';
+      document.getElementById('manageUsersBtn').style.display = canManageUsers ? 'inline-block' : 'none';
       document.getElementById('viewRatingsBtn').style.display = canViewRatings ? 'inline-block' : 'none';
+      
+      if (!canView) {
+        logout();
+        showError('ليس لديك صلاحية الوصول!');
+      }
     }
 
     async function fetchEmployees() {
