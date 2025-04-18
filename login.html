@@ -72,9 +72,9 @@
   </div>
 
   <script>
-    const users = [
+    const users = JSON.parse(localStorage.getItem("users")) || [
       { username: "siana", password: "Aa112233" },
-      { username: "Corleone", password: "20032003" },      
+      { username: "Corleone", password: "20032003" },
       { username: "sales", password: "Aa332211" },
       { username: "trke", password: "Aa1122335" },
       { username: "hr", password: "100200300" }
@@ -89,7 +89,6 @@
         localStorage.setItem("username", user);
         localStorage.setItem("password", pass);
 
-        // فقط إذا كان HR نخزن صلاحيات
         if (user.toLowerCase() === "hr") {
           const hrPermissions = ["📥 تنزيل Excel", "📋 عرض التقييمات"];
           localStorage.setItem("permissions", JSON.stringify(hrPermissions));
