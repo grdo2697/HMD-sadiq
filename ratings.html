@@ -122,18 +122,10 @@
 </head>
 <body>
   <script>
-    // الحماية - منع فتح الصفحة بدون تسجيل دخول
+    // الحماية - منع الوصول بدون تسجيل دخول
     const username = localStorage.getItem("username");
     if (!username) {
       window.location.href = "login.html";
-    }
-
-    function goToRatings() {
-      if (username === "HR") {
-        window.location.href = "ratings.html";
-      } else {
-        alert("هذه الصفحة مخصصة للموارد البشرية فقط.");
-      }
     }
   </script>
 
