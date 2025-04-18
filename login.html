@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
+    /* الأنماط تبقى كما هي من الإصدار السابق */
     :root {
       --primary-color: #2c3e50;
       --secondary-color: #3498db;
@@ -73,10 +74,6 @@
       outline: none;
       border-color: var(--secondary-color);
       background: white;
-    }
-
-    input::placeholder {
-      color: #95a5a6;
     }
 
     button {
@@ -196,9 +193,185 @@
     </div>
   </div>
 
-  <!-- باقي الكود JavaScript يبقى كما هو بدون تغيير -->
   <script>
-    // ... (نفس الكود JavaScript السابق بدون تعديلات) ...
+    const SECRET_KEY = "smart_era_secret_@2024";
+    const USERS_KEY = "smart_era_users";
+    const MAX_ATTEMPTS = 5;
+    const LOCK_TIME = 300000;
+
+    let loginAttempts = JSON.parse(localStorage.getItem('login_attempts')) || { 
+      count: 0, 
+      timestamp: 0 
+    };
+
+    const defaultUsers = [
+      {
+        username: "hradmin",
+        password: "Aa20002000",
+        permissions: ["admin", "view", "export", "manage_users", "view_ratings"],
+        role: "مدير النظام"
+      },
+      {
+        username: "siana",
+        password: "Aa112233",
+        permissions: ["view"],
+        role: "مشاهد"
+      },
+      {
+        username: "Corleone",
+        password: "20032003",
+        permissions: ["view"],
+        role: "مشاهد"
+      },
+      {
+        username: "sales",
+        password: "Aa332211",
+        permissions: ["view"],
+        role: "مشاهد"
+      },
+      {
+        username: "trke",
+        password: "Aa1122335",
+        permissions: ["view"],
+        role: "مشاهد"
+      }
+    ];
+
+    function showLoader(show) {
+      document.getElementById('loader').style.display = show ? 'grid' : 'none';
+    }
+
+    function updateAttemptsWarning() {
+      const warningEl = document.getElementById('attemptsWarning');
+      const remainingTime = Math.ceil((LOCK_TIME - (Date.now() - loginAttempts.timestamp)) / 60000);
+      
+      if (loginAttempts.count >= MAX_ATTEMPTS) {
+        warningEl.textContent = `تم تعطيل الدخول. الرجاء المحاولة بعد ${remainingTime} دقائق`;
+      } else {
+        warningEl.textContent = `المحاولات المتبقية: ${MAX_ATTEMPTS - loginAttempts.count}`;
+      }
+    }
+
+    function validatePassword(password) {
+      const hasValidLength = password.length >= 8;
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*]/.test(password);
+      
+      return {
+        valid: hasValidLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar,
+        message: 'يجب أن تحتوي كلمة المرور على:\n- 8 أحرف على الأقل\n- حرف كبير\n- حرف صغير\n- رقم\n- رمز خاص (!@#$%^&*)'
+      };
+    }
+
+    async function handleLogin() {
+      try {
+        if (loginAttempts.count >= MAX_ATTEMPTS) {
+          const timeDiff = Date.now() - loginAttempts.timestamp;
+          if (timeDiff < LOCK_TIME) throw new Error('تم تعطيل الدخول مؤقتًا');
+        }
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+          throw new Error('الرجاء ملء جميع الحقول');
+        }
+
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+          throw new Error(passwordValidation.message);
+        }
+
+        showLoader(true);
+        
+        const users = getStoredUsers();
+        const user = users.find(u => 
+          u.username.toLowerCase() === username.toLowerCase() && 
+          u.password === password
+        );
+
+        if (!user) {
+          loginAttempts.count++;
+          loginAttempts.timestamp = Date.now();
+          localStorage.setItem('login_attempts', JSON.stringify(loginAttempts));
+          updateAttemptsWarning();
+          throw new Error('بيانات الدخول غير صحيحة');
+        }
+
+        loginAttempts = { count: 0, timestamp: 0 };
+        localStorage.setItem('login_attempts', JSON.stringify(loginAttempts));
+
+        const sessionData = {
+          user: user.username,
+          role: user.role,
+          permissions: user.permissions,
+          timestamp: Date.now()
+        };
+
+        const encryptedSession = CryptoJS.AES.encrypt(
+          JSON.stringify(sessionData), 
+          SECRET_KEY
+        ).toString();
+
+        sessionStorage.setItem('auth', encryptedSession);
+        window.location.href = 'index.html';
+
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    function getStoredUsers() {
+      try {
+        const encrypted = localStorage.getItem(USERS_KEY);
+        if (!encrypted) return [];
+        
+        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      setTimeout(() => errorEl.style.display = 'none', 5000);
+    }
+
+    function initializeDefaultUsers() {
+      let users = getStoredUsers();
+      
+      defaultUsers.forEach(newUser => {
+        if (!users.some(u => u.username === newUser.username)) {
+          users.push(newUser);
+        }
+      });
+      
+      const encrypted = CryptoJS.AES.encrypt(
+        JSON.stringify(users), 
+        SECRET_KEY
+      ).toString();
+      
+      localStorage.setItem(USERS_KEY, encrypted);
+    }
+
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', () => {
+        document.getElementById('error').style.display = 'none';
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeDefaultUsers();
+      updateAttemptsWarning();
+      setInterval(updateAttemptsWarning, 1000);
+    });
   </script>
 </body>
 </html>
