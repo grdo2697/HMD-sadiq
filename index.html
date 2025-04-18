@@ -299,7 +299,7 @@
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
         const session = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
         
-        if (session.user === 'hr' && session.permissions.includes('admin')) {
+        if (session.user === 'hradmin' && session.permissions.includes('admin')) {
           document.getElementById('excelBtn').style.display = 'inline-block';
           document.getElementById('manageUsersBtn').style.display = 'inline-block';
         }
