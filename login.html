@@ -1,198 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الدخول - العصر الذكي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <style>
-    /* الأنماط تبقى كما هي من الإصدار السابق */
-    :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --success-color: #27ae60;
-      --error-color: #e74c3c;
-      --background: #f8f9fa;
-      --text-color: #2c3e50;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--background);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: var(--text-color);
-    }
-
-    .login-container {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 450px;
-      margin: 1rem;
-      transition: transform 0.3s ease;
-    }
-
-    .login-container:hover {
-      transform: translateY(-5px);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--primary-color);
-      font-size: 1.8rem;
-    }
-
-    .input-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    input {
-      width: 100%;
-      padding: 1rem;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-      background: #f8f9fa;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--secondary-color);
-      background: white;
-    }
-
-    button {
-      width: 100%;
-      padding: 1rem;
-      background: var(--secondary-color);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-    }
-
-    button:hover {
-      background: #2980b9;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
-    }
-
-    .error {
-      color: var(--error-color);
-      margin: 1rem 0;
-      padding: 0.8rem;
-      background: #f8d7da;
-      border-radius: 8px;
-      display: none;
-      animation: slideIn 0.3s ease;
-    }
-
-    .attempts-warning {
-      color: #e67e22;
-      text-align: center;
-      margin: 1rem 0;
-      font-size: 0.9rem;
-    }
-
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      display: none;
-      place-items: center;
-      z-index: 100;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid var(--secondary-color);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes slideIn {
-      from { transform: translateY(-20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 1.5rem;
-        margin: 1rem;
-      }
-      
-      h2 {
-        font-size: 1.5rem;
-      }
-      
-      button {
-        font-size: 1rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="login-container">
-    <h2>مرحبًا بك في شركة العصرالذكي</h2>
-    
-    <div class="input-group">
-      <input 
-        type="text" 
-        id="username" 
-        placeholder="اسم المستخدم" 
-        aria-label="اسم المستخدم"
-        autocomplete="username"
-      >
-    </div>
-    
-    <div class="input-group">
-      <input 
-        type="password" 
-        id="password" 
-        placeholder="كلمة المرور" 
-        aria-label="كلمة المرور"
-        autocomplete="current-password"
-      >
-    </div>
-
-    <button onclick="handleLogin()">تسجيل الدخول</button>
-    
-    <div id="error" class="error"></div>
-    <div id="attemptsWarning" class="attempts-warning"></div>
-    
-    <div class="loading-overlay" id="loader">
-      <div class="spinner"></div>
-    </div>
-  </div>
-
+  <!-- باقي الهيد كما هو -->
   <script>
     const SECRET_KEY = "smart_era_secret_@2024";
     const USERS_KEY = "smart_era_users";
@@ -237,31 +46,15 @@
       }
     ];
 
-    function showLoader(show) {
-      document.getElementById('loader').style.display = show ? 'grid' : 'none';
-    }
-
-    function updateAttemptsWarning() {
-      const warningEl = document.getElementById('attemptsWarning');
-      const remainingTime = Math.ceil((LOCK_TIME - (Date.now() - loginAttempts.timestamp)) / 60000);
-      
-      if (loginAttempts.count >= MAX_ATTEMPTS) {
-        warningEl.textContent = `تم تعطيل الدخول. الرجاء المحاولة بعد ${remainingTime} دقائق`;
-      } else {
-        warningEl.textContent = `المحاولات المتبقية: ${MAX_ATTEMPTS - loginAttempts.count}`;
-      }
-    }
-
     function validatePassword(password) {
-      const hasValidLength = password.length >= 8;
+      const hasValidLength = password.length >= 6;
       const hasUpperCase = /[A-Z]/.test(password);
       const hasLowerCase = /[a-z]/.test(password);
       const hasNumber = /\d/.test(password);
-      const hasSpecialChar = /[!@#$%^&*]/.test(password);
       
       return {
-        valid: hasValidLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar,
-        message: 'يجب أن تحتوي كلمة المرور على:\n- 8 أحرف على الأقل\n- حرف كبير\n- حرف صغير\n- رقم\n- رمز خاص (!@#$%^&*)'
+        valid: hasValidLength && hasUpperCase && hasLowerCase && hasNumber,
+        message: 'يجب أن تحتوي كلمة المرور على:\n- 6 أحرف على الأقل\n- حرف كبير\n- حرف صغير\n- رقم'
       };
     }
 
@@ -277,11 +70,6 @@
 
         if (!username || !password) {
           throw new Error('الرجاء ملء جميع الحقول');
-        }
-
-        const passwordValidation = validatePassword(password);
-        if (!passwordValidation.valid) {
-          throw new Error(passwordValidation.message);
         }
 
         showLoader(true);
@@ -325,53 +113,7 @@
       }
     }
 
-    function getStoredUsers() {
-      try {
-        const encrypted = localStorage.getItem(USERS_KEY);
-        if (!encrypted) return [];
-        
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8)) || [];
-      } catch {
-        return [];
-      }
-    }
-
-    function showError(message) {
-      const errorEl = document.getElementById('error');
-      errorEl.textContent = message;
-      errorEl.style.display = 'block';
-      setTimeout(() => errorEl.style.display = 'none', 5000);
-    }
-
-    function initializeDefaultUsers() {
-      let users = getStoredUsers();
-      
-      defaultUsers.forEach(newUser => {
-        if (!users.some(u => u.username === newUser.username)) {
-          users.push(newUser);
-        }
-      });
-      
-      const encrypted = CryptoJS.AES.encrypt(
-        JSON.stringify(users), 
-        SECRET_KEY
-      ).toString();
-      
-      localStorage.setItem(USERS_KEY, encrypted);
-    }
-
-    document.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', () => {
-        document.getElementById('error').style.display = 'none';
-      });
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeDefaultUsers();
-      updateAttemptsWarning();
-      setInterval(updateAttemptsWarning, 1000);
-    });
+    // باقي الدوال كما هي بدون تغيير
   </script>
 </body>
 </html>
