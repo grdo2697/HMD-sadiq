@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تقييمات موظفين شركة العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
+    /* جميع الأنماط السابقة */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -170,7 +172,6 @@
       }
     }
 
-    /* أنماط إضافية للتقييمات */
     .rating-badge {
       padding: 0.25rem 0.75rem;
       border-radius: 20px;
@@ -180,6 +181,8 @@
     .rating-high { background: #dcfce7; color: #166534; }
     .rating-medium { background: #fef9c3; color: #854d0e; }
     .rating-low { background: #fee2e2; color: #991b1b; }
+
+    .admin-only { display: none; }
   </style>
 </head>
 <body>
@@ -192,8 +195,8 @@
   <main class="main-container">
     <div class="controls">
       <button class="btn btn-primary" onclick="fetchReviews()">🔄 تحديث البيانات</button>
-      <button class="btn btn-danger" onclick="clearTable()">🗑️ مسح الكل</button>
-      <button class="btn btn-primary" onclick="downloadExcel()">📥 تنزيل Excel</button>
+      <button class="btn btn-danger admin-only" onclick="clearTable()">🗑️ مسح الكل</button>
+      <button class="btn btn-primary admin-only" onclick="downloadExcel()">📥 تنزيل Excel</button>
       <select class="form-input" id="gradeFilter" onchange="filterTable()">
         <option value="">تصفية حسب الدرجة</option>
       </select>
@@ -217,6 +220,7 @@
           <th onclick="sortBy('operationRating')">التقييم العملي ⇅</th>
           <th>أيام التقييم</th>
           <th onclick="sortBy('reviewDate')">التاريخ ⇅</th>
+          <th class="admin-only">الإجراءات</th>
         </tr>
       </thead>
       <tbody id="reviews-body"></tbody>
@@ -232,24 +236,39 @@
     const SESSION_KEY = "auth";
     let reviewsData = [];
 
+    // فك تشفير الجلسة مع تحقق مكثف
     function decryptSession() {
       try {
         const encrypted = sessionStorage.getItem(SESSION_KEY);
-        if (!encrypted) throw new Error('No session');
+        if (!encrypted) throw new Error('الجلسة منتهية');
         
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        const sessionData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        
+        // تحقق مزدوج من الهوية والصلاحيات
+        if (sessionData.user !== 'hradmin' || !sessionData.permissions.includes('admin')) {
+          throw new Error('صلاحية غير كافية');
+        }
+        
+        return sessionData;
       } catch (error) {
         logout();
         return null;
       }
     }
 
+    // التحقق من الصلاحيات
     function verifyPermissions() {
       const session = decryptSession();
-      if (!session) window.location.href = "login.html";
+      if (!session) window.location.href = 'login.html';
+      
+      // إظهار عناصر التحكم الإدارية
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = 'inline-block';
+      });
     }
 
+    // جلب البيانات
     async function fetchReviews() {
       try {
         showLoading(true);
@@ -257,6 +276,7 @@
         reviewsData = await res.json();
         populateGradeFilter();
         displayReviews(reviewsData);
+        addEditButtons();
       } catch (error) {
         showError("فشل في جلب البيانات: " + error.message);
       } finally {
@@ -264,6 +284,7 @@
       }
     }
 
+    // عرض البيانات مع أزرار التعديل
     function displayReviews(data) {
       const tbody = document.getElementById("reviews-body");
       tbody.innerHTML = data.map(review => `
@@ -283,10 +304,31 @@
           </td>
           <td>${review.ratingDays}</td>
           <td>${new Date(review.reviewDate).toLocaleDateString('ar-EG')}</td>
+          <td class="admin-only">
+            <button class="btn btn-primary" onclick="editReview('${review.id}')">✏️ تعديل</button>
+          </td>
         </tr>
       `).join('');
     }
 
+    // إضافة أزرار التعديل ديناميكيًا
+    function addEditButtons() {
+      document.querySelectorAll('#reviews-body tr').forEach(row => {
+        const editBtn = row.querySelector('button');
+        if (editBtn) editBtn.style.display = 'inline-block';
+      });
+    }
+
+    // دالة التعديل
+    function editReview(id) {
+      const review = reviewsData.find(r => r.id === id);
+      if (review) {
+        // يمكنك إضافة منطق التعديل هنا
+        prompt('أدخل التعديلات:', JSON.stringify(review));
+      }
+    }
+
+    // باقي الدوال المساعدة
     function getRatingClass(rating) {
       const num = parseFloat(rating);
       if (num >= 4) return 'rating-high';
@@ -345,22 +387,19 @@
     }
 
     function showLoading(show) {
-      const loader = document.createElement('div');
-      loader.id = 'loading';
-      loader.innerHTML = `
-        <div class="loader"></div>
-        <p>جاري تحميل البيانات...</p>
-      `;
-      if (show) document.body.appendChild(loader);
-      else document.getElementById('loading')?.remove();
+      const loader = document.getElementById('loading');
+      if (show) {
+        loader.style.display = 'block';
+      } else {
+        loader.style.display = 'none';
+      }
     }
 
     function showError(msg) {
-      const errEl = document.createElement('div');
-      errEl.className = 'error-message';
+      const errEl = document.getElementById('errorContainer');
       errEl.textContent = msg;
-      document.body.appendChild(errEl);
-      setTimeout(() => errEl.remove(), 5000);
+      errEl.style.display = 'block';
+      setTimeout(() => errEl.style.display = 'none', 5000);
     }
 
     function logout() {
