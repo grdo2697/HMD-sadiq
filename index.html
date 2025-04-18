@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
+    /* جميع الأنماط السابقة تبقى كما هي */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -294,7 +295,6 @@
     const SESSION_KEY = "auth";
     let allEmployees = [];
 
-    // تحقق من الجلسة المشفرة
     function decryptSession() {
       try {
         const encryptedSession = sessionStorage.getItem(SESSION_KEY);
@@ -314,22 +314,19 @@
       }
     }
 
-    // التحقق من الصلاحيات
     function verifyPermissions() {
       const session = decryptSession();
       if (!session) return;
 
-      document.getElementById('excelBtn').style.display = 
-        session.permissions.includes('export') ? 'inline-block' : 'none';
-      
-      document.getElementById('manageUsersBtn').style.display = 
-        session.permissions.includes('manage_users') ? 'inline-block' : 'none';
-      
-      document.getElementById('viewRatingsBtn').style.display = 
-        session.permissions.includes('view_ratings') ? 'inline-block' : 'none';
+      // التحقق من أن المستخدم هو hradmin
+      const isAdmin = session.user === 'hradmin';
+
+      // إظهار الأزرار فقط للمدير
+      document.getElementById('excelBtn').style.display = isAdmin ? 'inline-block' : 'none';
+      document.getElementById('manageUsersBtn').style.display = isAdmin ? 'inline-block' : 'none';
+      document.getElementById('viewRatingsBtn').style.display = isAdmin ? 'inline-block' : 'none';
     }
 
-    // جلب بيانات الموظفين
     async function fetchEmployees() {
       try {
         showLoading(true);
@@ -347,7 +344,6 @@
       }
     }
 
-    // عرض بيانات الموظفين
     function displayEmployees(data) {
       const tbody = document.getElementById("employee-body");
       tbody.innerHTML = data.length ? data.map(emp => `
@@ -363,7 +359,6 @@
         </tr>`;
     }
 
-    // تحديث عوامل التصفية
     function updateFilters() {
       const roles = [...new Set(allEmployees.map(emp => emp.role))];
       const statuses = [...new Set(allEmployees.map(emp => emp.status))];
@@ -380,7 +375,6 @@
       ).join('');
     }
 
-    // تصفية البيانات
     function filterEmployees() {
       const searchTerm = document.getElementById("search").value.toLowerCase();
       const roleFilter = document.getElementById("filter-role").value.toLowerCase();
@@ -395,7 +389,6 @@
       displayEmployees(filtered);
     }
 
-    // تصدير لـ Excel
     function downloadExcel() {
       const csvContent = [
         ['الاسم', 'الرقم', 'المنصب', 'الحالة'],
@@ -409,12 +402,10 @@
       link.click();
     }
 
-    // إدارة التحميل
     function showLoading(show) {
       document.getElementById("loading").style.display = show ? 'block' : 'none';
     }
 
-    // إظهار الأخطاء
     function showError(message) {
       const errorEl = document.getElementById("errorContainer");
       errorEl.textContent = message;
@@ -422,19 +413,16 @@
       setTimeout(() => errorEl.style.display = 'none', 5000);
     }
 
-    // تسجيل الخروج
     function logout() {
       sessionStorage.removeItem(SESSION_KEY);
       window.location.href = "login.html";
     }
 
-    // تبديل الوضع الليلي
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
       localStorage.setItem('darkMode', document.body.classList.contains("dark-mode"));
     }
 
-    // تهيئة الصفحة
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById("year").textContent = new Date().getFullYear();
       document.body.classList.toggle("dark-mode", localStorage.getItem('darkMode') === 'true');
