@@ -1,106 +1,157 @@
 <!-- manage-users.html -->
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>إدارة المستخدمين</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f2f2f2; }
+    label, input, select { display: block; margin: 10px 0; }
+    button { margin: 5px; }
+    .user { background: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+  </style>
 </head>
-<body class="bg-light">
-  <div class="container py-5">
-    <h2 class="text-center mb-4">إدارة المستخدمين</h2>
+<body>
+  <h2>إدارة المستخدمين</h2>
+  <input type="text" id="username" placeholder="اسم المستخدم">
+  <input type="password" id="password" placeholder="كلمة المرور">
+  <label>الصلاحيات:</label>
+  <select id="permissions" multiple>
+    <option>📋 عرض التقييمات</option>
+    <option>📥 تنزيل Excel</option>
+  </select>
+  <button onclick="addUser()">➕ إضافة مستخدم</button>
 
-    <form id="userForm" class="mb-4">
-      <input type="text" id="username" class="form-control mb-2" placeholder="اسم المستخدم" required>
-      <input type="password" id="password" class="form-control mb-2" placeholder="كلمة المرور" required>
-
-      <label>الصلاحيات:</label><br>
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="permExcel">
-        <label class="form-check-label" for="permExcel">📥 تنزيل Excel</label>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="permRatings">
-        <label class="form-check-label" for="permRatings">📋 عرض التقييمات</label>
-      </div>
-
-      <button type="submit" class="btn btn-primary mt-3">إضافة / تحديث</button>
-    </form>
-
-    <table class="table table-bordered bg-white">
-      <thead class="thead-dark">
-        <tr>
-          <th>اسم المستخدم</th>
-          <th>الصلاحيات</th>
-          <th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody id="userTable"></tbody>
-    </table>
-  </div>
+  <div id="userList"></div>
 
   <script>
-    const userForm = document.getElementById("userForm");
-    const userTable = document.getElementById("userTable");
+    let users = JSON.parse(localStorage.getItem('users')) || [];
 
-    function loadUsers() {
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      userTable.innerHTML = "";
-      users.forEach((user, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.permissions.join(", ")}</td>
-          <td>
-            <button class="btn btn-sm btn-info" onclick="editUser(${index})">تعديل</button>
-            <button class="btn btn-sm btn-danger ml-2" onclick="deleteUser(${index})">حذف</button>
-          </td>
-        `;
-        userTable.appendChild(row);
+    function saveUsers() {
+      localStorage.setItem('users', JSON.stringify(users));
+      showUsers();
+    }
+
+    function addUser() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const permissions = Array.from(document.getElementById('permissions').selectedOptions).map(opt => opt.value);
+
+      if (!username || !password) return alert('يرجى ملء كل الحقول');
+      if (users.some(u => u.username === username)) return alert('المستخدم موجود مسبقًا');
+
+      users.push({ username, password, permissions });
+      saveUsers();
+    }
+
+    function deleteUser(username) {
+      users = users.filter(u => u.username !== username);
+      saveUsers();
+    }
+
+    function updatePermissions(username) {
+      const perms = prompt("أدخل الصلاحيات مفصولة بفاصلة (مثال: 📋 عرض التقييمات,📥 تنزيل Excel)");
+      if (perms !== null) {
+        const user = users.find(u => u.username === username);
+        user.permissions = perms.split(',').map(p => p.trim());
+        saveUsers();
+      }
+    }
+
+    function showUsers() {
+      const container = document.getElementById('userList');
+      container.innerHTML = '';
+      users.forEach(user => {
+        container.innerHTML += `
+          <div class="user">
+            👤 <b>${user.username}</b><br>
+            🔑 ${user.password}<br>
+            🛡️ ${user.permissions.join(', ')}<br>
+            <button onclick="updatePermissions('${user.username}')">✏️ تعديل الصلاحيات</button>
+            <button onclick="deleteUser('${user.username}')">🗑️ حذف</button>
+          </div>`;
       });
     }
 
-    userForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value;
-      const permissions = [];
-      if (document.getElementById("permExcel").checked) permissions.push("excel");
-      if (document.getElementById("permRatings").checked) permissions.push("ratings");
+    showUsers();
+  </script>
+</body>
+</html>
 
-      let users = JSON.parse(localStorage.getItem("users")) || [];
-      const existingIndex = users.findIndex(u => u.username === username);
-      const userData = { username, password, permissions };
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تسجيل الدخول</title>
+  <style>
+    body { font-family: sans-serif; padding: 50px; background: #eee; text-align: center; }
+    input { display: block; margin: 10px auto; padding: 10px; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h2>تسجيل الدخول</h2>
+  <input type="text" id="username" placeholder="اسم المستخدم">
+  <input type="password" id="password" placeholder="كلمة المرور">
+  <button onclick="login()">تسجيل الدخول</button>
 
-      if (existingIndex !== -1) {
-        users[existingIndex] = userData;
-      } else {
-        users.push(userData);
-      }
+  <script>
+    function login() {
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const user = users.find(u => u.username === username && u.password === password);
+      if (!user) return alert('بيانات غير صحيحة أو تم حذف الحساب');
 
-      localStorage.setItem("users", JSON.stringify(users));
-      userForm.reset();
-      loadUsers();
-    });
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
 
-    function editUser(index) {
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const user = users[index];
-      document.getElementById("username").value = user.username;
-      document.getElementById("password").value = user.password;
-      document.getElementById("permExcel").checked = user.permissions.includes("excel");
-      document.getElementById("permRatings").checked = user.permissions.includes("ratings");
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>الصفحة الرئيسية</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .hidden { display: none; }
+    button { padding: 10px; margin: 5px; }
+  </style>
+</head>
+<body>
+  <h2>مرحباً بك 👋</h2>
+  <div id="buttons">
+    <button id="btn-ratings" class="hidden">📋 عرض التقييمات</button>
+    <button id="btn-excel" class="hidden">📥 تنزيل Excel</button>
+    <button onclick="logout()">🚪 تسجيل الخروج</button>
+  </div>
+
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const allUsers = JSON.parse(localStorage.getItem('users')) || [];
+
+    if (!currentUser || !allUsers.some(u => u.username === currentUser.username)) {
+      alert("يرجى تسجيل الدخول أولاً");
+      location.href = 'login.html';
     }
 
-    function deleteUser(index) {
-      let users = JSON.parse(localStorage.getItem("users")) || [];
-      users.splice(index, 1);
-      localStorage.setItem("users", JSON.stringify(users));
-      loadUsers();
+    const permissions = currentUser.permissions || [];
+    if (permissions.includes("📋 عرض التقييمات")) {
+      document.getElementById('btn-ratings').classList.remove('hidden');
+    }
+    if (permissions.includes("📥 تنزيل Excel")) {
+      document.getElementById('btn-excel').classList.remove('hidden');
     }
 
-    loadUsers();
+    function logout() {
+      localStorage.removeItem('currentUser');
+      location.href = 'login.html';
+    }
   </script>
 </body>
 </html>
