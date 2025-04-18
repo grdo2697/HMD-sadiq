@@ -25,6 +25,7 @@
       width: 100%;
       max-width: 400px;
       text-align: center;
+      position: relative;
     }
 
     h2 {
@@ -39,6 +40,13 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
     }
 
     button {
@@ -50,11 +58,12 @@
       border-radius: 8px;
       font-size: 1.1rem;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, transform 0.2s;
     }
 
     button:hover {
       background-color: #0284c7;
+      transform: translateY(-2px);
     }
 
     .error {
@@ -62,24 +71,170 @@
       margin-top: 1rem;
       display: none;
       font-size: 0.9rem;
+      padding: 0.5rem;
+      background: #fee2e2;
+      border-radius: 6px;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
+      place-items: center;
+      border-radius: 16px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0ea5e9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .attempts-warning {
+      color: #d97706;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
     <h2>تسجيل الدخول</h2>
-    <input type="text" id="username" placeholder="اسم المستخدم" aria-label="اسم المستخدم">
-    <input type="password" id="password" placeholder="كلمة المرور" aria-label="كلمة المرور">
+    <input 
+      type="text" 
+      id="username" 
+      placeholder="اسم المستخدم" 
+      aria-label="اسم المستخدم"
+      autocomplete="username"
+    >
+    <input 
+      type="password" 
+      id="password" 
+      placeholder="كلمة المرور" 
+      aria-label="كلمة المرور"
+      autocomplete="current-password"
+    >
     <button onclick="handleLogin()">دخول</button>
-    <div id="error" class="error">بيانات الدخول غير صحيحة</div>
+    <div id="error" class="error"></div>
+    <div id="attemptsWarning" class="attempts-warning"></div>
+    <div class="loading-overlay" id="loader">
+      <div class="spinner"></div>
+    </div>
   </div>
 
   <script>
     const SECRET_KEY = "smart_era_secret_@2024";
     const USERS_KEY = "smart_era_users";
+    const MAX_ATTEMPTS = 5;
+    const LOCK_TIME = 300000; // 5 دقائق بالمللي ثانية
 
-    function encryptSession(data) {
-      return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString();
+    let loginAttempts = JSON.parse(localStorage.getItem('login_attempts')) || { 
+      count: 0, 
+      timestamp: 0 
+    };
+
+    function showLoader(show) {
+      document.getElementById('loader').style.display = show ? 'grid' : 'none';
+    }
+
+    function updateAttemptsWarning() {
+      const warningEl = document.getElementById('attemptsWarning');
+      const remainingAttempts = MAX_ATTEMPTS - loginAttempts.count;
+      
+      if (loginAttempts.count >= MAX_ATTEMPTS) {
+        const remainingTime = Math.ceil((LOCK_TIME - (Date.now() - loginAttempts.timestamp)) / 60000);
+        warningEl.textContent = `تم تعطيل الدخول مؤقتًا. الرجاء المحاولة بعد ${remainingTime} دقائق`;
+      } else if (loginAttempts.count > 0) {
+        warningEl.textContent = `المحاولات المتبقية: ${remainingAttempts}`;
+      } else {
+        warningEl.textContent = '';
+      }
+    }
+
+    function validatePassword(password) {
+      const minLength = 8;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      
+      return {
+        valid: password.length >= minLength && hasUpper && hasLower && hasNumber,
+        message: 'يجب أن تحتوي كلمة المرور على:\n- 8 أحرف على الأقل\n- حرف كبير\n- حرف صغير\n- رقم'
+      };
+    }
+
+    async function handleLogin() {
+      try {
+        // التحقق من حالة القفل
+        if (Date.now() - loginAttempts.timestamp < LOCK_TIME && loginAttempts.count >= MAX_ATTEMPTS) {
+          throw new Error(`تم تعطيل الدخول مؤقتًا بسبب محاولات متكررة`);
+        }
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        // التحقق من الحقول الفارغة
+        if (!username || !password) {
+          throw new Error('الرجاء ملء جميع الحقول');
+        }
+
+        // التحقق من قوة كلمة المرور
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+          throw new Error(passwordValidation.message);
+        }
+
+        showLoader(true);
+        
+        // جلب المستخدمين المشفرين
+        const users = getStoredUsers();
+        const user = users.find(u => u.username === username && u.password === password);
+
+        if (!user) {
+          loginAttempts.count++;
+          loginAttempts.timestamp = Date.now();
+          localStorage.setItem('login_attempts', JSON.stringify(loginAttempts));
+          updateAttemptsWarning();
+          
+          throw new Error('بيانات الدخول غير صحيحة');
+        }
+
+        // إعادة تعيين العداد عند النجاح
+        loginAttempts = { count: 0, timestamp: 0 };
+        localStorage.setItem('login_attempts', JSON.stringify(loginAttempts));
+
+        // إنشاء جلسة مشفرة
+        const sessionData = {
+          user: user.username,
+          permissions: user.permissions || [],
+          timestamp: new Date().getTime()
+        };
+
+        const encryptedSession = CryptoJS.AES.encrypt(
+          JSON.stringify(sessionData), 
+          SECRET_KEY
+        ).toString();
+
+        sessionStorage.setItem('auth', encryptedSession);
+        window.location.href = 'index.html';
+
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        showLoader(false);
+      }
     }
 
     function getStoredUsers() {
@@ -94,61 +249,49 @@
       }
     }
 
-    function handleLogin() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const users = getStoredUsers();
-      const user = users.find(u => u.username === username && u.password === password);
-
-      if (user) {
-        // إنشاء جلسة مشفرة
-        const sessionData = {
-          user: user.username,
-          permissions: user.permissions || [],
-          timestamp: new Date().getTime()
-        };
-
-        const encryptedSession = encryptSession(sessionData);
-        sessionStorage.setItem('auth', encryptedSession);
-
-        window.location.href = 'index.html';
-      } else {
-        showError();
-      }
-    }
-
-    function showError() {
+    function showError(message) {
       const errorEl = document.getElementById('error');
+      errorEl.textContent = message;
       errorEl.style.display = 'block';
-      setTimeout(() => errorEl.style.display = 'none', 3000);
+      setTimeout(() => errorEl.style.display = 'none', 5000);
     }
 
-    // تهيئة المستخدمين الافتراضيين إذا لم يوجد
     function initializeDefaultUsers() {
       const existingUsers = getStoredUsers();
       if (existingUsers.length === 0) {
         const defaultUsers = [
-          { username: "hr", password: "100200300", permissions: ["admin", "view", "export"] },
+          { 
+            username: "hr", 
+            password: "100200300", 
+            permissions: ["admin", "view", "export"] 
+          },
           { username: "siana", password: "Aa112233", permissions: [] },
           { username: "Corleone", password: "20032003", permissions: [] },
           { username: "sales", password: "Aa332211", permissions: [] },
           { username: "trke", password: "Aa1122335", permissions: [] }
         ];
         
-        const encrypted = CryptoJS.AES.encrypt(JSON.stringify(defaultUsers), SECRET_KEY).toString();
+        const encrypted = CryptoJS.AES.encrypt(
+          JSON.stringify(defaultUsers), 
+          SECRET_KEY
+        ).toString();
+        
         localStorage.setItem(USERS_KEY, encrypted);
       }
     }
 
-    // إخفاء الرسالة عند الكتابة
+    // الأحداث
     document.querySelectorAll('input').forEach(input => {
       input.addEventListener('input', () => {
         document.getElementById('error').style.display = 'none';
       });
     });
 
-    // التهيئة الأولية عند التحميل
-    document.addEventListener('DOMContentLoaded', initializeDefaultUsers);
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeDefaultUsers();
+      updateAttemptsWarning();
+      setInterval(updateAttemptsWarning, 1000);
+    });
   </script>
 </body>
 </html>
