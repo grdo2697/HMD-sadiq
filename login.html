@@ -1,119 +1,133 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <!-- باقي الهيد كما هو -->
-  <script>
-    const SECRET_KEY = "smart_era_secret_@2024";
-    const USERS_KEY = "smart_era_users";
-    const MAX_ATTEMPTS = 5;
-    const LOCK_TIME = 300000;
-
-    let loginAttempts = JSON.parse(localStorage.getItem('login_attempts')) || { 
-      count: 0, 
-      timestamp: 0 
-    };
-
-    const defaultUsers = [
-      {
-        username: "hradmin",
-        password: "Aa20002000",
-        permissions: ["admin", "view", "export", "manage_users", "view_ratings"],
-        role: "مدير النظام"
-      },
-      {
-        username: "siana",
-        password: "Aa112233",
-        permissions: ["view"],
-        role: "مشاهد"
-      },
-      {
-        username: "Corleone",
-        password: "20032003",
-        permissions: ["view"],
-        role: "مشاهد"
-      },
-      {
-        username: "sales",
-        password: "Aa332211",
-        permissions: ["view"],
-        role: "مشاهد"
-      },
-      {
-        username: "trke",
-        password: "Aa1122335",
-        permissions: ["view"],
-        role: "مشاهد"
-      }
-    ];
-
-    function validatePassword(password) {
-      const hasValidLength = password.length >= 6;
-      const hasUpperCase = /[A-Z]/.test(password);
-      const hasLowerCase = /[a-z]/.test(password);
-      const hasNumber = /\d/.test(password);
-      
-      return {
-        valid: hasValidLength && hasUpperCase && hasLowerCase && hasNumber,
-        message: 'يجب أن تحتوي كلمة المرور على:\n- 6 أحرف على الأقل\n- حرف كبير\n- حرف صغير\n- رقم'
-      };
-    }
-
-    async function handleLogin() {
-      try {
-        if (loginAttempts.count >= MAX_ATTEMPTS) {
-          const timeDiff = Date.now() - loginAttempts.timestamp;
-          if (timeDiff < LOCK_TIME) throw new Error('تم تعطيل الدخول مؤقتًا');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - العصر الذكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --background: #f8f9fa;
+            --text: #2c3e50;
+            --error: #e74c3c;
         }
 
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (!username || !password) {
-          throw new Error('الرجاء ملء جميع الحقول');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        showLoader(true);
-        
-        const users = getStoredUsers();
-        const user = users.find(u => 
-          u.username.toLowerCase() === username.toLowerCase() && 
-          u.password === password
-        );
-
-        if (!user) {
-          loginAttempts.count++;
-          loginAttempts.timestamp = Date.now();
-          localStorage.setItem('login_attempts', JSON.stringify(loginAttempts));
-          updateAttemptsWarning();
-          throw new Error('بيانات الدخول غير صحيحة');
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 400px;
         }
 
-        loginAttempts = { count: 0, timestamp: 0 };
-        localStorage.setItem('login_attempts', JSON.stringify(loginAttempts));
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
 
-        const sessionData = {
-          user: user.username,
-          role: user.role,
-          permissions: user.permissions,
-          timestamp: Date.now()
-        };
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 1rem;
+        }
 
-        const encryptedSession = CryptoJS.AES.encrypt(
-          JSON.stringify(sessionData), 
-          SECRET_KEY
-        ).toString();
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
 
-        sessionStorage.setItem('auth', encryptedSession);
-        window.location.href = 'index.html';
+        #error {
+            color: var(--error);
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 style="text-align: center;">تسجيل الدخول</h2>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="اسم المستخدم">
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="كلمة المرور">
+        </div>
+        <button onclick="handleLogin()">دخول</button>
+        <div id="error"></div>
+    </div>
 
-      } catch (error) {
-        showError(error.message);
-      } finally {
-        showLoader(false);
-      }
-    }
+    <script>
+        const SECRET_KEY = "smart_era_secret_@2024";
+        const USERS = [
+            {
+                username: "hradmin",
+                password: "Aa20002000",
+                permissions: ["admin", "view", "export", "manage_users"]
+            },
+            {
+                username: "siana",
+                password: "Aa112233",
+                permissions: ["view"]
+            },
+            {
+                username: "Corleone", 
+                password: "20032003",
+                permissions: ["view"]
+            }
+        ];
 
-    // باقي الدوال كما هي بدون تغيير
-  </script>
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorEl = document.getElementById('error');
+
+            // البحث عن المستخدم
+            const user = USERS.find(u => 
+                u.username === username && 
+                u.password === password
+            );
+
+            if (user) {
+                // إنشاء جلسة مشفرة
+                const sessionData = {
+                    user: user.username,
+                    permissions: user.permissions,
+                    loginTime: new Date().toISOString()
+                };
+
+                const encryptedSession = CryptoJS.AES.encrypt(
+                    JSON.stringify(sessionData), 
+                    SECRET_KEY
+                ).toString();
+
+                sessionStorage.setItem('auth', encryptedSession);
+                window.location.href = 'index.html';
+            } else {
+                errorEl.textContent = 'بيانات الدخول غير صحيحة!';
+                errorEl.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>
