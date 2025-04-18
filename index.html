@@ -82,7 +82,7 @@
 
     .form-input {
       width: 100%;
-      padding: 0.8rem 1rem 0.8rem 2.5rem;
+      padding: 0.8rem;
       border: 2px solid var(--border);
       border-radius: 8px;
       background: var(--background);
@@ -199,7 +199,6 @@
       }
     }
 
-    /* أنماط إضافية */
     .loader {
       border: 4px solid #f3f3f3;
       border-top: 4px solid #0ea5e9;
@@ -261,6 +260,7 @@
       <button class="btn btn-danger" onclick="clearTable()">🗑️ مسح الكل</button>
       <button class="btn btn-primary" id="excelBtn" onclick="downloadExcel()">📥 تنزيل Excel</button>
       <button class="btn btn-primary" id="manageUsersBtn" onclick="window.location.href='manage-users.html'">👥 إدارة المستخدمين</button>
+      <button class="btn btn-primary" id="viewRatingsBtn" onclick="window.location.href='ratings.html'">📊 عرض التقييمات</button>
     </div>
 
     <div id="loading" class="loader" style="display: none;"></div>
@@ -275,9 +275,7 @@
           <th>الحالة</th>
         </tr>
       </thead>
-      <tbody id="employee-body">
-        <!-- سيتم تعبئة البيانات هنا -->
-      </tbody>
+      <tbody id="employee-body"></tbody>
     </table>
   </main>
 
@@ -290,26 +288,31 @@
     const SESSION_KEY = "auth";
     let allEmployees = [];
 
-    // التحقق من الصلاحيات
-    function verifyPermissions() {
+    function decryptSession() {
       try {
         const encrypted = sessionStorage.getItem(SESSION_KEY);
         if (!encrypted) throw new Error('No session found');
         
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        const session = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        
-        if (session.user === 'hradmin' && session.permissions.includes('admin')) {
-          document.getElementById('excelBtn').style.display = 'inline-block';
-          document.getElementById('manageUsersBtn').style.display = 'inline-block';
-        }
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
       } catch (error) {
-        console.error('خطأ في المصادقة:', error);
-        window.location.href = 'login.html';
+        logout();
+        return null;
       }
     }
 
-    // جلب بيانات الموظفين
+    function verifyPermissions() {
+      const session = decryptSession();
+      if (!session) return;
+
+      const isAdmin = session.user === 'hr' && session.permissions?.includes('admin');
+      const canViewRatings = session.permissions?.includes('view_ratings');
+
+      document.getElementById('excelBtn').style.display = isAdmin ? 'inline-block' : 'none';
+      document.getElementById('manageUsersBtn').style.display = isAdmin ? 'inline-block' : 'none';
+      document.getElementById('viewRatingsBtn').style.display = canViewRatings ? 'inline-block' : 'none';
+    }
+
     async function fetchEmployees() {
       try {
         showLoading(true);
@@ -327,79 +330,65 @@
       }
     }
 
-    // عرض البيانات في الجدول
     function displayEmployees(data) {
       const tbody = document.getElementById("employee-body");
-      tbody.innerHTML = '';
-      
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="4" style="text-align:center; padding:2rem;">
-              لا توجد بيانات متاحة
-            </td>
-          </tr>`;
-        return;
-      }
-
-      data.forEach(emp => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
+      tbody.innerHTML = data.length ? data.map(emp => `
+        <tr>
           <td>${emp.name || 'غير معروف'}</td>
           <td>${emp.id || '--'}</td>
           <td>${emp.role || 'غير محدد'}</td>
-          <td><span class="status">${emp.status || 'بدون حالة'}</span></td>
-        `;
-        tbody.appendChild(row);
-      });
+          <td>${emp.status || 'بدون حالة'}</td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td colspan="4" style="text-align:center; padding:2rem;">
+            لا توجد بيانات متاحة
+          </td>
+        </tr>`;
     }
 
-    // التحديث التلقائي للفلاتر
     function updateFilters() {
       const roles = [...new Set(allEmployees.map(emp => emp.role))];
       const statuses = [...new Set(allEmployees.map(emp => emp.status))];
-      
+
       const roleSelect = document.getElementById("filter-role");
       const statusSelect = document.getElementById("filter-status");
 
-      roleSelect.innerHTML = '<option value="">كل المناصب</option>';
-      statusSelect.innerHTML = '<option value="">كل الحالات</option>';
-
-      roles.forEach(role => {
-        roleSelect.innerHTML += `<option value="${role}">${role}</option>`;
-      });
-
-      statuses.forEach(status => {
-        statusSelect.innerHTML += `<option value="${status}">${status}</option>`;
-      });
+      roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join('');
+      statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join('');
     }
 
-    // تصفية البيانات
     function filterEmployees() {
       const searchTerm = document.getElementById("search").value.toLowerCase();
       const roleFilter = document.getElementById("filter-role").value.toLowerCase();
       const statusFilter = document.getElementById("filter-status").value.toLowerCase();
 
-      const filtered = allEmployees.filter(emp => {
-        const matchesSearch = 
-          (emp.name?.toLowerCase().includes(searchTerm)) ||
-          (emp.id?.toString().includes(searchTerm));
-
-        const matchesRole = !roleFilter || emp.role?.toLowerCase().includes(roleFilter);
-        const matchesStatus = !statusFilter || emp.status?.toLowerCase().includes(statusFilter);
-
-        return matchesSearch && matchesRole && matchesStatus;
-      });
+      const filtered = allEmployees.filter(emp => 
+        (emp.name?.toLowerCase().includes(searchTerm) || emp.id?.includes(searchTerm)) &&
+        (!roleFilter || emp.role?.toLowerCase().includes(roleFilter)) &&
+        (!statusFilter || emp.status?.toLowerCase().includes(statusFilter))
+      );
 
       displayEmployees(filtered);
     }
 
-    // التحكم في التحميل
+    function downloadExcel() {
+      const csvContent = [
+        ['الاسم', 'الرقم', 'المنصب', 'الحالة'],
+        ...allEmployees.map(emp => [emp.name, emp.id, emp.role, emp.status])
+      ].map(row => row.join(',')).join('\n');
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'الموظفين.csv';
+      link.click();
+    }
+
     function showLoading(show) {
       document.getElementById("loading").style.display = show ? 'block' : 'none';
     }
 
-    // إدارة الأخطاء
     function showError(message) {
       const errorEl = document.getElementById("errorContainer");
       errorEl.textContent = message;
@@ -407,19 +396,16 @@
       setTimeout(() => errorEl.style.display = 'none', 5000);
     }
 
-    // تسجيل الخروج
     function logout() {
       sessionStorage.removeItem(SESSION_KEY);
       window.location.href = "login.html";
     }
 
-    // تبديل الوضع الداكن
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
       localStorage.setItem('darkMode', document.body.classList.contains("dark-mode"));
     }
 
-    // التهيئة الأولية
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById("year").textContent = new Date().getFullYear();
       if (localStorage.getItem('darkMode') === 'true') document.body.classList.add("dark-mode");
