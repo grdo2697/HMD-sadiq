@@ -206,6 +206,9 @@
       <button onclick="clearTable()">🗑️ مسح الكل</button>
       <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
       <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button>
+
+      <!-- زر لإدارة المستخدمين يظهر فقط لليوزر "hr" -->
+      <button id="manageUsersBtn" onclick="window.location.href='manage-users.html'" style="display: none;">👥 إدارة المستخدمين</button>
     </div>
 
     <table>
@@ -247,6 +250,7 @@
     if (user === "hr") {
       document.getElementById("excelBtn").style.display = "inline-block";
       document.getElementById("reviewBtn").style.display = "inline-block";
+      document.getElementById("manageUsersBtn").style.display = "inline-block"; // إظهار زر إدارة المستخدمين
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -281,49 +285,43 @@
 
     function filterEmployees() {
       const search = document.getElementById("search").value.toLowerCase();
-      const role = document.getElementById("filter-role").value;
-      const status = document.getElementById("filter-status").value;
-      const filtered = allEmployees.filter(emp =>
-        (emp.name.toLowerCase().includes(search) || emp.id.toString().includes(search)) &&
-        (role === "" || emp.role === role) &&
-        (status === "" || emp.status === status)
-      );
+      const roleFilter = document.getElementById("filter-role").value.toLowerCase();
+      const statusFilter = document.getElementById("filter-status").value.toLowerCase();
+
+      const filtered = allEmployees.filter(emp => {
+        return (
+          emp.name.toLowerCase().includes(search) &&
+          (roleFilter === "" || emp.role.toLowerCase().includes(roleFilter)) &&
+          (statusFilter === "" || emp.status.toLowerCase().includes(statusFilter))
+        );
+      });
       displayEmployees(filtered);
     }
 
-    function clearTable() {
-      document.getElementById("employee-body").innerHTML = "";
-    }
-
     function updateFilters() {
+      const roles = [...new Set(allEmployees.map(emp => emp.role))];
+      const status = [...new Set(allEmployees.map(emp => emp.status))];
+
       const roleSelect = document.getElementById("filter-role");
       const statusSelect = document.getElementById("filter-status");
-      const roles = [...new Set(allEmployees.map(e => e.role))];
-      const statuses = [...new Set(allEmployees.map(e => e.status))];
 
-      roleSelect.innerHTML = '<option value="">كل المناصب</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join("");
-      statusSelect.innerHTML = '<option value="">كل الحالات</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join("");
-    }
+      roles.forEach(role => {
+        roleSelect.innerHTML += `<option value="${role}">${role}</option>`;
+      });
 
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
+      status.forEach(st => {
+        statusSelect.innerHTML += `<option value="${st}">${st}</option>`;
+      });
     }
 
     function downloadExcel() {
-      const table = document.querySelector("table");
-      let csv = "";
-      const rows = table.querySelectorAll("tr");
-      for (let row of rows) {
-        let cols = row.querySelectorAll("th, td");
-        let rowData = Array.from(cols).map(col => `"${col.innerText}"`).join(",");
-        csv += rowData + "\n";
-      }
+      const csv = allEmployees.map(emp => {
+        return `${emp.name},${emp.id},${emp.role},${emp.status}`;
+      }).join("\n");
 
-      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "employees.csv");
+      link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      link.download = "employees.csv";
       link.click();
     }
 
@@ -331,12 +329,16 @@
       window.location.href = "ratings.html";
     }
 
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
     function logout() {
       localStorage.clear();
       window.location.href = "login.html";
     }
 
-    window.onload = fetchEmployees;
+    fetchEmployees();
   </script>
 </body>
 </html>
