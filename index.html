@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تقييمات موظفين شركة العصر الذكي</title>
+  <title>العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -57,31 +57,60 @@
     }
 
     .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      margin-bottom: 1rem;
-      gap: 0.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      backdrop-filter: blur(8px);
     }
 
-    button, select, input {
-      padding: 0.8rem 1rem;
-      background: var(--primary);
-      color: white;
-      border: none;
+    .input-group {
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
+      border: 2px solid var(--border);
       border-radius: 10px;
-      cursor: pointer;
+      background: var(--background);
+      color: var(--text);
       font-size: 1rem;
     }
 
-    button:hover, select:hover {
-      background: var(--secondary);
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
     }
 
-    input[type="text"] {
-      background: white;
-      color: black;
-      border: 1px solid var(--border);
+    select, button {
+      padding: 0.8rem;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      font-size: 1rem;
+      background: var(--background);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button {
+      background: linear-gradient(to right, var(--accent), #fde047);
+      border: none;
+      font-weight: bold;
+      color: #1e293b;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     table {
@@ -108,10 +137,27 @@
       background-color: var(--hover);
     }
 
-    .sort-btn {
-      background: var(--accent);
-      color: #1e293b;
-      border: 1px solid var(--border);
+    .toggle-dark,
+    .logout-btn {
+      position: fixed;
+      top: 1rem;
+      width: 45px;
+      height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .toggle-dark {
+      left: 1rem;
+    }
+
+    .logout-btn {
+      left: 4.5rem;
     }
 
     footer {
@@ -123,49 +169,58 @@
       border-top: 1px solid var(--border);
       margin-top: 2rem;
     }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .controls { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <script>
-    // الحماية - منع الوصول بدون تسجيل دخول
-    const username = localStorage.getItem("username");
-    if (!username) {
-      window.location.href = "login.html";
-    }
-  </script>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
 
   <header>
-    <h1>عرض التقييمات</h1>
+    <h1>موظفين شركة العصر الذكي</h1>
   </header>
 
-  <div class="container" id="reviews-container" style="display: none;">
+  <div class="container">
     <div class="controls">
-      <button onclick="fetchReviews()">🔄 تحديث البيانات</button>
-      <button onclick="clearTable()">🗑️ مسح الكل</button>
-      <button onclick="downloadExcel()">📥 تنزيل Excel</button>
-      <select id="gradeFilter" onchange="filterTable()">
-        <option value="">تصفية حسب الدرجة الوظيفية</option>
+      <div class="input-group">
+        <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <select id="filter-role" onchange="filterEmployees()">
+        <option value="">كل المناصب</option>
       </select>
-      <button class="sort-btn" onclick="sortBy('operationRating')">⇅ عدد العمليات</button>
-      <button class="sort-btn" onclick="sortBy('overallRating')">⇅ التقييم الكلي</button>
-      <button onclick="toggleDarkMode()">🌙/☀️ وضع ليلي</button>
-      <input type="text" id="searchInput" placeholder="بحث..." oninput="filterTable()">
-      <button onclick="goBack()">رجوع</button>
+
+      <select id="filter-status" onchange="filterEmployees()">
+        <option value="">كل الحالات</option>
+      </select>
+
+      <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
+      <button onclick="clearTable()">🗑️ مسح الكل</button>
+      <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
+      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button>
+
+      <!-- زر لإدارة المستخدمين يظهر فقط لليوزر "hr" -->
+      <button id="manageUsersBtn" onclick="window.location.href='manage-users.html'" style="display: none;">👥 إدارة المستخدمين</button>
     </div>
 
     <table>
       <thead>
         <tr>
           <th>اسم الموظف</th>
-          <th>القسم</th>
-          <th>الدرجة الوظيفية</th>
-          <th>التقييم الكلي</th>
-          <th>التقييم حسب عدد العمليات</th>
-          <th>عدد أيام التقييم</th>
-          <th>تاريخ التقييم</th>
+          <th>الرقم</th>
+          <th>المنصب</th>
+          <th>الحالة</th>
         </tr>
       </thead>
-      <tbody id="reviews-body"></tbody>
+      <tbody id="employee-body"></tbody>
     </table>
   </div>
 
@@ -174,111 +229,116 @@
   </footer>
 
   <script>
-    let reviewsData = [];
+    const allowedUsers = [
+      { username: "siana", password: "Aa112233" },
+      { username: "Corleone", password: "20032003" },
+      { username: "sales", password: "Aa332211" },
+      { username: "trke", password: "Aa1122335" },
+      { username: "hr", password: "100200300" }
+    ];
+
+    const user = localStorage.getItem("username");
+    const pass = localStorage.getItem("password");
+
+    const valid = allowedUsers.find(u => u.username === user && u.password === pass);
+
+    if (!valid) {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    if (user === "hr") {
+      document.getElementById("excelBtn").style.display = "inline-block";
+      document.getElementById("reviewBtn").style.display = "inline-block";
+      document.getElementById("manageUsersBtn").style.display = "inline-block"; // إظهار زر إدارة المستخدمين
+    }
 
     document.getElementById("year").textContent = new Date().getFullYear();
-    document.getElementById("reviews-container").style.display = "block";
 
-    async function fetchReviews() {
+    let allEmployees = [];
+
+    async function fetchEmployees() {
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات");
-        if (!response.ok) throw new Error('خطأ في جلب البيانات');
-        const reviews = await response.json();
-        reviewsData = reviews;
-        populateGradeFilter();
-        displayReviews(reviews);
-      } catch (error) {
-        showError(error.message);
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
+        allEmployees = await res.json();
+        updateFilters();
+        displayEmployees(allEmployees);
+      } catch (err) {
+        alert("فشل تحميل البيانات");
+        console.error(err);
       }
     }
 
-    function displayReviews(reviews) {
-      const tbody = document.getElementById("reviews-body");
+    function displayEmployees(data) {
+      const tbody = document.getElementById("employee-body");
       tbody.innerHTML = "";
-      reviews.forEach(review => {
-        const row = `
-          <tr>
-            <td>${review.name}</td>
-            <td>${review.department}</td>
-            <td>${review.jobGrade}</td>
-            <td>${review.overallRating}</td>
-            <td>${review.operationRating}</td>
-            <td>${review.ratingDays}</td>
-            <td>${review.reviewDate}</td>
-          </tr>
-        `;
+      data.forEach(emp => {
+        const row = <tr>
+          <td>${emp.name}</td>
+          <td>${emp.id}</td>
+          <td>${emp.role}</td>
+          <td>${emp.status}</td>
+        </tr>;
         tbody.innerHTML += row;
       });
     }
 
-    function clearTable() {
-      document.getElementById("reviews-body").innerHTML = "";
+    function filterEmployees() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const roleFilter = document.getElementById("filter-role").value.toLowerCase();
+      const statusFilter = document.getElementById("filter-status").value.toLowerCase();
+
+      const filtered = allEmployees.filter(emp => {
+        return (
+          emp.name.toLowerCase().includes(search) &&
+          (roleFilter === "" || emp.role.toLowerCase().includes(roleFilter)) &&
+          (statusFilter === "" || emp.status.toLowerCase().includes(statusFilter))
+        );
+      });
+      displayEmployees(filtered);
+    }
+
+    function updateFilters() {
+      const roles = [...new Set(allEmployees.map(emp => emp.role))];
+      const status = [...new Set(allEmployees.map(emp => emp.status))];
+
+      const roleSelect = document.getElementById("filter-role");
+      const statusSelect = document.getElementById("filter-status");
+
+      roles.forEach(role => {
+        roleSelect.innerHTML += <option value="${role}">${role}</option>;
+      });
+
+      status.forEach(st => {
+        statusSelect.innerHTML += <option value="${st}">${st}</option>;
+      });
     }
 
     function downloadExcel() {
-      const table = document.querySelector("table");
-      let csvContent = "";
-      const rows = table.querySelectorAll("tr");
-      rows.forEach(row => {
-        const cols = Array.from(row.querySelectorAll("th, td")).map(cell => `"${cell.innerText}"`);
-        csvContent += cols.join(",") + "\n";
-      });
+      const csv = allEmployees.map(emp => {
+        return ${emp.name},${emp.id},${emp.role},${emp.status};
+      }).join("\n");
 
-      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "تقييمات_الموظفين.csv");
-      document.body.appendChild(link);
+      link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      link.download = "employees.csv";
       link.click();
-      document.body.removeChild(link);
     }
 
-    function filterTable() {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const grade = document.getElementById("gradeFilter").value;
-      const filtered = reviewsData.filter(r => {
-        const matchSearch = `${r.name} ${r.department} ${r.jobGrade}`.toLowerCase().includes(input);
-        const matchGrade = !grade || r.jobGrade === grade;
-        return matchSearch && matchGrade;
-      });
-      displayReviews(filtered);
-    }
-
-    function populateGradeFilter() {
-      const select = document.getElementById("gradeFilter");
-      const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade))];
-      select.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
-      uniqueGrades.forEach(grade => {
-        select.innerHTML += `<option value="${grade}">${grade}</option>`;
-      });
-    }
-
-    let sortOrder = {
-      operationRating: 'asc',
-      overallRating: 'asc'
-    };
-
-    function sortBy(key) {
-      const direction = sortOrder[key] === 'asc' ? 1 : -1;
-      reviewsData.sort((a, b) => (parseFloat(a[key]) - parseFloat(b[key])) * direction);
-      sortOrder[key] = sortOrder[key] === 'asc' ? 'desc' : 'asc';
-      filterTable();
+    function viewReviews() {
+      window.location.href = "ratings.html";
     }
 
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
 
-    function goBack() {
-      window.history.back();
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
     }
 
-    function showError(message) {
-      alert(message);
-    }
-
-    fetchReviews();
+    fetchEmployees();
   </script>
 </body>
 </html>
