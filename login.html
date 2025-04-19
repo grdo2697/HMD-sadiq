@@ -1,64 +1,57 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>تسجيل الدخول - العصر الذكي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        :root {
-            --primary: #0ea5e9;
-            --background: #f8f9fa;
-            --text: #2c3e50;
-            --error: #e74c3c;
-        }
-
         body {
             font-family: 'Cairo', sans-serif;
-            background: var(--background);
+            background: #f0f2f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
         }
 
         .login-container {
-            background: white;
+            background: #fff;
             padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
         }
 
-        .input-group {
+        h2 {
             margin-bottom: 1.5rem;
         }
 
         input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
             margin-bottom: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
         }
 
         button {
-            background: var(--primary);
-            color: white;
-            padding: 12px;
             width: 100%;
+            padding: 12px;
+            background: #007bff;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
+            color: white;
             font-size: 16px;
+            cursor: pointer;
         }
 
         #error {
-            color: var(--error);
-            text-align: center;
+            color: red;
             margin-top: 1rem;
             display: none;
         }
@@ -66,13 +59,9 @@
 </head>
 <body>
     <div class="login-container">
-        <h2 style="text-align: center;">تسجيل الدخول</h2>
-        <div class="input-group">
-            <input type="text" id="username" placeholder="اسم المستخدم">
-        </div>
-        <div class="input-group">
-            <input type="password" id="password" placeholder="كلمة المرور">
-        </div>
+        <h2>تسجيل الدخول</h2>
+        <input type="text" id="username" placeholder="اسم المستخدم" />
+        <input type="password" id="password" placeholder="كلمة المرور" />
         <button onclick="handleLogin()">دخول</button>
         <div id="error"></div>
     </div>
@@ -80,8 +69,7 @@
     <script>
         const SECRET_KEY = "smart_era_secret_@2024";
 
-        // إنشاء المستخدم الأساسي في localStorage لو ما موجود
-        function initializeAdminUser() {
+        function initializeUsers() {
             let users = [];
             const encryptedUsers = localStorage.getItem('users');
             if (encryptedUsers) {
@@ -89,21 +77,36 @@
                     const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
                     users = JSON.parse(decrypted);
                 } catch (e) {
-                    console.error("فشل فك التشفير:", e);
+                    console.error("خطأ في فك تشفير المستخدمين:", e);
                 }
             }
 
-            const existingAdmin = users.find(u => u.username === "hradmin");
-            if (!existingAdmin) {
+            if (!users.find(u => u.username === "hradmin")) {
                 users.push({
                     username: "hradmin",
                     password: "Smart@2025",
                     permissions: ["manage_users", "view", "export", "view_ratings"]
                 });
-
-                const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString();
-                localStorage.setItem('users', encrypted);
             }
+
+            const otherUsers = [
+                { username: "siana", password: "Aa112233" },
+                { username: "Corleone", password: "20032003" },
+                { username: "sales", password: "Aa332211" },
+                { username: "trke", password: "Aa1122335" }
+            ];
+
+            for (const user of otherUsers) {
+                if (!users.find(u => u.username === user.username)) {
+                    users.push({
+                        ...user,
+                        permissions: [] // مستخدم عادي بدون صلاحيات
+                    });
+                }
+            }
+
+            const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString();
+            localStorage.setItem('users', encrypted);
         }
 
         function handleLogin() {
@@ -113,7 +116,7 @@
 
             const encryptedUsers = localStorage.getItem('users');
             if (!encryptedUsers) {
-                errorEl.textContent = 'لا توجد بيانات مستخدمين!';
+                errorEl.textContent = "لا توجد بيانات مستخدمين.";
                 errorEl.style.display = 'block';
                 return;
             }
@@ -123,27 +126,25 @@
                 const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
                 users = JSON.parse(decrypted);
             } catch (e) {
-                errorEl.textContent = 'فشل في قراءة بيانات المستخدمين';
+                errorEl.textContent = "فشل في قراءة بيانات المستخدمين.";
                 errorEl.style.display = 'block';
                 return;
             }
 
             const user = users.find(u => u.username === username && u.password === password);
             if (!user) {
-                errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                errorEl.textContent = "اسم المستخدم أو كلمة المرور غير صحيحة.";
                 errorEl.style.display = 'block';
                 return;
             }
 
-            // تخزين بيانات الجلسة في sessionStorage
-            sessionStorage.setItem('auth', CryptoJS.AES.encrypt(JSON.stringify(user), SECRET_KEY).toString());
+            sessionStorage.setItem("auth", CryptoJS.AES.encrypt(JSON.stringify(user), SECRET_KEY).toString());
 
-            // توجيه المستخدم إلى الصفحة الرئيسية
-            window.location.href = 'index.html';  // يمكن تعديله لصفحة أخرى حسب الحاجة
+            // التوجيه للصفحة الرئيسية
+            window.location.href = "index.html";
         }
 
-        // بدء تشغيل المستخدم الأساسي إذا لم يكن موجود
-        initializeAdminUser();
+        initializeUsers();
     </script>
 </body>
 </html>
