@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>عقوبات الموظفين - العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --accent: #facc15;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+    .dark-mode { --background: #0f172a; --text: #f9fafb; --border: #334155; --hover: #1e293b; }
+    * { font-family: 'Cairo', sans-serif; box-sizing: border-box; transition: background 0.3s; }
+    body { margin: 0; background: var(--background); color: var(--text); }
+    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 2rem; text-align: center; color: #fff; }
+    .container { max-width: 1200px; margin: auto; padding: 1rem; }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; margin-bottom: 1rem; }
+    .controls button, .controls select { padding: 0.6rem 1rem; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; }
+    .controls select { background: #fff; color: #000; }
+    table { width: 100%; border-collapse: collapse; background: var(--background); }
+    th, td { padding: 0.75rem; border: 1px solid var(--border); text-align: right; }
+    th { background: rgba(14,165,233,0.1); cursor: pointer; }
+    tr:hover { background: var(--hover); }
+    footer { text-align: center; padding: 1rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header><h1>عقوبات وغرامات الموظفين</h1></header>
+  <div class="container">
+    <div class="controls">
+      <button onclick="fetchPenalties()">🔄 تحديث البيانات</button>
+      <button onclick="clearTable()">🗑️ مسح</button>
+      <select id="deptFilter" onchange="filterTable()">
+        <option value="">كل الأقسام</option>
+      </select>
+      <button onclick="sortBy('date')">⇅ حسب التاريخ</button>
+      <button onclick="sortBy('department')">⇅ حسب القسم</button>
+      <button onclick="toggleDarkMode()">🌙/☀️ وضع ليلي</button>
+      <button onclick="window.location.href='index.html'">رجوع</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th data-key="name">اسم الموظف</th>
+          <th data-key="department">القسم</th>
+          <th data-key="penalty">العقوبة/الغرامة</th>
+          <th data-key="date">التاريخ</th>
+          <th data-key="reason">سبب العقوبة</th>
+          <th data-key="manager">المدير</th>
+          <th data-key="notes">ملاحظة الغرامة</th>
+        </tr>
+      </thead>
+      <tbody id="penalties-body"></tbody>
+    </table>
+  </div>
+  <footer>جميع الحقوق محفوظة © <span id="year"></span> - العصر الذكي</footer>
+
+  <script>
+    const EXEC_URL = 'https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec?sheet=عقوبات';
+    let data = [], sortState = {};
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    async function fetchPenalties() {
+      try {
+        const res = await fetch(EXEC_URL);
+        data = await res.json();
+        populateDeptFilter();
+        renderTable(data);
+      } catch {
+        alert('حدث خطأ أثناء جلب البيانات');
+      }
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById('penalties-body');
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.department}</td>
+          <td>${r.penalty}</td>
+          <td>${r.date}</td>
+          <td>${r.reason}</td>
+          <td>${r.manager}</td>
+          <td>${r.notes}</td>
+        </tr>
+      `).join('');
+    }
+
+    function clearTable() {
+      data = [];
+      document.getElementById('penalties-body').innerHTML = '';
+    }
+
+    function populateDeptFilter() {
+      const sel = document.getElementById('deptFilter');
+      const depts = [...new Set(data.map(d => d.department))];
+      sel.innerHTML = '<option value="">كل الأقسام</option>' +
+        depts.map(d => `<option value="${d}">${d}</option>`).join('');
+    }
+
+    function filterTable() {
+      const dept = document.getElementById('deptFilter').value;
+      renderTable(dept ? data.filter(d => d.department === dept) : data);
+    }
+
+    function sortBy(key) {
+      const dir = sortState[key] === 'asc' ? -1 : 1;
+      data.sort((a,b) => (a[key] > b[key] ? 1 : -1) * dir);
+      sortState[key] = dir === 1 ? 'asc' : 'desc';
+      renderTable(data);
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    // شغّل أول مرة
+    fetchPenalties();
+  </script>
+</body>
+</html>
