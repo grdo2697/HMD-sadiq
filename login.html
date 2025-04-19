@@ -79,17 +79,30 @@
 
     <script>
         const SECRET_KEY = "smart_era_secret_@2024";
-        const USERS_KEY = "smart_era_users";
-        const SESSION_KEY = "auth";
 
-        function decryptUsers() {
-            try {
-                const enc = localStorage.getItem(USERS_KEY);
-                if (!enc) return [];
-                const decrypted = CryptoJS.AES.decrypt(enc, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-                return JSON.parse(decrypted);
-            } catch (e) {
-                return [];
+        // إنشاء المستخدم الأساسي في localStorage لو ما موجود
+        function initializeAdminUser() {
+            let users = [];
+            const encryptedUsers = localStorage.getItem('users');
+            if (encryptedUsers) {
+                try {
+                    const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+                    users = JSON.parse(decrypted);
+                } catch (e) {
+                    console.error("فشل فك التشفير:", e);
+                }
+            }
+
+            const existingAdmin = users.find(u => u.username === "hradmin");
+            if (!existingAdmin) {
+                users.push({
+                    username: "hradmin",
+                    password: "Smart@2025",
+                    permissions: ["manage_users", "view", "export", "view_ratings"]
+                });
+
+                const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString();
+                localStorage.setItem('users', encrypted);
             }
         }
 
@@ -98,7 +111,23 @@
             const password = document.getElementById('password').value.trim();
             const errorEl = document.getElementById('error');
 
-            const users = decryptUsers();
+            const encryptedUsers = localStorage.getItem('users');
+            if (!encryptedUsers) {
+                errorEl.textContent = 'لا توجد بيانات مستخدمين!';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            let users = [];
+            try {
+                const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+                users = JSON.parse(decrypted);
+            } catch (e) {
+                errorEl.textContent = 'فشل قراءة بيانات المستخدمين!';
+                errorEl.style.display = 'block';
+                return;
+            }
+
             const user = users.find(u => u.username === username && u.password === password);
 
             if (user) {
@@ -113,13 +142,16 @@
                     SECRET_KEY
                 ).toString();
 
-                sessionStorage.setItem(SESSION_KEY, encryptedSession);
+                sessionStorage.setItem('auth', encryptedSession);
                 window.location.href = 'index.html';
             } else {
                 errorEl.textContent = 'بيانات الدخول غير صحيحة!';
                 errorEl.style.display = 'block';
             }
         }
+
+        // إنشاء اليوزر الإداري تلقائيًا
+        initializeAdminUser();
     </script>
 </body>
 </html>
