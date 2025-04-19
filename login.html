@@ -123,34 +123,23 @@
                 const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
                 users = JSON.parse(decrypted);
             } catch (e) {
-                errorEl.textContent = 'فشل قراءة بيانات المستخدمين!';
+                errorEl.textContent = 'فشل في قراءة بيانات المستخدمين';
                 errorEl.style.display = 'block';
                 return;
             }
 
             const user = users.find(u => u.username === username && u.password === password);
-
-            if (user) {
-                const sessionData = {
-                    user: user.username,
-                    permissions: user.permissions,
-                    loginTime: new Date().toISOString()
-                };
-
-                const encryptedSession = CryptoJS.AES.encrypt(
-                    JSON.stringify(sessionData), 
-                    SECRET_KEY
-                ).toString();
-
-                sessionStorage.setItem('auth', encryptedSession);
-                window.location.href = 'index.html';
-            } else {
-                errorEl.textContent = 'بيانات الدخول غير صحيحة!';
+            if (!user) {
+                errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
                 errorEl.style.display = 'block';
+                return;
             }
+
+            sessionStorage.setItem('auth', CryptoJS.AES.encrypt(JSON.stringify(user), SECRET_KEY).toString());
+            window.location.href = 'manage-users.html';
         }
 
-        // إنشاء اليوزر الإداري تلقائيًا
+        // بدء تشغيل المستخدم الأساسي إذا لم يكن موجود
         initializeAdminUser();
     </script>
 </body>
