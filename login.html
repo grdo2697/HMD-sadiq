@@ -1,58 +1,54 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>تسجيل الدخول - العصر الذكي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <title>تسجيل الدخول</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
-            background: #f0f2f5;
+            font-family: 'Arial', sans-serif;
+            background-color: #f2f2f2;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            direction: rtl;
         }
-
         .login-container {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            width: 350px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+            width: 320px;
+        }
+        .login-container h2 {
             text-align: center;
+            margin-bottom: 20px;
         }
-
-        h2 {
-            margin-bottom: 1.5rem;
-        }
-
-        input {
+        input[type="text"], input[type="password"] {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 1rem;
-            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0 16px;
             border: 1px solid #ccc;
-            font-size: 16px;
+            border-radius: 8px;
         }
-
         button {
             width: 100%;
             padding: 12px;
-            background: #007bff;
+            background-color: #2196F3;
+            color: white;
             border: none;
             border-radius: 8px;
-            color: white;
             font-size: 16px;
             cursor: pointer;
         }
-
+        button:hover {
+            background-color: #0b7dda;
+        }
         #error {
             color: red;
-            margin-top: 1rem;
+            text-align: center;
+            margin-bottom: 10px;
             display: none;
         }
     </style>
@@ -60,10 +56,10 @@
 <body>
     <div class="login-container">
         <h2>تسجيل الدخول</h2>
+        <div id="error"></div>
         <input type="text" id="username" placeholder="اسم المستخدم" />
         <input type="password" id="password" placeholder="كلمة المرور" />
         <button onclick="handleLogin()">دخول</button>
-        <div id="error"></div>
     </div>
 
     <script>
@@ -100,7 +96,7 @@
                 if (!users.find(u => u.username === user.username)) {
                     users.push({
                         ...user,
-                        permissions: [] // مستخدم عادي بدون صلاحيات
+                        permissions: [] // بدون صلاحيات
                     });
                 }
             }
@@ -140,7 +136,7 @@
 
             sessionStorage.setItem("auth", CryptoJS.AES.encrypt(JSON.stringify(user), SECRET_KEY).toString());
 
-            // التوجيه للصفحة الرئيسية
+            // جميع المستخدمين يذهبون لـ index.html
             window.location.href = "index.html";
         }
 
