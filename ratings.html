@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>عرض التقييمات - شركة العصر الذكي</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تقييمات موظفين شركة العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
-    /* الأنماط الأساسية */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -16,9 +14,6 @@
       --text: #0f172a;
       --border: #cbd5e1;
       --hover: #e0f2fe;
-      --danger: #ef4444;
-      --radius: 12px;
-      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .dark-mode {
@@ -38,336 +33,239 @@
       margin: 0;
       background: var(--background);
       color: var(--text);
-      min-height: 100vh;
     }
 
-    /* الهيدر */
-    .page-header {
+    header {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       padding: 2rem 1rem;
-      border-radius: 0 0 var(--radius) var(--radius);
+      border-radius: 0 0 30px 30px;
       text-align: center;
-      box-shadow: var(--shadow);
-      margin-bottom: 2rem;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .page-header h1 {
+    h1 {
       color: white;
       font-size: 2.5rem;
       margin: 0;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
     }
 
-    /* عناصر التحكم */
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem 1rem;
+    }
+
     .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 2rem;
-      border-radius: var(--radius);
-      backdrop-filter: blur(10px);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
     }
 
-    .form-input {
-      width: 100%;
-      padding: 1rem;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--background);
-      color: var(--text);
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
+    button, select, input {
+      padding: 0.8rem 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
     }
 
-    .form-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    button:hover, select:hover {
+      background: var(--secondary);
     }
 
-    /* الجدول */
-    .users-table {
+    input[type="text"] {
+      background: white;
+      color: black;
+      border: 1px solid var(--border);
+    }
+
+    table {
       width: 100%;
       border-collapse: collapse;
       background: var(--background);
-      border-radius: var(--radius);
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: var(--shadow);
-      margin: 2rem 0;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     }
 
-    .users-table th,
-    .users-table td {
-      padding: 1.2rem;
+    th, td {
+      padding: 1rem;
       border-bottom: 1px solid var(--border);
       text-align: right;
     }
 
-    .users-table th {
-      background: rgba(14, 165, 233, 0.15);
+    th {
+      background: rgba(14, 165, 233, 0.1);
       color: var(--primary);
-      font-weight: 700;
       cursor: pointer;
     }
 
-    .users-table tr:hover {
+    tr:hover {
       background-color: var(--hover);
     }
 
-    /* الأزرار */
-    .btn {
-      padding: 0.8rem 1.5rem;
-      border: none;
-      border-radius: var(--radius);
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.8rem;
-      transition: transform 0.2s, opacity 0.2s;
-    }
-
-    .btn-primary {
-      background: linear-gradient(45deg, var(--accent), #fde047);
-      color: #1e293b;
-    }
-
-    .btn-danger {
-      background: linear-gradient(45deg, var(--danger), #f87171);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: var(--border);
-      color: var(--text);
-    }
-
-    /* التصنيفات */
-    .rating-badge {
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-weight: 700;
-      display: inline-block;
-      min-width: 80px;
-      text-align: center;
-    }
-
-    .rating-high { background: #dcfce7; color: #166534; }
-    .rating-medium { background: #fef9c3; color: #854d0e; }
-    .rating-low { background: #fee2e2; color: #991b1b; }
-
-    .grade-executive { background: #e0f2fe; color: #0369a1; }
-    .grade-supervisory { background: #fce7f3; color: #be185d; }
-    .grade-technical { background: #dcfce7; color: #166534; }
-
-    /* عناصر خاصة بالإدارة */
-    .admin-only { display: none; }
-
-    /* التحميل والأخطاء */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      display: none;
-      place-items: center;
-      z-index: 1000;
-    }
-
-    .error-message {
-      background: var(--danger);
-      color: white;
-      padding: 1rem;
-      border-radius: var(--radius);
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      display: none;
-    }
-
-    /* الفوتر */
     footer {
       text-align: center;
-      padding: 2rem;
+      padding: 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-size: 0.9rem;
       border-top: 1px solid var(--border);
-      margin-top: auto;
+      margin-top: 2rem;
     }
   </style>
 </head>
 <body>
-  <!-- هذا الملف: ratings.html -->
-  <div class="loading-overlay" id="loading">
-    <div class="btn btn-primary">جاري التحميل...</div>
-  </div>
+  <script>
+    // الحماية - منع الوصول بدون تسجيل دخول
+    const username = localStorage.getItem("username");
+    if (!username) {
+      window.location.href = "login.html";
+    }
+  </script>
 
-  <div class="error-message" id="errorContainer"></div>
-
-  <button class="logout-btn btn btn-danger" onclick="logout()">تسجيل الخروج</button>
-
-  <header class="page-header">
-    <h1>عرض تقييمات الموظفين</h1>
+  <header>
+    <h1>عرض التقييمات</h1>
   </header>
 
-  <main class="main-container">
+  <div class="container" id="reviews-container" style="display: none;">
     <div class="controls">
-      <button class="btn btn-primary" onclick="fetchReviews()">
-        <span>🔄</span> تحديث البيانات
-      </button>
-      
-      <button class="btn btn-danger admin-only" onclick="clearTable()">
-        <span>🗑️</span> مسح الكل
-      </button>
-      
-      <button class="btn btn-primary admin-only" onclick="downloadExcel()">
-        <span>📥</span> تصدير Excel
-      </button>
-      
-      <select class="form-input" id="gradeFilter" onchange="filterTable()">
-        <option value="">جميع الدرجات</option>
+      <button onclick="fetchReviews()">🔄 تحديث البيانات</button>
+      <button onclick="clearTable()">🗑️ مسح الكل</button>
+      <button onclick="downloadExcel()">📥 تنزيل Excel</button>
+      <select id="gradeFilter" onchange="filterTable()">
+        <option value="">تصفية حسب الدرجة الوظيفية</option>
       </select>
-      
-      <select class="form-input" id="gradeTypeFilter" onchange="filterTable()">
-        <option value="">نوع الدرجة</option>
-        <option value="تنفيذي">تنفيذي</option>
-        <option value="إشرافي">إشرافي</option>
-        <option value="فني">فني</option>
-      </select>
-      
-      <input type="text" class="form-input" id="searchInput" placeholder="بحث بالاسم أو القسم..." oninput="filterTable()">
-      
-      <button class="btn btn-secondary" onclick="window.location.href='index.html'"><span>🏠</span> الرجوع للرئيسية</button>
+      <button onclick="sortBy('operationRating')">⇅ حسب عدد العمليات</button>
+      <button onclick="sortBy('overallRating')">⇅ حسب التقييم الكلي</button>
+      <button onclick="toggleDarkMode()">🌙/☀️ وضع ليلي</button>
+      <input type="text" id="searchInput" placeholder="بحث..." oninput="filterTable()">
+      <button onclick="window.location.href='index.html'">رجوع</button>
     </div>
 
-    <table class="users-table">
+    <table>
       <thead>
         <tr>
-          <th onclick="sortBy('name')">الاسم ⇅</th>
-          <th onclick="sortBy('department')">القسم ⇅</th>
-          <th onclick="sortBy('jobGrade')">الدرجة الوظيفية ⇅</th>
-          <th onclick="sortBy('overallRating')">التقييم الكلي ⇅</th>
-          <th onclick="sortBy('operationRating')">التقييم العملي ⇅</th>
-          <th onclick="sortBy('ratingDays')">أيام التقييم ⇅</th>
-          <th onclick="sortBy('reviewDate')">تاريخ التقييم ⇅</th>
-          <th class="admin-only">الإجراءات</th>
+          <th>اسم الموظف</th>
+          <th>القسم</th>
+          <th>الدرجة الوظيفية</th>
+          <th>التقييم الكلي</th>
+          <th>التقييم حسب عدد العمليات</th>
+          <th>عدد أيام التقييم</th>
+          <th>تاريخ التقييم</th>
         </tr>
       </thead>
       <tbody id="reviews-body"></tbody>
     </table>
-  </main>
+  </div>
 
   <footer>
-    <p>جميع الحقوق محفوظة &copy; <span id="year"></span> | تطوير فريق تقنية المعلومات</p>
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
   </footer>
 
   <script>
-    const SECRET_KEY = "smart_era_secret_@2024";
-    const SESSION_KEY = "auth";
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbya90pVUPHoii9CZSQxcrqdOMsFiYoWC69ovVQsOZ37QOq1KKGaucJxSPA_BvZnDleMMQ/exec";
     let reviewsData = [];
-    let currentSort = { key: null, asc: true };
 
-    function decryptSession() {
-      try {
-        const encrypted = sessionStorage.getItem(SESSION_KEY);
-        if (!encrypted) throw new Error('No active session');
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        const sessionData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        if (!sessionData.user || !sessionData.role) throw new Error();
-        return sessionData;
-      } catch {
-        logout();
-        return null;
-      }
-    }
-
-    function verifyPermissions() {
-      const session = decryptSession();
-      if (!session) window.location.href = 'login.html';
-      if (session.role === 'admin') {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-flex');
-      }
-    }
-
-    function logout() {
-      sessionStorage.removeItem(SESSION_KEY);
-      window.location.href = 'login.html';
-    }
+    document.getElementById("year").textContent = new Date().getFullYear();
+    document.getElementById("reviews-container").style.display = "block";
 
     async function fetchReviews() {
       try {
-        showLoading(true);
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=تقييمات`);
-        if (!res.ok) throw new Error('فشل الاتصال بالسيرفر');
-        reviewsData = await res.json();
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات");
+        const reviews = await response.json();
+        reviewsData = reviews;
         populateGradeFilter();
-        displayReviews(reviewsData);
-      } catch (err) {
-        showError(`خطأ في جلب البيانات: ${err.message}`);
-      } finally {
-        showLoading(false);
+        displayReviews(reviews);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        alert("حدث خطأ أثناء جلب التقييمات.");
       }
     }
 
-    function displayReviews(data) {
-      document.getElementById('reviews-body').innerHTML = data.map(r => `
-        <tr>
-          <td>${r.name}</td>
-          <td>${r.department}</td>
-          <td><span class="grade-${getGradeType(r.jobGrade)}">${r.jobGrade}</span></td>
-          <td><span class="rating-badge ${getRatingClass(r.overallRating)}">${r.overallRating}</span></td>
-          <td><span class="rating-badge ${getRatingClass(r.operationRating)}">${r.operationRating}</span></td>
-          <td>${r.ratingDays}</td>
-          <td>${formatDate(r.reviewDate)}</td>
-          <td class="admin-only"><button class="btn btn-primary" disabled>✏️ تعديل</button></td>
-        </tr>`).join('');
+    function displayReviews(reviews) {
+      const tbody = document.getElementById("reviews-body");
+      tbody.innerHTML = "";
+      reviews.forEach(review => {
+        const row = `
+          <tr>
+            <td>${review.name}</td>
+            <td>${review.department}</td>
+            <td>${review.jobGrade}</td>
+            <td>${review.overallRating}</td>
+            <td>${review.operationRating}</td>
+            <td>${review.ratingDays}</td>
+            <td>${review.reviewDate}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
     }
 
-    function getGradeType(g) {
-      return { 'تنفيذي':'executive', 'إشرافي':'supervisory', 'فني':'technical' }[g] || '';
+    function clearTable() {
+      document.getElementById("reviews-body").innerHTML = "";
     }
 
-    function getRatingClass(r) {
-      const n = parseFloat(r) || 0;
-      return n >= 4 ? 'rating-high' : n >= 2.5 ? 'rating-medium' : 'rating-low';
-    }
+    function downloadExcel() {
+      const table = document.querySelector("table");
+      let csvContent = "";
+      const rows = table.querySelectorAll("tr");
+      rows.forEach(row => {
+        const cols = Array.from(row.querySelectorAll("th, td")).map(cell => `"${cell.innerText}"`);
+        csvContent += cols.join(",") + "\n";
+      });
 
-    function formatDate(d) {
-      try { return new Date(d).toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}); }
-      catch { return d; }
-    }
-
-    function populateGradeFilter() {
-      const sel = document.getElementById('gradeFilter');
-      sel.innerHTML = '<option value="">جميع الدرجات</option>' + [...new Set(reviewsData.map(r=>r.jobGrade))].map(g=>`<option value="${g}">${g}</option>`).join('');
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "تقييمات_الموظفين.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     function filterTable() {
-      const term = document.getElementById('searchInput').value.toLowerCase();
-      const grade = document.getElementById('gradeFilter').value;
-      const type = document.getElementById('gradeTypeFilter').value;
-      const filtered = reviewsData.filter(r=>{
-        return (grade? r.jobGrade===grade:true) &&
-               (type? r.jobGrade.startsWith(type):true) &&
-               Object.values(r).some(v=>String(v).toLowerCase().includes(term));
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const grade = document.getElementById("gradeFilter").value;
+      const filtered = reviewsData.filter(r => {
+        const matchSearch = `${r.name} ${r.department} ${r.jobGrade}`.toLowerCase().includes(input);
+        const matchGrade = !grade || r.jobGrade === grade;
+        return matchSearch && matchGrade;
       });
-      displayReviews(currentSort.key? sortData(filtered): filtered);
+      displayReviews(filtered);
     }
+
+    function populateGradeFilter() {
+      const select = document.getElementById("gradeFilter");
+      const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade))];
+      select.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
+      uniqueGrades.forEach(grade => {
+        select.innerHTML += `<option value="${grade}">${grade}</option>`;
+      });
+    }
+
+    let sortOrder = {
+      operationRating: 'asc',
+      overallRating: 'asc'
+    };
 
     function sortBy(key) {
-      currentSort.asc = currentSort.key===key? !currentSort.asc:true;
-      currentSort.key = key;
-      displayReviews(sortData(reviewsData));
+      const direction = sortOrder[key] === 'asc' ? 1 : -1;
+      reviewsData.sort((a, b) => (parseFloat(a[key]) - parseFloat(b[key])) * direction);
+      sortOrder[key] = sortOrder[key] === 'asc' ? 'desc' : 'asc';
+      filterTable();
     }
 
-    function sortData(arr) {
-      return [...arr].sort((a,b)=>{
-        const A=a[currentSort.key], B=b[currentSort.key];
-        if(currentSort.key==='reviewDate') return currentSort.asc? new Date(B)-new Date(A):new Date(A)-new Date(B);
-        if(currentSort.key==='jobGrade') {
-          const na=Number(A.match(/\d+/)||0), nb=Number(B.match(/\d+/)||0);
-          return currentSort.asc? nb-na:na-nb;
-        }
-        return currentSort.asc? String(B).localeCompare(A,'ar'):String(A).localeCompare(B,'ar');
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    fetchReviews();
+  </script>
+</body>
+</html>
