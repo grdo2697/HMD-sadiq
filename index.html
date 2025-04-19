@@ -15,26 +15,22 @@
       --border: #cbd5e1;
       --hover: #e0f2fe;
     }
-
     .dark-mode {
       --background: #0f172a;
       --text: #f9fafb;
       --border: #334155;
       --hover: #1e293b;
     }
-
     * {
       font-family: 'Cairo', sans-serif;
       box-sizing: border-box;
       transition: all 0.3s ease;
     }
-
     body {
       margin: 0;
       background: var(--background);
       color: var(--text);
     }
-
     header {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       padding: 2rem 1rem;
@@ -42,36 +38,46 @@
       text-align: center;
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
     }
-
     h1 {
       color: white;
       font-size: 2.5rem;
       margin: 0;
       text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
     }
-
     .container {
       max-width: 1200px;
       margin: auto;
       padding: 2rem 1rem;
     }
-
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      backdrop-filter: blur(8px);
+    /* قائمة التنقل */
+    .nav-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+      list-style: none;
+      padding: 0;
     }
-
+    .nav-list li {
+      margin: 0;
+    }
+    .nav-list a {
+      display: inline-block;
+      text-decoration: none;
+      padding: 0.8rem 1rem;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    .nav-list a:hover {
+      background: var(--secondary);
+    }
     .input-group {
       position: relative;
+      margin-bottom: 1rem;
     }
-
     .search-input {
       width: 100%;
       padding: 0.8rem 1rem 0.8rem 2.5rem;
@@ -81,7 +87,6 @@
       color: var(--text);
       font-size: 1rem;
     }
-
     .search-icon {
       position: absolute;
       left: 1rem;
@@ -89,30 +94,6 @@
       transform: translateY(-50%);
       color: #64748b;
     }
-
-    select, button {
-      padding: 0.8rem;
-      border-radius: 10px;
-      border: 2px solid var(--border);
-      font-size: 1rem;
-      background: var(--background);
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    button {
-      background: linear-gradient(to right, var(--accent), #fde047);
-      border: none;
-      font-weight: bold;
-      color: #1e293b;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -121,22 +102,23 @@
       overflow: hidden;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     }
-
     th, td {
       padding: 1rem;
       border-bottom: 1px solid var(--border);
       text-align: right;
     }
-
     th {
       background: rgba(14, 165, 233, 0.1);
       color: var(--primary);
     }
-
     tr:hover {
       background-color: var(--hover);
     }
-
+    /* إخفاء عمود الرقم للمستخدمين غير HR */
+    .hide-id th:nth-child(2),
+    .hide-id td:nth-child(2) {
+      display: none;
+    }
     .toggle-dark,
     .logout-btn {
       position: fixed;
@@ -151,15 +133,8 @@
       place-items: center;
       cursor: pointer;
     }
-
-    .toggle-dark {
-      left: 1rem;
-    }
-
-    .logout-btn {
-      left: 4.5rem;
-    }
-
+    .toggle-dark { left: 1rem; }
+    .logout-btn { left: 4.5rem; }
     footer {
       text-align: center;
       padding: 1rem;
@@ -169,10 +144,8 @@
       border-top: 1px solid var(--border);
       margin-top: 2rem;
     }
-
     @media (max-width: 768px) {
       h1 { font-size: 2rem; }
-      .controls { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -185,33 +158,24 @@
   </header>
 
   <div class="container">
-    <div class="controls">
-      <div class="input-group">
-        <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8" stroke-width="2"/>
-          <path d="M21 21l-4.35-4.35" stroke-width="2"/>
-        </svg>
-      </div>
+    <!-- قائمة التنقل بدل الأزرار -->
+    <ul class="nav-list">
+      <li><a href="#" onclick="fetchEmployees()">🔄 تحديث البيانات</a></li>
+      <li><a href="#" onclick="clearTable()">🗑️ مسح الكل</a></li>
+      <li><a href="#" id="excelBtn" onclick="downloadExcel()" style="display:none;">📥 تنزيل Excel</a></li>
+      <li><a href="#" id="reviewBtn" onclick="viewReviews()" style="display:none;">📋 عرض التقييمات</a></li>
+      <li><a href="#" id="manageUsersBtn" onclick="window.location.href='manage-users.html'" style="display:none;">👥 إدارة المستخدمين</a></li>
+    </ul>
 
-      <select id="filter-role" onchange="filterEmployees()">
-        <option value="">كل المناصب</option>
-      </select>
-
-      <select id="filter-status" onchange="filterEmployees()">
-        <option value="">كل الحالات</option>
-      </select>
-
-      <button onclick="fetchEmployees()">🔄 تحديث البيانات</button>
-      <button onclick="clearTable()">🗑️ مسح الكل</button>
-      <button id="excelBtn" onclick="downloadExcel()" style="display: none;">📥 تنزيل Excel</button>
-      <button id="reviewBtn" onclick="viewReviews()" style="display: none;">📋 عرض التقييمات</button>
-
-      <!-- زر لإدارة المستخدمين يظهر فقط لليوزر "hr" -->
-      <button id="manageUsersBtn" onclick="window.location.href='manage-users.html'" style="display: none;">👥 إدارة المستخدمين</button>
+    <div class="input-group">
+      <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8" stroke-width="2"/>
+        <path d="M21 21l-4.35-4.35" stroke-width="2"/>
+      </svg>
     </div>
 
-    <table>
+    <table id="employeesTable">
       <thead>
         <tr>
           <th>اسم الموظف</th>
@@ -229,28 +193,20 @@
   </footer>
 
   <script>
-    const allowedUsers = [
-      { username: "siana", password: "Aa112233" },
-      { username: "Corleone", password: "20032003" },
-      { username: "sales", password: "Aa332211" },
-      { username: "trke", password: "Aa1122335" },
-      { username: "hr", password: "100200300" }
-    ];
-
     const user = localStorage.getItem("username");
-    const pass = localStorage.getItem("password");
+    // صلاحيات وهمية للمستخدمين (يمكن استبدالها بمنطق حقيقي لاحقًا)
+    const isHR = (user === "hr");
 
-    const valid = allowedUsers.find(u => u.username === user && u.password === pass);
-
-    if (!valid) {
-      localStorage.clear();
-      window.location.href = "login.html";
-    }
-
-    if (user === "hr") {
+    // إظهار/إخفاء عناصر القائمة بناءً على الصلاحيات
+    if (isHR) {
       document.getElementById("excelBtn").style.display = "inline-block";
       document.getElementById("reviewBtn").style.display = "inline-block";
-      document.getElementById("manageUsersBtn").style.display = "inline-block"; // إظهار زر إدارة المستخدمين
+      document.getElementById("manageUsersBtn").style.display = "inline-block";
+    }
+
+    // إخفاء عمود "الرقم" إذا لم يكن HR
+    if (!isHR) {
+      document.getElementById("employeesTable").classList.add("hide-id");
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -261,7 +217,6 @@
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
         allEmployees = await res.json();
-        updateFilters();
         displayEmployees(allEmployees);
       } catch (err) {
         alert("فشل تحميل البيانات");
@@ -273,52 +228,30 @@
       const tbody = document.getElementById("employee-body");
       tbody.innerHTML = "";
       data.forEach(emp => {
-        const row = `<tr>
-          <td>${emp.name}</td>
-          <td>${emp.id}</td>
-          <td>${emp.role}</td>
-          <td>${emp.status}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+        tbody.innerHTML += `
+          <tr>
+            <td>${emp.name}</td>
+            <td>${emp.id}</td>
+            <td>${emp.role}</td>
+            <td>${emp.status}</td>
+          </tr>`;
       });
+    }
+
+    function clearTable() {
+      document.getElementById("employee-body").innerHTML = "";
     }
 
     function filterEmployees() {
-      const search = document.getElementById("search").value.toLowerCase();
-      const roleFilter = document.getElementById("filter-role").value.toLowerCase();
-      const statusFilter = document.getElementById("filter-status").value.toLowerCase();
-
-      const filtered = allEmployees.filter(emp => {
-        return (
-          emp.name.toLowerCase().includes(search) &&
-          (roleFilter === "" || emp.role.toLowerCase().includes(roleFilter)) &&
-          (statusFilter === "" || emp.status.toLowerCase().includes(statusFilter))
-        );
-      });
-      displayEmployees(filtered);
-    }
-
-    function updateFilters() {
-      const roles = [...new Set(allEmployees.map(emp => emp.role))];
-      const status = [...new Set(allEmployees.map(emp => emp.status))];
-
-      const roleSelect = document.getElementById("filter-role");
-      const statusSelect = document.getElementById("filter-status");
-
-      roles.forEach(role => {
-        roleSelect.innerHTML += `<option value="${role}">${role}</option>`;
-      });
-
-      status.forEach(st => {
-        statusSelect.innerHTML += `<option value="${st}">${st}</option>`;
-      });
+      const term = document.getElementById("search").value.toLowerCase();
+      displayEmployees(allEmployees.filter(emp =>
+        emp.name.toLowerCase().includes(term) ||
+        (isHR && emp.id.toString().includes(term))
+      ));
     }
 
     function downloadExcel() {
-      const csv = allEmployees.map(emp => {
-        return `${emp.name},${emp.id},${emp.role},${emp.status}`;
-      }).join("\n");
-
+      const csv = allEmployees.map(e => `${e.name},${e.id},${e.role},${e.status}`).join("\n");
       const link = document.createElement("a");
       link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
       link.download = "employees.csv";
@@ -331,6 +264,7 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
+      localStorage.setItem('darkMode', document.body.classList.contains("dark-mode"));
     }
 
     function logout() {
@@ -338,6 +272,12 @@
       window.location.href = "login.html";
     }
 
+    // تفعيل الوضع الليلي المحفوظ
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add("dark-mode");
+    }
+
+    // جلب البيانات عند التحميل
     fetchEmployees();
   </script>
 </body>
