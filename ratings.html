@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تقييمات موظفين شركة العصر الذكي</title>
+  <title>نظام تقييم الموظفين - شركة العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
+    /* الأنماط الأساسية */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -30,7 +31,7 @@
     * {
       font-family: 'Cairo', sans-serif;
       box-sizing: border-box;
-      transition: background-color 0.3s, box-shadow 0.3s;
+      transition: all 0.3s ease;
     }
 
     body {
@@ -40,6 +41,7 @@
       min-height: 100vh;
     }
 
+    /* الهيدر */
     .page-header {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       padding: 2rem 1rem;
@@ -49,54 +51,217 @@
       margin-bottom: 2rem;
     }
 
+    .page-header h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* عناصر التحكم */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+    }
+
+    .form-control {
+      position: relative;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      color: var(--text);
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+
+    /* الجدول */
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin: 2rem 0;
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: 1.2rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    .users-table th {
+      background: rgba(14, 165, 233, 0.15);
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .users-table tr:hover {
+      background-color: var(--hover);
+    }
+
+    /* الأزرار */
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, var(--accent), #fde047);
+      color: #1e293b;
+    }
+
+    .btn-danger {
+      background: linear-gradient(45deg, var(--danger), #f87171);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    /* التصنيفات */
+    .rating-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 700;
+      display: inline-block;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .rating-high { background: #dcfce7; color: #166534; }
+    .rating-medium { background: #fef9c3; color: #854d0e; }
+    .rating-low { background: #fee2e2; color: #991b1b; }
+
     .grade-executive { background: #e0f2fe; color: #0369a1; }
     .grade-supervisory { background: #fce7f3; color: #be185d; }
     .grade-technical { background: #dcfce7; color: #166534; }
 
-    /* باقي الأنماط كما هي */
+    /* عناصر خاصة بالإدارة */
+    .admin-only { display: none; }
+
+    /* التحميل والأخطاء */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      place-items: center;
+      z-index: 1000;
+    }
+
+    .error-message {
+      background: var(--danger);
+      color: white;
+      padding: 1rem;
+      border-radius: var(--radius);
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: none;
+    }
+
+    /* الفوتر */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
   </style>
 </head>
 <body>
-  <button class="logout-btn" aria-label="تسجيل الخروج" onclick="logout()">🚪</button>
+  <div class="loading-overlay" id="loading">
+    <div class="btn btn-primary">جاري التحميل...</div>
+  </div>
+
+  <div class="error-message" id="errorContainer"></div>
+
+  <button class="logout-btn btn btn-danger" onclick="logout()">تسجيل الخروج</button>
 
   <header class="page-header">
-    <h1>عرض التقييمات</h1>
+    <h1>لوحة تحكم تقييمات الموظفين</h1>
   </header>
 
   <main class="main-container">
     <div class="controls">
-      <button class="btn btn-primary" onclick="fetchReviews()">🔄 تحديث البيانات</button>
-      <button class="btn btn-danger admin-only" onclick="clearTable()">🗑️ مسح الكل</button>
-      <button class="btn btn-primary admin-only" onclick="downloadExcel()">📥 تنزيل Excel</button>
+      <button class="btn btn-primary" onclick="fetchReviews()">
+        <span>🔄</span> تحديث البيانات
+      </button>
+      
+      <button class="btn btn-danger admin-only" onclick="clearTable()">
+        <span>🗑️</span> مسح الكل
+      </button>
+      
+      <button class="btn btn-primary admin-only" onclick="downloadExcel()">
+        <span>📥</span> تصدير Excel
+      </button>
+      
       <select class="form-input" id="gradeFilter" onchange="filterTable()">
-        <option value="">تصفية حسب الدرجة</option>
+        <option value="">جميع الدرجات</option>
       </select>
+      
       <select class="form-input" id="gradeTypeFilter" onchange="filterTable()">
         <option value="">نوع الدرجة</option>
         <option value="تنفيذي">تنفيذي</option>
         <option value="إشرافي">إشرافي</option>
         <option value="فني">فني</option>
       </select>
+      
       <input 
         type="text" 
         class="form-input" 
         id="searchInput" 
-        placeholder="بحث..." 
+        placeholder="بحث بالاسم أو القسم..." 
         oninput="filterTable()"
       >
-      <button class="btn btn-primary" onclick="window.location.href='index.html'">🏠 الرجوع</button>
+      
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+        <span>🏠</span> الرجوع للرئيسية
+      </button>
     </div>
 
     <table class="users-table">
       <thead>
         <tr>
-          <th onclick="sortBy('الاسم')">اسم الموظف ⇅</th>
+          <th onclick="sortBy('الاسم')">الاسم ⇅</th>
           <th onclick="sortBy('القسم')">القسم ⇅</th>
-          <th onclick="sortBy('الدرجه الوظيفيه')">الدرجه الوظيفيه ⇅</th>
+          <th onclick="sortBy('الدرجه الوظيفيه')">الدرجة الوظيفية ⇅</th>
           <th onclick="sortBy('التقييم الكلي')">التقييم الكلي ⇅</th>
           <th onclick="sortBy('التقييم العملي')">التقييم العملي ⇅</th>
           <th onclick="sortBy('أيام التقييم')">أيام التقييم ⇅</th>
-          <th onclick="sortBy('التاريخ')">التاريخ ⇅</th>
+          <th onclick="sortBy('التاريخ')">تاريخ التقييم ⇅</th>
           <th class="admin-only">الإجراءات</th>
         </tr>
       </thead>
@@ -105,23 +270,69 @@
   </main>
 
   <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
+    <p>جميع الحقوق محفوظة &copy; <span id="year"></span> | تطوير فريق تقنية المعلومات</p>
   </footer>
 
   <script>
+    // الثوابت الأساسية
     const SECRET_KEY = "smart_era_secret_@2024";
     const SESSION_KEY = "auth";
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/your_script_id/exec";
+    const GOOGLE_SCRIPT_URL = "your_google_script_url_here";
+    
+    // المتغيرات العامة
     let reviewsData = [];
+    let currentSort = { key: null, asc: true };
 
+    // ============== وظائف المصادقة ==============
+    function decryptSession() {
+      try {
+        const encrypted = sessionStorage.getItem(SESSION_KEY);
+        if (!encrypted) throw new Error('No active session');
+        
+        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
+        const sessionData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        
+        if (!sessionData.user || !sessionData.role) {
+          throw new Error('Invalid session data');
+        }
+        
+        return sessionData;
+      } catch (error) {
+        logout();
+        return null;
+      }
+    }
+
+    function verifyPermissions() {
+      const session = decryptSession();
+      if (!session) window.location.href = 'login.html';
+      
+      if (session.role === 'admin') {
+        document.querySelectorAll('.admin-only').forEach(el => {
+          el.style.display = 'inline-flex';
+        });
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem(SESSION_KEY);
+      window.location.href = 'login.html';
+    }
+
+    // ============== وظائف إدارة البيانات ==============
     async function fetchReviews() {
       try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=تقييمات`);
-        reviewsData = await res.json();
+        showLoading(true);
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=تقييمات`);
+        if (!response.ok) throw new Error('فشل الاتصال بالسيرفر');
+        
+        reviewsData = await response.json();
         populateGradeFilter();
         displayReviews(reviewsData);
       } catch (error) {
-        alert("فشل في جلب البيانات: " + error.message);
+        showError(`خطأ في جلب البيانات: ${error.message}`);
+      } finally {
+        showLoading(false);
       }
     }
 
@@ -147,70 +358,112 @@
             </span>
           </td>
           <td>${review['أيام التقييم']}</td>
-          <td>${new Date(review['التاريخ']).toLocaleDateString('ar-EG')}</td>
+          <td>${formatDate(review['التاريخ'])}</td>
           <td class="admin-only">
-            <button class="btn btn-primary" onclick="editReview('${review.id}')">✏️ تعديل</button>
+            <button class="btn btn-primary" onclick="editReview('${review.id}')">
+              ✏️ تعديل
+            </button>
           </td>
         </tr>
       `).join('');
     }
 
+    // ============== وظائف المساعدة ==============
     function getGradeType(grade) {
-      if (grade.includes('تنفيذي')) return 'executive';
-      if (grade.includes('إشرافي')) return 'supervisory';
-      if (grade.includes('فني')) return 'technical';
-      return '';
+      const types = {
+        'تنفيذي': 'executive',
+        'إشرافي': 'supervisory',
+        'فني': 'technical'
+      };
+      return types[grade?.split('-')[0]] || '';
     }
 
+    function getRatingClass(rating) {
+      const num = parseFloat(rating);
+      if (num >= 4) return 'rating-high';
+      if (num >= 2.5) return 'rating-medium';
+      return 'rating-low';
+    }
+
+    function formatDate(dateStr) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateStr).toLocaleDateString('ar-EG', options);
+    }
+
+    function extractGradeNumber(grade) {
+      const num = grade?.match(/\d+/)?.[0] || 0;
+      return parseInt(num);
+    }
+
+    // ============== الفلترة والترتيب ==============
     function populateGradeFilter() {
       const grades = [...new Set(reviewsData.map(r => r['الدرجه الوظيفيه']))];
       const select = document.getElementById("gradeFilter");
-      select.innerHTML = '<option value="">جميع الدرجات</option>' + 
-        grades.map(g => `<option value="${g}">${g}</option>`).join('');
+      select.innerHTML = grades.map(g => `
+        <option value="${g}">${g}</option>
+      `).join('');
     }
 
     function filterTable() {
       const searchTerm = document.getElementById("searchInput").value.toLowerCase();
       const grade = document.getElementById("gradeFilter").value;
       const gradeType = document.getElementById("gradeTypeFilter").value;
-      
+
       const filtered = reviewsData.filter(r => {
-        const gradeMatch = grade ? r['الدرجه الوظيفيه'] === grade : true;
-        const typeMatch = gradeType ? r['الدرجه الوظيفيه'].startsWith(gradeType) : true;
-        const searchMatch = Object.values(r).some(v => 
+        const matchesGrade = grade ? r['الدرجه الوظيفيه'] === grade : true;
+        const matchesType = gradeType ? r['الدرجه الوظيفيه'].startsWith(gradeType) : true;
+        const matchesSearch = Object.values(r).some(v => 
           String(v).toLowerCase().includes(searchTerm)
         );
-        
-        return gradeMatch && typeMatch && searchMatch;
+        return matchesGrade && matchesType && matchesSearch;
       });
-      
-      displayReviews(filtered);
+
+      displayReviews(currentSort.key ? sortData(filtered) : filtered);
     }
 
     function sortBy(key) {
-      reviewsData.sort((a, b) => {
-        if (key === 'التاريخ') return new Date(b[key]) - new Date(a[key]);
-        if (key === 'الدرجه الوظيفيه') {
-          const numA = extractGradeNumber(a[key]);
-          const numB = extractGradeNumber(b[key]);
-          return numB - numA;
-        }
-        return String(a[key]).localeCompare(String(b[key]), 'ar');
-      });
-      displayReviews(reviewsData);
+      currentSort.asc = currentSort.key === key ? !currentSort.asc : true;
+      currentSort.key = key;
+      displayReviews(sortData(reviewsData));
     }
 
-    function extractGradeNumber(grade) {
-      const matches = grade.match(/\d+/);
-      return matches ? parseInt(matches[0]) : 0;
+    function sortData(data) {
+      return data.sort((a, b) => {
+        const valA = a[currentSort.key];
+        const valB = b[currentSort.key];
+        
+        if (currentSort.key === 'التاريخ') {
+          return currentSort.asc ? 
+            new Date(valB) - new Date(valA) : 
+            new Date(valA) - new Date(valB);
+        }
+        
+        if (currentSort.key === 'الدرجه الوظيفيه') {
+          const numA = extractGradeNumber(valA);
+          const numB = extractGradeNumber(valB);
+          return currentSort.asc ? numB - numA : numA - numB;
+        }
+        
+        return currentSort.asc ? 
+          valB.localeCompare(valA, 'ar') : 
+          valA.localeCompare(valB, 'ar');
+      });
+    }
+
+    // ============== وظائف الإدارة ==============
+    function clearTable() {
+      if (confirm('هل أنت متأكد من مسح جميع البيانات؟')) {
+        reviewsData = [];
+        displayReviews([]);
+      }
     }
 
     function downloadExcel() {
       const csvContent = [
         ['الاسم', 'القسم', 'الدرجه الوظيفيه', 'التقييم الكلي', 'التقييم العملي', 'الأيام', 'التاريخ'],
         ...reviewsData.map(r => [
-          r['الاسم'],
-          r['القسم'],
+          `"${r['الاسم']}"`,
+          `"${r['القسم']}"`,
           r['الدرجه الوظيفيه'],
           r['التقييم الكلي'],
           r['التقييم العملي'],
@@ -222,13 +475,34 @@
       const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'تقييمات_الموظفين.csv';
+      link.download = `تقييمات_الموظفين_${new Date().toISOString()}.csv`;
       link.click();
     }
 
-    // باقي الدوال الأساسية
+    function editReview(id) {
+      // يمكن إضافة منطق التعديل هنا
+      const review = reviewsData.find(r => r.id === id);
+      if (review) {
+        prompt('أدخل التعديلات:', JSON.stringify(review, null, 2));
+      }
+    }
+
+    // ============== وظائف العرض ==============
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'grid' : 'none';
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('errorContainer');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      setTimeout(() => errorEl.style.display = 'none', 5000);
+    }
+
+    // ============== التهيئة الأولية ==============
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById("year").textContent = new Date().getFullYear();
+      verifyPermissions();
+      document.getElementById('year').textContent = new Date().getFullYear();
       fetchReviews();
     });
   </script>
