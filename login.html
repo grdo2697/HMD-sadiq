@@ -135,8 +135,11 @@
                 return;
             }
 
+            // تخزين بيانات الجلسة في sessionStorage
             sessionStorage.setItem('auth', CryptoJS.AES.encrypt(JSON.stringify(user), SECRET_KEY).toString());
-            window.location.href = 'manage-users.html';
+
+            // توجيه المستخدم إلى الصفحة الرئيسية
+            window.location.href = 'index.html';  // يمكن تعديله لصفحة أخرى حسب الحاجة
         }
 
         // بدء تشغيل المستخدم الأساسي إذا لم يكن موجود
