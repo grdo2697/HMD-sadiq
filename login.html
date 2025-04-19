@@ -79,37 +79,29 @@
 
     <script>
         const SECRET_KEY = "smart_era_secret_@2024";
-        const USERS = [
-            {
-                username: "hradmin",
-                password: "Aa20002000",
-                permissions: ["admin", "view", "export", "manage_users", "view_ratings"],
-            },
-            {
-                username: "siana",
-                password: "Aa112233",
-                permissions: ["view"]
-            },
-            {
-                username: "Corleone", 
-                password: "20032003",
-                permissions: ["view"]
+        const USERS_KEY = "smart_era_users";
+        const SESSION_KEY = "auth";
+
+        function decryptUsers() {
+            try {
+                const enc = localStorage.getItem(USERS_KEY);
+                if (!enc) return [];
+                const decrypted = CryptoJS.AES.decrypt(enc, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+                return JSON.parse(decrypted);
+            } catch (e) {
+                return [];
             }
-        ];
+        }
 
         function handleLogin() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const errorEl = document.getElementById('error');
 
-            // البحث عن المستخدم
-            const user = USERS.find(u => 
-                u.username === username && 
-                u.password === password
-            );
+            const users = decryptUsers();
+            const user = users.find(u => u.username === username && u.password === password);
 
             if (user) {
-                // إنشاء جلسة مشفرة
                 const sessionData = {
                     user: user.username,
                     permissions: user.permissions,
@@ -121,7 +113,7 @@
                     SECRET_KEY
                 ).toString();
 
-                sessionStorage.setItem('auth', encryptedSession);
+                sessionStorage.setItem(SESSION_KEY, encryptedSession);
                 window.location.href = 'index.html';
             } else {
                 errorEl.textContent = 'بيانات الدخول غير صحيحة!';
