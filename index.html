@@ -133,6 +133,11 @@
       color: var(--primary);
     }
 
+    /* إخفاء عمود id بشكل افتراضي */
+    .col-id {
+      display: none;
+    }
+
     tr:hover {
       background-color: var(--hover);
     }
@@ -215,7 +220,7 @@
       <thead>
         <tr>
           <th>اسم الموظف</th>
-          <th>الرقم</th>
+          <th class="col-id">الرقم</th>
           <th>المنصب</th>
           <th>الحالة</th>
         </tr>
@@ -239,7 +244,6 @@
 
     const user = localStorage.getItem("username");
     const pass = localStorage.getItem("password");
-
     const valid = allowedUsers.find(u => u.username === user && u.password === pass);
 
     if (!valid) {
@@ -247,10 +251,12 @@
       window.location.href = "login.html";
     }
 
+    // إذا كان المستخدم HR، نظهر عمود الرقم
     if (user === "hr") {
+      document.querySelectorAll('.col-id').forEach(el => el.style.display = '');
       document.getElementById("excelBtn").style.display = "inline-block";
       document.getElementById("reviewBtn").style.display = "inline-block";
-      document.getElementById("manageUsersBtn").style.display = "inline-block"; // إظهار زر إدارة المستخدمين
+      document.getElementById("manageUsersBtn").style.display = "inline-block";
     }
 
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -273,14 +279,18 @@
       const tbody = document.getElementById("employee-body");
       tbody.innerHTML = "";
       data.forEach(emp => {
-        const row = `<tr>
-          <td>${emp.name}</td>
-          <td>${emp.id}</td>
-          <td>${emp.role}</td>
-          <td>${emp.status}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+        tbody.innerHTML += `
+          <tr>
+            <td>${emp.name}</td>
+            <td class="col-id">${emp.id}</td>
+            <td>${emp.role}</td>
+            <td>${emp.status}</td>
+          </tr>`;
       });
+      // بعد الإضافة، نعيد تطبيق الإخفاء إذا ليس HR
+      if (user !== "hr") {
+        document.querySelectorAll('.col-id').forEach(el => el.style.display = 'none');
+      }
     }
 
     function filterEmployees() {
@@ -288,37 +298,26 @@
       const roleFilter = document.getElementById("filter-role").value.toLowerCase();
       const statusFilter = document.getElementById("filter-status").value.toLowerCase();
 
-      const filtered = allEmployees.filter(emp => {
-        return (
-          emp.name.toLowerCase().includes(search) &&
-          (roleFilter === "" || emp.role.toLowerCase().includes(roleFilter)) &&
-          (statusFilter === "" || emp.status.toLowerCase().includes(statusFilter))
-        );
-      });
+      const filtered = allEmployees.filter(emp =>
+        emp.name.toLowerCase().includes(search) &&
+        (roleFilter === "" || emp.role.toLowerCase().includes(roleFilter)) &&
+        (statusFilter === "" || emp.status.toLowerCase().includes(statusFilter))
+      );
       displayEmployees(filtered);
     }
 
     function updateFilters() {
       const roles = [...new Set(allEmployees.map(emp => emp.role))];
       const status = [...new Set(allEmployees.map(emp => emp.status))];
-
       const roleSelect = document.getElementById("filter-role");
       const statusSelect = document.getElementById("filter-status");
 
-      roles.forEach(role => {
-        roleSelect.innerHTML += `<option value="${role}">${role}</option>`;
-      });
-
-      status.forEach(st => {
-        statusSelect.innerHTML += `<option value="${st}">${st}</option>`;
-      });
+      roles.forEach(role => roleSelect.innerHTML += `<option value="${role}">${role}</option>`);
+      status.forEach(st => statusSelect.innerHTML += `<option value="${st}">${st}</option>`);
     }
 
     function downloadExcel() {
-      const csv = allEmployees.map(emp => {
-        return `${emp.name},${emp.id},${emp.role},${emp.status}`;
-      }).join("\n");
-
+      const csv = allEmployees.map(emp => `${emp.name},${emp.id},${emp.role},${emp.status}`).join("\n");
       const link = document.createElement("a");
       link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
       link.download = "employees.csv";
@@ -331,6 +330,10 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
+    }
+
+    function clearTable() {
+      document.getElementById("employee-body").innerHTML = "";
     }
 
     function logout() {
