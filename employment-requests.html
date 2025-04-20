@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>طلبات التوظيف - شركة العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -92,9 +92,9 @@
       background-color: rgba(14, 165, 233, 0.1);
     }
 
-    .status-قيد الانتظار { color: #eab308; font-weight: bold; }
-    .status-موافق { color: #22c55e; font-weight: bold; }
-    .status-مرفوض { color: #ef4444; font-weight: bold; }
+    .status-قيد_الانتظار { color: #eab308; font-weight: bold; }
+    .status-موافق    { color: #22c55e; font-weight: bold; }
+    .status-مرفوض   { color: #ef4444; font-weight: bold; }
 
     .loader {
       display: none;
@@ -140,22 +140,18 @@
       table, thead, tbody, th, td, tr { 
         display: block; 
       }
-      
       thead tr { 
         position: absolute;
         top: -9999px;
         left: -9999px;
       }
-      
       tr { border: 1px solid var(--border); }
-      
       td {
         border: none;
         position: relative;
         padding-left: 50%; 
         text-align: left;
       }
-      
       td:before {
         position: absolute;
         right: 10px;
@@ -180,7 +176,7 @@
              onkeyup="filterTable()">
       
       <select id="filter-type" onchange="filterTable()">
-        <option value="">كل الأنواع</option>
+        <option value="">كل أنواع الطلب</option>
       </select>
     </div>
 
@@ -208,23 +204,24 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycby7C-93CN7z2FsxJqVjtAqNyHalOQ0jXC0uR-yUCutvUGFusRz1PhrM-hng-TeGOrB8Qw/exec';
+    // رابط Google Apps Script مع تمرير اسم الورقة "موظفين الحريه تقديم"
+    const scriptURL = 
+      'https://script.google.com/macros/s/AKfycby7C-93CN7z2FsxJqVjtAqNyHalOQ0jXC0uR-yUCutvUGFusRz1PhrM-hng-TeGOrB8Qw/exec'
+      + '?sheet=موظفين%20الحريه%20تقديم';
+
     let allData = [];
 
     async function loadData() {
       try {
         showLoading();
         const response = await fetch(scriptURL);
-        
         if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر');
-        
         allData = await response.json();
         renderTable(allData);
         populateTypeFilter();
-        
-      } catch (error) {
-        console.error('حدث خطأ:', error);
-        alert('❗ تعذر تحميل البيانات، يرجى المحاولة لاحقًا');
+      } catch (err) {
+        console.error(err);
+        alert('❗ تعذر تحميل البيانات، حاول لاحقاً');
       } finally {
         hideLoading();
       }
@@ -233,20 +230,19 @@
     function renderTable(data) {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
-      
       data.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td data-label="الاسم">${item.الاسم || '—'}</td>
           <td data-label="نوع الطلب">${item.نوع_الطلب || '—'}</td>
-          <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة || 'قيد المراجعة'}</td>
+          <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة || 'قيد_الانتظار'}</td>
           <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || '—'}</td>
           <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || '—'}</td>
           <td data-label="رقم الهاتف">${item.رقم_الهاتف || '—'}</td>
           <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || '—'}</td>
           <td data-label="العنوان">${item.العنوان || '—'}</td>
           <td data-label="المواليد">${item.المواليد || '—'}</td>
-          <td data-label="الراتب">${formatSalary(item.الراتب_المتفق_عليه)}</td>
+          <td data-label="الراتب">${item.الراتب_المتفق_عليه || '—'}</td>
           <td data-label="النقل">${item.النقل || '—'}</td>
           <td data-label="وقت العمل">${item.وقت_المباشرة || '—'}</td>
           <td data-label="الشركة السابقة">${item.الشركة_السابقة || '—'}</td>
@@ -255,59 +251,45 @@
       });
     }
 
-    function formatSalary(amount) {
-      if (!amount) return '—';
-      return new Intl.NumberFormat('ar-IQ').format(amount) + ' د.ع';
-    }
-
     function populateTypeFilter() {
-      const types = [...new Set(allData.map(item => item.نوع_الطلب))];
-      const typeFilter = document.getElementById('filter-type');
-      typeFilter.innerHTML = '<option value="">كل الأنواع</option>';
-      types.forEach(type => {
-        typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
-      });
+      const types = [...new Set(allData.map(i => i.نوع_الطلب))];
+      const filter = document.getElementById('filter-type');
+      filter.innerHTML = '<option value="">كل أنواع الطلب</option>';
+      types.forEach(t => filter.innerHTML += `<option value="${t}">${t}</option>`);
     }
 
     function filterTable() {
-      const searchText = document.querySelector('.search-input').value.toLowerCase();
-      const filterType = document.getElementById('filter-type').value;
-      
-      const filteredData = allData.filter(item => {
-        const matchesType = !filterType || item.نوع_الطلب === filterType;
-        const matchesSearch = Object.values(item).some(value => 
-          String(value).toLowerCase().includes(searchText)
+      const text = document.querySelector('.search-input').value.toLowerCase();
+      const sel = document.getElementById('filter-type').value;
+      const filtered = allData.filter(i => {
+        const matchType = !sel || i.نوع_الطلب === sel;
+        const matchText = Object.values(i).some(v =>
+          String(v).toLowerCase().includes(text)
         );
-        return matchesType && matchesSearch;
+        return matchType && matchText;
       });
-      
-      renderTable(filteredData);
+      renderTable(filtered);
+    }
+
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
     }
 
     function logout() {
       localStorage.clear();
       window.location.href = 'login.html';
     }
-
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     }
 
-    function showLoading() {
-      document.getElementById('loading').style.display = 'block';
-    }
-
-    function hideLoading() {
-      document.getElementById('loading').style.display = 'none';
-    }
-
-    // التهيئة الأولية
+    // initialize
     document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
-    window.addEventListener('DOMContentLoaded', () => {
-      loadData();
-      document.querySelector('.search-input').focus();
-    });
+    window.addEventListener('DOMContentLoaded', loadData);
   </script>
 </body>
 </html>
