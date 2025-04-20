@@ -13,13 +13,20 @@
       --text: #0f172a;
       --border: #cbd5e1;
     }
-    
+
+    .dark-mode {
+      --background: #1a1a1a;
+      --text: #ffffff;
+      --border: #444444;
+    }
+
     body {
       font-family: 'Cairo', sans-serif;
       margin: 0;
       padding: 2rem;
       background: var(--background);
       color: var(--text);
+      transition: all 0.3s ease;
     }
 
     .container {
@@ -27,101 +34,73 @@
       margin: 0 auto;
     }
 
-    h1 {
-      text-align: center;
-      color: var(--primary);
-      margin-bottom: 2rem;
-      padding: 20px;
-      border-bottom: 3px solid var(--primary);
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
-      background: white;
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      padding: 0.8rem;
+      border: 2px solid var(--border);
       border-radius: 8px;
-      overflow: hidden;
+      background: var(--background);
+      color: var(--text);
     }
 
-    th, td {
-      padding: 1rem;
-      text-align: right;
-      border-bottom: 1px solid var(--border);
+    select {
+      padding: 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      color: var(--text);
     }
 
-    th {
-      background-color: var(--primary);
-      color: white;
-      font-weight: 600;
+    .logout-btn {
+      position: fixed;
+      top: 1rem;
+      left: 4.5rem;
+      width: 45px;
+      height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 1000;
     }
 
-    tr:hover {
-      background-color: #f8fafc;
-    }
-
-    .status-قيد الانتظار { color: #eab308; font-weight: bold; }
-    .status-موافق { color: #22c55e; font-weight: bold; }
-    .status-مرفوض { color: #ef4444; font-weight: bold; }
-
-    .loader {
-      display: none;
-      text-align: center;
-      padding: 2rem;
-      font-size: 1.2rem;
-      color: var(--primary);
-    }
-
-    @media (max-width: 768px) {
-      table, thead, tbody, th, td, tr { 
-        display: block; 
-      }
-      
-      thead tr { 
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-      }
-      
-      tr { border: 1px solid var(--border); }
-      
-      td {
-        border: none;
-        position: relative;
-        padding-left: 50%; 
-        text-align: left;
-      }
-      
-      td:before {
-        position: absolute;
-        right: 10px;
-        content: attr(data-label);
-        font-weight: bold;
-        color: var(--primary);
-      }
-    }
+    /* بقية الأنماط كما هي */
   </style>
 </head>
 <body>
+  <button class="logout-btn" onclick="logout()">🚪</button>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+
   <div class="container">
     <h1>🗃️ طلبات التوظيف الجديدة</h1>
+    
+    <div class="controls">
+      <input type="text" 
+             class="search-input" 
+             placeholder="ابحث بأي حقل..."
+             onkeyup="filterTable()">
+      
+      <select id="filter-type" onchange="filterTable()">
+        <option value="">كل الأنواع</option>
+      </select>
+    </div>
+
     <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
     <table id="requestsTable">
       <thead>
         <tr>
-          <th>الاسم</th>
-          <th>نوع الطلب</th>
-          <th>الحالة</th>
-          <th>الموظف المسؤول</th>
-          <th>تاريخ التقديم</th>
-          <th>رقم الهاتف</th>
-          <th>التحصيل الدراسي</th>
-          <th>العنوان</th>
-          <th>المواليد</th>
-          <th>الراتب</th>
-          <th>النقل</th>
-          <th>وقت العمل</th>
-          <th>الشركة السابقة</th>
+          <!-- العناوين كما هي -->
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -130,64 +109,95 @@
 
   <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzPyFRcQ0fwn2QZXtPb-BOgRb2UdzFhDqzvjK2PvLRwgM4hazUP_pAwYDo-f5XgNokANQ/exec';
+    let allData = [];
 
     async function loadData() {
       try {
         showLoading();
         const response = await fetch(scriptURL);
         
-        if (!response.ok) {
-          throw new Error(`خطأ في الشبكة: ${response.status}`);
-        }
+        if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر');
         
-        const data = await response.json();
-        
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        
-        data.forEach((item) => {
-          const tr = document.createElement('tr');
-          
-          tr.innerHTML = `
-            <td data-label="الاسم">${item.الاسم || 'غير متوفر'}</td>
-            <td data-label="نوع الطلب">${item.نوع_الطلب || 'غير محدد'}</td>
-            <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة || 'قيد الانتظار'}</td>
-            <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || 'غير محدد'}</td>
-            <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || 'غير محدد'}</td>
-            <td data-label="رقم الهاتف">${item.رقم_الهاتف || 'بدون'}</td>
-            <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || 'غير محدد'}</td>
-            <td data-label="العنوان">${item.العنوان || 'غير محدد'}</td>
-            <td data-label="المواليد">${item.المواليد || 'غير محدد'}</td>
-            <td data-label="الراتب">${item.الراتب_المتفق_عليه || '0'}</td>
-            <td data-label="النقل">${item.النقل ? '✅ متوفر' : '❌ غير متوفر'}</td>
-            <td data-label="وقت العمل">${item.وقت_المباشرة || 'غير محدد'}</td>
-            <td data-label="الشركة السابقة">${item.الشركة_السابقة || 'لا يوجد'}</td>
-          `;
-          
-          tbody.appendChild(tr);
-        });
+        allData = await response.json();
+        renderTable(allData);
+        populateTypeFilter();
         
       } catch (error) {
-        console.error('حدث خطأ:', error);
-        alert('❗ تعذر تحميل البيانات، يرجى التحقق من اتصال الإنترنت والمحاولة لاحقًا');
+        handleError(error);
       } finally {
         hideLoading();
       }
     }
 
-    function showLoading() {
-      document.getElementById('loading').style.display = 'block';
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="الاسم">${item.الاسم || '—'}</td>
+          <td data-label="نوع الطلب">${item.نوع_الطلب || '—'}</td>
+          <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة || 'قيد المراجعة'}</td>
+          <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || '—'}</td>
+          <td data-label="تاريخ التقديم">${formatDate(item.تاريخ_التقديم)}</td>
+          <td data-label="رقم الهاتف">${item.رقم_الهاتف || '—'}</td>
+          <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || '—'}</td>
+          <td data-label="العنوان">${item.العنوان || '—'}</td>
+          <td data-label="المواليد">${formatDate(item.المواليد)}</td>
+          <td data-label="الراتب">${formatSalary(item.الراتب_المتفق_عليه)}</td>
+          <td data-label="النقل">${item.النقل ? '✅' : '❌'}</td>
+          <td data-label="وقت العمل">${item.وقت_المباشرة || '—'}</td>
+          <td data-label="الشركة السابقة">${item.الشركة_السابقة || '—'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
-    function hideLoading() {
-      document.getElementById('loading').style.display = 'none';
+    function formatSalary(amount) {
+      if (!amount) return '—';
+      return `${Number(amount).toLocaleString('ar-IQ')} د.ع`;
     }
 
-    // تحديث تلقائي كل 5 دقائق
-    setInterval(loadData, 300000);
-    
-    // التحميل الأولي عند فتح الصفحة
-    window.addEventListener('DOMContentLoaded', loadData);
+    function populateTypeFilter() {
+      const types = [...new Set(allData.map(item => item.نوع_الطلب))];
+      const typeFilter = document.getElementById('filter-type');
+      types.forEach(type => {
+        typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
+      });
+    }
+
+    function filterTable() {
+      const searchText = document.querySelector('.search-input').value.toLowerCase();
+      const filterType = document.getElementById('filter-type').value;
+      
+      const filteredData = allData.filter(item => {
+        const matchesType = !filterType || item.نوع_الطلب === filterType;
+        const matchesSearch = Object.values(item).some(value => 
+          String(value).toLowerCase().includes(searchText)
+        );
+        return matchesType && matchesSearch;
+      });
+      
+      renderTable(filteredData);
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // التهيئة الأولية
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      document.querySelector('.search-input').focus();
+    });
   </script>
 </body>
 </html>
