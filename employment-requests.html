@@ -1,35 +1,220 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <!-- ... (بقية الهيد بدون تغيير) ... -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طلبات التوظيف - شركة العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+    .dark-mode {
+      --background: #1a1a1a;
+      --text: #ffffff;
+      --border: #444444;
+      --hover: #333;
+    }
+    
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .controls input,
+    .controls select,
+    .controls button {
+      padding: 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .controls button.primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+    
+    .controls button.primary:hover {
+      background: var(--secondary);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    tr:hover {
+      background: var(--hover);
+    }
+    
+    .status-قيد_الانتظار { color: #eab308; }
+    .status-موافق { color: #22c55e; }
+    .status-مرفوض { color: #ef4444; }
+    
+    .loader {
+      display: none;
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 2rem 0;
+    }
+    
+    .logout-btn, .toggle-dark {
+      position: fixed;
+      top: 1rem;
+      width: 45px; height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    
+    .toggle-dark { left: 1rem; }
+    .logout-btn { left: 4.5rem; }
+    
+    .no-data, .error {
+      text-align: center;
+      padding: 1.5rem;
+      font-weight: bold;
+    }
+    .no-data { color: #64748b; }
+    .error { color: #ef4444; }
+    
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { margin-bottom: 1rem; }
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+      }
+      td:before {
+        position: absolute;
+        right: 10px;
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- ... (بقية البودي بدون تغيير) ... -->
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
+
+  <div class="container">
+    <h1>🗃️ طلبات التوظيف الجديدة</h1>
+
+    <div class="controls">
+      <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
+      <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
+      <input type="text" id="search" placeholder="ابحث بأي حقل..." oninput="filterTable()">
+      <select id="filter-type" onchange="filterTable()">
+        <option value="">كل أنواع الطلب</option>
+      </select>
+    </div>
+
+    <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
+
+    <table id="requestsTable">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>نوع الطلب</th>
+          <th>الحالة</th>
+          <th>الموظف المسؤول</th>
+          <th>تاريخ التقديم</th>
+          <th>رقم الهاتف</th>
+          <th>التحصيل الدراسي</th>
+          <th>العنوان</th>
+          <th>المواليد</th>
+          <th>الراتب</th>
+          <th>النقل</th>
+          <th>وقت العمل</th>
+          <th>الشركة السابقة</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 
   <script>
-    // تحديث رابط السكربت مع الترميز الصحيح
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4eBX4H2On6sWKaWhL4ZHy0j7qqiUEB6DcrO_muHBPMjU2AuS7Udo8h2J3afa7OE67A/exec?sheet=موظفين%20الحريه%20تقديم';
-
     let allData = [];
 
+    // ========== Main Functions ==========
     async function fetchData() {
       showLoading();
       try {
         const response = await fetch(SCRIPT_URL);
-        if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر: ' + response.status);
+        if (!response.ok) throw new Error(`خطأ HTTP: ${response.status}`);
         
         const result = await response.json();
         if (result.error) throw new Error(result.error);
         
         allData = result.data || [];
         if (allData.length === 0) showEmptyMessage();
+        else renderTable(allData);
         
         populateTypeFilter();
-        renderTable(allData);
-        
       } catch (error) {
         showError(error.message);
-        console.error('تفاصيل الخطأ:', error);
+        console.error('Error Details:', error);
       } finally {
         hideLoading();
       }
@@ -39,33 +224,32 @@
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
       
-      if (data.length === 0) return showEmptyMessage();
-
       data.forEach(item => {
         const status = item.الحالة || 'قيد الانتظار';
         const statusClass = `status-${status.replace(/ /g, '_')}`;
         
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td data-label="الاسم">${item.الاسم || '—'}</td>
-          <td data-label="نوع الطلب">${item.نوع_الطلب || '—'}</td>
-          <td data-label="الحالة" class="${statusClass}">${status}</td>
-          <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || '—'}</td>
-          <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || '—'}</td>
-          <td data-label="رقم الهاتف">${item.رقم_الهاتف || '—'}</td>
-          <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || '—'}</td>
-          <td data-label="العنوان">${item.العنوان || '—'}</td>
-          <td data-label="المواليد">${item.المواليد || '—'}</td>
-          <td data-label="الراتب">${item.الراتب_المتفق_عليه || '—'}</td>
-          <td data-label="النقل">${item.النقل || '—'}</td>
-          <td data-label="وقت العمل">${item.وقت_المباشرة || '—'}</td>
-          <td data-label="الشركة السابقة">${item.الشركة_السابقة || '—'}</td>
+        const rowHTML = `
+          <tr>
+            <td data-label="الاسم">${item.الاسم || '—'}</td>
+            <td data-label="نوع الطلب">${item.نوع_الطلب || '—'}</td>
+            <td data-label="الحالة" class="${statusClass}">${status}</td>
+            <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || '—'}</td>
+            <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || '—'}</td>
+            <td data-label="رقم الهاتف">${item.رقم_الهاتف || '—'}</td>
+            <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || '—'}</td>
+            <td data-label="العنوان">${item.العنوان || '—'}</td>
+            <td data-label="المواليد">${item.المواليد || '—'}</td>
+            <td data-label="الراتب">${item.الراتب_المتفق_عليه || '—'}</td>
+            <td data-label="النقل">${item.النقل || '—'}</td>
+            <td data-label="وقت العمل">${item.وقت_المباشرة || '—'}</td>
+            <td data-label="الشركة السابقة">${item.الشركة_السابقة || '—'}</td>
+          </tr>
         `;
-        tbody.appendChild(tr);
+        tbody.insertAdjacentHTML('beforeend', rowHTML);
       });
     }
 
-    // تحديث دالة التصفية
+    // ========== Helper Functions ==========
     function populateTypeFilter() {
       const select = document.getElementById('filter-type');
       const types = [...new Set(allData.map(item => item.نوع_الطلب))].filter(Boolean).sort();
@@ -75,12 +259,26 @@
       });
     }
 
-    // إضافة دوال الرسائل
+    function filterTable() {
+      const searchTerm = document.getElementById('search').value.toLowerCase();
+      const filterType = document.getElementById('filter-type').value;
+      
+      const filtered = allData.filter(item => {
+        const matchesType = !filterType || item.نوع_الطلب === filterType;
+        const matchesSearch = Object.values(item).some(value => 
+          String(value).toLowerCase().includes(searchTerm)
+        );
+        return matchesType && matchesSearch;
+      });
+      
+      renderTable(filtered);
+    }
+
     function showEmptyMessage() {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
         <tr>
-          <td colspan="13" class="no-data">لا توجد طلبات متاحة حالياً</td>
+          <td colspan="13" class="no-data">لا توجد طلبات لعرضها حالياً</td>
         </tr>
       `;
     }
@@ -89,12 +287,40 @@
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
         <tr>
-          <td colspan="13" class="error">${message}</td>
+          <td colspan="13" class="error">⚠️ ${message}</td>
         </tr>
       `;
     }
 
-    // ... (بقية الدوال بدون تغيير) ...
+    function clearTable() {
+      allData = [];
+      document.getElementById('tableBody').innerHTML = '';
+      document.getElementById('filter-type').innerHTML = '<option value="">كل أنواع الطلب</option>';
+    }
+
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
+      fetchData();
+    });
   </script>
 </body>
 </html>
