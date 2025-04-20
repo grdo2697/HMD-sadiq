@@ -135,28 +135,33 @@
       try {
         showLoading();
         const response = await fetch(scriptURL);
+        
+        if (!response.ok) {
+          throw new Error(`خطأ في الشبكة: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         
-        data.forEach((item, index) => {
+        data.forEach((item) => {
           const tr = document.createElement('tr');
           
           tr.innerHTML = `
-            <td data-label="الاسم">${item.الاسم}</td>
-            <td data-label="نوع الطلب">${item.nوع_الطلب}</td>
-            <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة}</td>
-            <td data-label="الموظف المسؤول">${item.الموظف_المسؤول}</td>
-            <td data-label="تاريخ التقديم">${item.تاريخ_التقديم}</td>
-            <td data-label="رقم الهاتف">${item.رقم_الهاتف}</td>
-            <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي}</td>
-            <td data-label="العنوان">${item.العنوان}</td>
-            <td data-label="المواليد">${item.المواليد}</td>
-            <td data-label="الراتب">${item.الراتب_المتفق_عليه}</td>
-            <td data-label="النقل">${item.النقل}</td>
-            <td data-label="وقت العمل">${item.وقت_المباشرة}</td>
-            <td data-label="الشركة السابقة">${item.الشركة_السابقة}</td>
+            <td data-label="الاسم">${item.الاسم || 'غير متوفر'}</td>
+            <td data-label="نوع الطلب">${item.نوع_الطلب || 'غير محدد'}</td>
+            <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة || 'قيد الانتظار'}</td>
+            <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || 'غير محدد'}</td>
+            <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || 'غير محدد'}</td>
+            <td data-label="رقم الهاتف">${item.رقم_الهاتف || 'بدون'}</td>
+            <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || 'غير محدد'}</td>
+            <td data-label="العنوان">${item.العنوان || 'غير محدد'}</td>
+            <td data-label="المواليد">${item.المواليد || 'غير محدد'}</td>
+            <td data-label="الراتب">${item.الراتب_المتفق_عليه || '0'}</td>
+            <td data-label="النقل">${item.النقل ? '✅ متوفر' : '❌ غير متوفر'}</td>
+            <td data-label="وقت العمل">${item.وقت_المباشرة || 'غير محدد'}</td>
+            <td data-label="الشركة السابقة">${item.الشركة_السابقة || 'لا يوجد'}</td>
           `;
           
           tbody.appendChild(tr);
@@ -164,7 +169,7 @@
         
       } catch (error) {
         console.error('حدث خطأ:', error);
-        alert('❗ تعذر تحميل البيانات، يرجى المحاولة لاحقًا');
+        alert('❗ تعذر تحميل البيانات، يرجى التحقق من اتصال الإنترنت والمحاولة لاحقًا');
       } finally {
         hideLoading();
       }
@@ -178,11 +183,11 @@
       document.getElementById('loading').style.display = 'none';
     }
 
-    // تحديث البيانات كل دقيقة
-    setInterval(loadData, 60000);
+    // تحديث تلقائي كل 5 دقائق
+    setInterval(loadData, 300000);
     
-    // التحميل الأولي
-    window.onload = loadData;
+    // التحميل الأولي عند فتح الصفحة
+    window.addEventListener('DOMContentLoaded', loadData);
   </script>
 </body>
 </html>
