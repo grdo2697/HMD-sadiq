@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>طلبات التوظيف</title>
+  <title>طلبات التوظيف - شركة العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -31,6 +31,8 @@
       text-align: center;
       color: var(--primary);
       margin-bottom: 2rem;
+      padding: 20px;
+      border-bottom: 3px solid var(--primary);
     }
 
     table {
@@ -58,20 +60,9 @@
       background-color: #f8fafc;
     }
 
-    .status-قيد الانتظار {
-      color: #eab308;
-      font-weight: bold;
-    }
-
-    .status-موافق {
-      color: #22c55e;
-      font-weight: bold;
-    }
-
-    .status-مرفوض {
-      color: #ef4444;
-      font-weight: bold;
-    }
+    .status-قيد الانتظار { color: #eab308; font-weight: bold; }
+    .status-موافق { color: #22c55e; font-weight: bold; }
+    .status-مرفوض { color: #ef4444; font-weight: bold; }
 
     .loader {
       display: none;
@@ -80,12 +71,41 @@
       font-size: 1.2rem;
       color: var(--primary);
     }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { 
+        display: block; 
+      }
+      
+      thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr { border: 1px solid var(--border); }
+      
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%; 
+        text-align: left;
+      }
+      
+      td:before {
+        position: absolute;
+        right: 10px;
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>طلبات التوظيف الجديدة</h1>
-    <div class="loader" id="loading">جاري تحميل البيانات...</div>
+    <h1>🗃️ طلبات التوظيف الجديدة</h1>
+    <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
     <table id="requestsTable">
       <thead>
         <tr>
@@ -98,9 +118,9 @@
           <th>التحصيل الدراسي</th>
           <th>العنوان</th>
           <th>المواليد</th>
-          <th>الراتب المتفق عليه</th>
+          <th>الراتب</th>
           <th>النقل</th>
-          <th>وقت المباشرة</th>
+          <th>وقت العمل</th>
           <th>الشركة السابقة</th>
         </tr>
       </thead>
@@ -109,48 +129,60 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwX7JgLzQ4Y7VnJjqQJZQ1lQ4Q3Q5Q6Q7Q8Q9Q0/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzPyFRcQ0fwn2QZXtPb-BOgRb2UdzFhDqzvjK2PvLRwgM4hazUP_pAwYDo-f5XgNokANQ/exec';
 
-    async function fetchData() {
+    async function loadData() {
       try {
-        document.getElementById('loading').style.display = 'block';
+        showLoading();
         const response = await fetch(scriptURL);
         const data = await response.json();
         
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         
-        data.forEach(row => {
+        data.forEach((item, index) => {
           const tr = document.createElement('tr');
           
           tr.innerHTML = `
-            <td>${row.الاسم}</td>
-            <td>${row['نوع الطلب']}</td>
-            <td class="status-${row.الحالة}">${row.الحالة}</td>
-            <td>${row['الموظف المسؤول']}</td>
-            <td>${row['تاريخ التقديم']}</td>
-            <td>${row['رقم الهاتف']}</td>
-            <td>${row['التحصيل الدراسي']}</td>
-            <td>${row.العنوان}</td>
-            <td>${row.المواليد}</td>
-            <td>${row['الراتب المتفق عليه']}</td>
-            <td>${row.النقل}</td>
-            <td>${row['وقت المباشرة']}</td>
-            <td>${row['الشركة السابقة']}</td>
+            <td data-label="الاسم">${item.الاسم}</td>
+            <td data-label="نوع الطلب">${item.nوع_الطلب}</td>
+            <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة}</td>
+            <td data-label="الموظف المسؤول">${item.الموظف_المسؤول}</td>
+            <td data-label="تاريخ التقديم">${item.تاريخ_التقديم}</td>
+            <td data-label="رقم الهاتف">${item.رقم_الهاتف}</td>
+            <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي}</td>
+            <td data-label="العنوان">${item.العنوان}</td>
+            <td data-label="المواليد">${item.المواليد}</td>
+            <td data-label="الراتب">${item.الراتب_المتفق_عليه}</td>
+            <td data-label="النقل">${item.النقل}</td>
+            <td data-label="وقت العمل">${item.وقت_المباشرة}</td>
+            <td data-label="الشركة السابقة">${item.الشركة_السابقة}</td>
           `;
           
           tbody.appendChild(tr);
         });
         
       } catch (error) {
-        console.error('Error:', error);
-        alert('حدث خطأ أثناء جلب البيانات');
+        console.error('حدث خطأ:', error);
+        alert('❗ تعذر تحميل البيانات، يرجى المحاولة لاحقًا');
       } finally {
-        document.getElementById('loading').style.display = 'none';
+        hideLoading();
       }
     }
 
-    window.onload = fetchData;
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    // تحديث البيانات كل دقيقة
+    setInterval(loadData, 60000);
+    
+    // التحميل الأولي
+    window.onload = loadData;
   </script>
 </body>
 </html>
