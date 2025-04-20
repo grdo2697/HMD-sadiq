@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>طلبات التوظيف - شركة العصر الذكي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet>
   <style>
     :root {
       --primary: #0ea5e9;
@@ -20,6 +20,7 @@
       --border: #444444;
       --hover: #333;
     }
+    
     body {
       font-family: 'Cairo', sans-serif;
       margin: 0;
@@ -28,10 +29,12 @@
       color: var(--text);
       transition: background 0.3s, color 0.3s;
     }
+    
     .container {
       max-width: 1400px;
       margin: 0 auto;
     }
+    
     h1 {
       text-align: center;
       color: var(--primary);
@@ -39,12 +42,14 @@
       padding-bottom: 0.5rem;
       border-bottom: 3px solid var(--primary);
     }
+    
     .controls {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
+    
     .controls input,
     .controls select,
     .controls button {
@@ -57,14 +62,17 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+    
     .controls button.primary {
       background: var(--primary);
       color: #fff;
       border: none;
     }
+    
     .controls button.primary:hover {
       background: var(--secondary);
     }
+    
     table {
       width: 100%;
       border-collapse: collapse;
@@ -72,22 +80,27 @@
       box-shadow: 0 1px 10px rgba(0,0,0,0.1);
       margin-bottom: 2rem;
     }
+    
     th, td {
       padding: 1rem;
       border-bottom: 1px solid var(--border);
       text-align: right;
     }
+    
     th {
       background: var(--primary);
       color: #fff;
       font-weight: 600;
     }
+    
     tr:hover {
       background: var(--hover);
     }
-    .status-قيد_الانتظار { color: #eab308; font-weight: bold; }
-    .status-موافق { color: #22c55e; font-weight: bold; }
-    .status-مرفوض { color: #ef4444; font-weight: bold; }
+    
+    .status-قيد_الانتظار { color: #eab308; }
+    .status-موافق { color: #22c55e; }
+    .status-مرفوض { color: #ef4444; }
+    
     .loader {
       display: none;
       text-align: center;
@@ -95,6 +108,7 @@
       color: var(--primary);
       margin: 2rem 0;
     }
+    
     .logout-btn, .toggle-dark {
       position: fixed;
       top: 1rem;
@@ -107,8 +121,18 @@
       cursor: pointer;
       z-index: 1000;
     }
+    
     .toggle-dark { left: 1rem; }
     .logout-btn { left: 4.5rem; }
+    
+    .no-data, .error {
+      text-align: center;
+      padding: 1.5rem;
+      font-weight: bold;
+    }
+    .no-data { color: #64748b; }
+    .error { color: #ef4444; }
+    
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -139,7 +163,7 @@
     <div class="controls">
       <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
       <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
-      <input type="text" id="search" class="search-input" placeholder="ابحث بأي حقل..." oninput="filterTable()">
+      <input type="text" id="search" placeholder="ابحث بأي حقل..." oninput="filterTable()">
       <select id="filter-type" onchange="filterTable()">
         <option value="">كل أنواع الطلب</option>
       </select>
@@ -170,24 +194,24 @@
   </div>
 
   <script>
-    // Apps Script URL (with sheet parameter)
-    const SCRIPT_URL = 
-      'https://script.google.com/macros/s/AKfycby7C-93CN7z2FsxJqVjtAqNyHalOQ0jXC0uR-yUCutvUGFusRz1PhrM-hng-TeGOrB8Qw/exec'
-      + '?sheet=موظفين%20الحريه%20تقديم';
-
+    const SCRIPT_URL = 'YOUR_DEPLOYED_SCRIPT_URL_HERE';
     let allData = [];
 
     async function fetchData() {
       showLoading();
       try {
-        const res = await fetch(SCRIPT_URL);
-        if (!res.ok) throw new Error('خطأ في الاتصال بالسيرفر');
-        allData = await res.json();
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر: ' + response.status);
+        
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+        if (!result.data?.length) return showEmptyMessage();
+        
+        allData = result.data;
         populateTypeFilter();
         renderTable(allData);
-      } catch (e) {
-        console.error(e);
-        alert('❗ تعذر تحميل البيانات، حاول لاحقاً');
+      } catch (error) {
+        showError(error.message);
       } finally {
         hideLoading();
       }
@@ -196,47 +220,69 @@
     function renderTable(data) {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
+      
       data.forEach(item => {
-        // sanitize status class (replace spaces with underscores)
-        const statusClass = 'status-' + (item.الحالة || 'قيد الانتظار').replace(/ /g, '_');
+        const statusClass = `status-${item.الحالة.replace(/ /g, '_')}`;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td data-label="الاسم">${item.الاسم || '—'}</td>
-          <td data-label="نوع الطلب">${item.نوع_الطلب || '—'}</td>
-          <td data-label="الحالة" class="${statusClass}">${item.الحالة || 'قيد الانتظار'}</td>
-          <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || '—'}</td>
-          <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || '—'}</td>
-          <td data-label="رقم الهاتف">${item.رقم_الهاتف || '—'}</td>
-          <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || '—'}</td>
-          <td data-label="العنوان">${item.العنوان || '—'}</td>
-          <td data-label="المواليد">${item.المواليد || '—'}</td>
-          <td data-label="الراتب">${item.الراتب_المتفق_عليه || '—'}</td>
-          <td data-label="النقل">${item.النقل || '—'}</td>
-          <td data-label="وقت العمل">${item.وقت_المباشرة || '—'}</td>
-          <td data-label="الشركة السابقة">${item.الشركة_السابقة || '—'}</td>
+          <td data-label="الاسم">${item.الاسم}</td>
+          <td data-label="نوع الطلب">${item.نوع_الطلب}</td>
+          <td data-label="الحالة" class="${statusClass}">${item.الحالة}</td>
+          <td data-label="الموظف المسؤول">${item.الموظف_المسؤول}</td>
+          <td data-label="تاريخ التقديم">${item.تاريخ_التقديم}</td>
+          <td data-label="رقم الهاتف">${item.رقم_الهاتف}</td>
+          <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي}</td>
+          <td data-label="العنوان">${item.العنوان}</td>
+          <td data-label="المواليد">${item.المواليد}</td>
+          <td data-label="الراتب">${item.الراتب_المتفق_عليه}</td>
+          <td data-label="النقل">${item.النقل}</td>
+          <td data-label="وقت العمل">${item.وقت_المباشرة}</td>
+          <td data-label="الشركة السابقة">${item.الشركة_السابقة}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
     function populateTypeFilter() {
+      const types = [...new Set(allData.map(item => item.نوع_الطلب))].filter(Boolean);
       const select = document.getElementById('filter-type');
-      const types = [...new Set(allData.map(i => i.نوع_الطلب))].filter(Boolean).sort();
       select.innerHTML = '<option value="">كل أنواع الطلب</option>';
-      types.forEach(t => select.innerHTML += `<option value="${t}">${t}</option>`);
+      types.forEach(type => {
+        select.innerHTML += `<option value="${type}">${type}</option>`;
+      });
     }
 
     function filterTable() {
-      const text = document.getElementById('search').value.toLowerCase();
-      const type = document.getElementById('filter-type').value;
+      const searchTerm = document.getElementById('search').value.toLowerCase();
+      const filterType = document.getElementById('filter-type').value;
+      
       const filtered = allData.filter(item => {
-        const matchType = !type || item.نوع_الطلب === type;
-        const matchText = Object.values(item).some(v =>
-          String(v).toLowerCase().includes(text)
+        const matchesType = !filterType || item.نوع_الطلب === filterType;
+        const matchesSearch = Object.values(item).some(value => 
+          String(value).toLowerCase().includes(searchTerm)
         );
-        return matchType && matchText;
+        return matchesType && matchesSearch;
       });
+      
       renderTable(filtered);
+    }
+
+    function showEmptyMessage() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="13" class="no-data">لا توجد طلبات لعرضها حالياً</td>
+        </tr>
+      `;
+    }
+
+    function showError(message) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="13" class="error">${message}</td>
+        </tr>
+      `;
     }
 
     function clearTable() {
@@ -247,6 +293,7 @@
     function showLoading() {
       document.getElementById('loading').style.display = 'block';
     }
+
     function hideLoading() {
       document.getElementById('loading').style.display = 'none';
     }
@@ -261,9 +308,11 @@
       localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     }
 
-    // on load
-    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
-    window.addEventListener('DOMContentLoaded', fetchData);
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.toggle('dark-mode', localStorage.getItem('dark-mode') === 'true');
+      fetchData();
+    });
   </script>
 </body>
 </html>
