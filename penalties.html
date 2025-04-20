@@ -161,6 +161,64 @@
       const sel = document.getElementById('deptFilter');
       sel.innerHTML = '<option value="">كل الأقسام</option>';
       depts.forEach(d => {
-        sel.innerHTML += `<option value
-::contentReference[oaicite:4]{index=4}
- 
+        sel.innerHTML += `<option value="${d}">${d}</option>`;
+      });
+    }
+
+    function renderTable(arr) {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = arr.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.department}</td>
+          <td>${r.penalty}</td>
+          <td>${r.date}</td>
+          <td>${r.reason}</td>
+          <td>${r.manager}</td>
+          <td>${r.notes}</td>
+        </tr>
+      `).join('');
+    }
+
+    function clearTable() {
+      data = [];
+      document.getElementById('tbody').innerHTML = '';
+    }
+
+    function filterTable() {
+      const term = document.getElementById('search').value.toLowerCase();
+      const dept = document.getElementById('deptFilter').value;
+      const filtered = data.filter(r =>
+        (!dept || r.department === dept) &&
+        (r.name.toLowerCase().includes(term) ||
+         r.reason.toLowerCase().includes(term))
+      );
+      renderTable(filtered);
+    }
+
+    // 2. تنزيل Excel (.xlsx)
+    function downloadExcel() {
+      const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
+      const rows = [header, ...data.map(r => [
+        r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
+      ])];
+      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF'+csv], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'عقوبات_الموظفين.xlsx';
+      a.click();
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    // 5. إطلاق أولي
+    fetchData();
+  </script>
+</body>
+</html>
