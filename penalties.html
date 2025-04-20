@@ -87,7 +87,9 @@
   </style>
 </head>
 <body>
+  <!-- تفليش الوضع الليلي -->
   <button class="toggle-dark" onclick="document.body.classList.toggle('dark-mode')">🌙</button>
+  <!-- زر تسجيل الخروج -->
   <button class="logout-btn" onclick="logout()">🚪</button>
 
   <header>
@@ -99,9 +101,11 @@
     <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
     <button class="primary" onclick="downloadExcel()">📥 تنزيل Excel</button>
     <button class="primary" onclick="window.location.href='index.html'">رجوع للموظفين</button>
+    <!-- تصفية حسب القسم -->
     <select id="deptFilter" onchange="filterTable()">
       <option value="">كل الأقسام</option>
     </select>
+    <!-- بحث عام -->
     <input type="text" id="search" placeholder="بحث..." oninput="filterTable()" />
   </div>
 
@@ -125,22 +129,20 @@
   </footer>
 
   <script>
-    // 3. منع الوصول: فقط 'hr' مسموح
+    // 3. منع الوصول: فقط hr يمكنه الدخول
     const user = localStorage.getItem('username');
     if (!user) {
-      // غير مسجل → تسجيل الدخول
       window.location.href = 'login.html';
     } else if (user !== 'hr') {
-      // مسجل ولكن ليس hr → الصفحة الرئيسية
       window.location.href = 'index.html';
     }
 
-    // عرض السنة في الفوتر
+    // عرض السنة الحالية في الفوتر
     document.getElementById('year').textContent = new Date().getFullYear();
 
     let data = [];
 
-    // 4. جلب البيانات من الورقة "عقوبات" عبر Apps Script الجديد
+    // 4. جلب البيانات من Apps Script للورقة "عقوبات"
     async function fetchData() {
       try {
         const res = await fetch(
@@ -165,6 +167,7 @@
       });
     }
 
+    // عرض الصفوف في الجدول
     function renderTable(arr) {
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = arr.map(r => `
@@ -180,11 +183,29 @@
       `).join('');
     }
 
+    // مسح الجدول
     function clearTable() {
       data = [];
       document.getElementById('tbody').innerHTML = '';
     }
 
+    // 2. تنزيل Excel بصيغة .xlsx
+    function downloadExcel() {
+      const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
+      const rows = [header, ...data.map(r => [
+        r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
+      ])];
+      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob([`\uFEFF${csv}`], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'عقوبات_الموظفين.xlsx';
+      a.click();
+    }
+
+    // تصفية الجدول حسب القسم والنص
     function filterTable() {
       const term = document.getElementById('search').value.toLowerCase();
       const dept = document.getElementById('deptFilter').value;
@@ -196,28 +217,13 @@
       renderTable(filtered);
     }
 
-    // 2. تنزيل Excel (.xlsx)
-    function downloadExcel() {
-      const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
-      const rows = [header, ...data.map(r => [
-        r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
-      ])];
-      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-      const blob = new Blob(['\uFEFF'+csv], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'عقوبات_الموظفين.xlsx';
-      a.click();
-    }
-
+    // تسجيل الخروج
     function logout() {
       localStorage.clear();
       window.location.href = 'login.html';
     }
 
-    // 5. إطلاق أولي
+    // بارمجة أولية عند التحميل
     fetchData();
   </script>
 </body>
