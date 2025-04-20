@@ -110,7 +110,7 @@
       <tr>
         <th>اسم الموظف</th>
         <th>القسم</th>
-        <th>العقوبة</th>
+        <th>العقوبة/الغرامة</th>
         <th>التاريخ</th>
         <th>سبب العقوبة</th>
         <th>المدير</th>
@@ -198,7 +198,7 @@
 
     // 2. تنزيل Excel (.xlsx)
     function downloadExcel() {
-      const header = ['اسم الموظف','القسم','العقوبة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
+      const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
       const rows = [header, ...data.map(r => [
         r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
       ])];
