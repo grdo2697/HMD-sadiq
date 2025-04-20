@@ -21,13 +21,13 @@
       --border: #334155;
       --hover: #1e293b;
     }
-    * { font-family: 'Cairo', sans-serif; box-sizing: border-box; transition: background 0.3s; }
+    * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
     body { margin:0; background: var(--background); color: var(--text); min-height:100vh; }
     header { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding:2rem 1rem; text-align:center; color:#fff; }
     header h1 { margin:0; font-size:2.5rem; }
     .controls {
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+      grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
       gap:0.5rem;
       padding:1rem;
       align-items:center;
@@ -41,6 +41,7 @@
       background:var(--background);
       cursor:pointer;
       font-size:1rem;
+      text-align:right;
     }
     .controls button.primary {
       background: var(--accent);
@@ -62,7 +63,6 @@
     th {
       background:rgba(14,165,233,0.1);
       color:var(--primary);
-      cursor: pointer;
     }
     tr:hover { background: var(--hover); }
     .toggle-dark, .logout-btn {
@@ -125,20 +125,26 @@
   </footer>
 
   <script>
-    // منع الدخول بدون HR
+    // 3. منع الوصول: فقط 'hr' مسموح
     const user = localStorage.getItem('username');
-    if (user !== 'hr') {
+    if (!user) {
+      // غير مسجل → تسجيل الدخول
       window.location.href = 'login.html';
+    } else if (user !== 'hr') {
+      // مسجل ولكن ليس hr → الصفحة الرئيسية
+      window.location.href = 'index.html';
     }
 
+    // عرض السنة في الفوتر
     document.getElementById('year').textContent = new Date().getFullYear();
 
     let data = [];
 
+    // 4. جلب البيانات من الورقة "عقوبات" عبر Apps Script الجديد
     async function fetchData() {
       try {
         const res = await fetch(
-          'https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec?sheet=عقوبات'
+          'https://script.google.com/macros/s/AKfycbz-Cx0mhpOeFz7X1concAY8SJhinisxHUfn40PF8BgJCr83DIwGvd0QGfKZa5K9uOuDDg/exec?sheet=عقوبات'
         );
         data = await res.json();
         populateDeptFilter();
@@ -149,8 +155,9 @@
       }
     }
 
+    // 1. تعبئة قائمة الأقسام
     function populateDeptFilter() {
-      const depts = [...new Set(data.map(r => r.department))];
+      const depts = [...new Set(data.map(r => r.department))].sort();
       const sel = document.getElementById('deptFilter');
       sel.innerHTML = '<option value="">كل الأقسام</option>';
       depts.forEach(d => {
@@ -174,8 +181,8 @@
     }
 
     function clearTable() {
-      document.getElementById('tbody').innerHTML = '';
       data = [];
+      document.getElementById('tbody').innerHTML = '';
     }
 
     function filterTable() {
@@ -189,14 +196,16 @@
       renderTable(filtered);
     }
 
+    // 2. تنزيل Excel (.xlsx)
     function downloadExcel() {
-      // Generate CSV and download as .xlsx for Excel
       const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
       const rows = [header, ...data.map(r => [
         r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
       ])];
       const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-      const blob = new Blob(['\uFEFF'+csv], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob(['\uFEFF'+csv], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'عقوبات_الموظفين.xlsx';
@@ -208,7 +217,7 @@
       window.location.href = 'login.html';
     }
 
-    // Initial fetch
+    // 5. إطلاق أولي
     fetchData();
   </script>
 </body>
