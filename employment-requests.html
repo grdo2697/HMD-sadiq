@@ -34,6 +34,14 @@
       margin: 0 auto;
     }
 
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      padding: 20px;
+      border-bottom: 3px solid var(--primary);
+    }
+
     .controls {
       display: flex;
       gap: 1rem;
@@ -59,6 +67,43 @@
       color: var(--text);
     }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+      background: var(--background);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: rgba(14, 165, 233, 0.1);
+    }
+
+    .status-قيد الانتظار { color: #eab308; font-weight: bold; }
+    .status-موافق { color: #22c55e; font-weight: bold; }
+    .status-مرفوض { color: #ef4444; font-weight: bold; }
+
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
     .logout-btn {
       position: fixed;
       top: 1rem;
@@ -75,7 +120,50 @@
       z-index: 1000;
     }
 
-    /* بقية الأنماط كما هي */
+    .toggle-dark {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 45px;
+      height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { 
+        display: block; 
+      }
+      
+      thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr { border: 1px solid var(--border); }
+      
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%; 
+        text-align: left;
+      }
+      
+      td:before {
+        position: absolute;
+        right: 10px;
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+      }
+    }
   </style>
 </head>
 <body>
@@ -100,7 +188,19 @@
     <table id="requestsTable">
       <thead>
         <tr>
-          <!-- العناوين كما هي -->
+          <th>الاسم</th>
+          <th>نوع الطلب</th>
+          <th>الحالة</th>
+          <th>الموظف المسؤول</th>
+          <th>تاريخ التقديم</th>
+          <th>رقم الهاتف</th>
+          <th>التحصيل الدراسي</th>
+          <th>العنوان</th>
+          <th>المواليد</th>
+          <th>الراتب</th>
+          <th>النقل</th>
+          <th>وقت العمل</th>
+          <th>الشركة السابقة</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -123,7 +223,8 @@
         populateTypeFilter();
         
       } catch (error) {
-        handleError(error);
+        console.error('حدث خطأ:', error);
+        alert('❗ تعذر تحميل البيانات، يرجى المحاولة لاحقًا');
       } finally {
         hideLoading();
       }
@@ -159,9 +260,16 @@
       return `${Number(amount).toLocaleString('ar-IQ')} د.ع`;
     }
 
+    function formatDate(dateString) {
+      if (!dateString) return '—';
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      return new Date(dateString).toLocaleDateString('ar-EG', options);
+    }
+
     function populateTypeFilter() {
       const types = [...new Set(allData.map(item => item.نوع_الطلب))];
       const typeFilter = document.getElementById('filter-type');
+      typeFilter.innerHTML = '<option value="">كل الأنواع</option>';
       types.forEach(type => {
         typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
       });
@@ -190,6 +298,14 @@
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
     }
 
     // التهيئة الأولية
