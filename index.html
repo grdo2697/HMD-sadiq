@@ -206,6 +206,7 @@
       <button onclick="viewReviews()">📋 عرض التقييمات</button>
       <button onclick="window.location.href='manage-users.html'">👥 إدارة المستخدمين</button>
       <button id="penaltyBtn" class="penalty" onclick="viewPenalties()">⚖️ عرض العقوبات</button>
+      <button id="employmentRequestsBtn" onclick="window.location.href='employment-requests.html'">📝 طلبات التوظيف</button>
     </nav>
   </header>
 
@@ -267,6 +268,7 @@
     const isHR = (user === "hr");
     document.getElementById("col-id").style.display = isHR ? "" : "none";
     document.getElementById("penaltyBtn").style.display = isHR ? "block" : "none";
+    document.getElementById("employmentRequestsBtn").style.display = isHR ? "block" : "none";
 
     // Toggle hamburger menu
     function toggleNav(){
