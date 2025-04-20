@@ -25,23 +25,65 @@
     body { margin:0; background: var(--background); color: var(--text); min-height:100vh; }
     header { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding:2rem 1rem; text-align:center; color:#fff; }
     header h1 { margin:0; font-size:2.5rem; }
-    .controls { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:0.5rem; padding:1rem; }
-    .controls button, .controls input, .controls select {
-      padding:0.6rem; border:2px solid var(--border); border-radius:8px; background:var(--background); cursor:pointer;
+    .controls {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+      gap:0.5rem;
+      padding:1rem;
+      align-items:center;
     }
-    .controls button { background:var(--accent); color:#1e293b; border:none; }
-    .controls button:hover { background: #fde047; }
-    table { width:100%; border-collapse:collapse; margin-top:1rem; }
-    th, td { padding:1rem; border-bottom:1px solid var(--border); text-align:right; }
-    th { background:rgba(14,165,233,0.1); color:var(--primary); }
+    .controls button,
+    .controls input,
+    .controls select {
+      padding:0.6rem;
+      border:2px solid var(--border);
+      border-radius:8px;
+      background:var(--background);
+      cursor:pointer;
+      font-size:1rem;
+    }
+    .controls button.primary {
+      background: var(--accent);
+      color: #1e293b;
+      border:none;
+      font-weight:600;
+    }
+    .controls button.primary:hover { background: #fde047; }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      margin-top:1rem;
+    }
+    th, td {
+      padding:1rem;
+      border-bottom:1px solid var(--border);
+      text-align:right;
+    }
+    th {
+      background:rgba(14,165,233,0.1);
+      color:var(--primary);
+      cursor: pointer;
+    }
     tr:hover { background: var(--hover); }
     .toggle-dark, .logout-btn {
-      position:fixed; top:1rem; width:40px; height:40px; border:2px solid var(--border);
-      border-radius:50%; display:grid; place-items:center; background:var(--background); cursor:pointer;
+      position:fixed;
+      top:1rem;
+      width:40px; height:40px;
+      border:2px solid var(--border);
+      border-radius:50%;
+      display:grid; place-items:center;
+      background:var(--background);
+      cursor:pointer;
     }
     .toggle-dark { left:1rem; }
     .logout-btn { left:4.5rem; }
-    footer { text-align:center; padding:1rem; border-top:1px solid var(--border); margin-top:2rem; }
+    footer {
+      text-align:center;
+      padding:1rem;
+      border-top:1px solid var(--border);
+      margin-top:2rem;
+      background:var(--background);
+    }
   </style>
 </head>
 <body>
@@ -53,10 +95,13 @@
   </header>
 
   <div class="controls">
-    <button onclick="fetchData()">🔄 تحديث البيانات</button>
-    <button onclick="clearTable()">🗑️ مسح الكل</button>
-    <button onclick="downloadCSV()">📥 تنزيل CSV</button>
-    <button onclick="window.location.href='index.html'">رجوع للموظفين</button>
+    <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
+    <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
+    <button class="primary" onclick="downloadExcel()">📥 تنزيل Excel</button>
+    <button class="primary" onclick="window.location.href='index.html'">رجوع للموظفين</button>
+    <select id="deptFilter" onchange="filterTable()">
+      <option value="">كل الأقسام</option>
+    </select>
     <input type="text" id="search" placeholder="بحث..." oninput="filterTable()" />
   </div>
 
@@ -80,8 +125,11 @@
   </footer>
 
   <script>
-    // منع الدخول بدون تسجيل
-    if (!localStorage.getItem('username')) window.location.href = 'login.html';
+    // منع الدخول بدون HR
+    const user = localStorage.getItem('username');
+    if (user !== 'hr') {
+      window.location.href = 'login.html';
+    }
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -93,11 +141,21 @@
           'https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec?sheet=عقوبات'
         );
         data = await res.json();
+        populateDeptFilter();
         renderTable(data);
       } catch (e) {
         alert('فشل تحميل البيانات');
         console.error(e);
       }
+    }
+
+    function populateDeptFilter() {
+      const depts = [...new Set(data.map(r => r.department))];
+      const sel = document.getElementById('deptFilter');
+      sel.innerHTML = '<option value="">كل الأقسام</option>';
+      depts.forEach(d => {
+        sel.innerHTML += `<option value="${d}">${d}</option>`;
+      });
     }
 
     function renderTable(arr) {
@@ -122,23 +180,26 @@
 
     function filterTable() {
       const term = document.getElementById('search').value.toLowerCase();
-      renderTable(data.filter(r =>
-        r.name.toLowerCase().includes(term) ||
-        r.department.toLowerCase().includes(term) ||
-        r.reason.toLowerCase().includes(term)
-      ));
+      const dept = document.getElementById('deptFilter').value;
+      const filtered = data.filter(r =>
+        (!dept || r.department === dept) &&
+        (r.name.toLowerCase().includes(term) ||
+         r.reason.toLowerCase().includes(term))
+      );
+      renderTable(filtered);
     }
 
-    function downloadCSV() {
+    function downloadExcel() {
+      // Generate CSV and download as .xlsx for Excel
       const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
       const rows = [header, ...data.map(r => [
         r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
       ])];
       const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-      const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+      const blob = new Blob(['\uFEFF'+csv], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'عقوبات_الموظفين.csv';
+      a.download = 'عقوبات_الموظفين.xlsx';
       a.click();
     }
 
@@ -147,7 +208,7 @@
       window.location.href = 'login.html';
     }
 
-    // جلب البيانات عند التحميل
+    // Initial fetch
     fetchData();
   </script>
 </body>
