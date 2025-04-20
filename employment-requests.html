@@ -208,7 +208,7 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzPyFRcQ0fwn2QZXtPb-BOgRb2UdzFhDqzvjK2PvLRwgM4hazUP_pAwYDo-f5XgNokANQ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycby7C-93CN7z2FsxJqVjtAqNyHalOQ0jXC0uR-yUCutvUGFusRz1PhrM-hng-TeGOrB8Qw/exec';
     let allData = [];
 
     async function loadData() {
@@ -241,13 +241,13 @@
           <td data-label="نوع الطلب">${item.نوع_الطلب || '—'}</td>
           <td data-label="الحالة" class="status-${item.الحالة}">${item.الحالة || 'قيد المراجعة'}</td>
           <td data-label="الموظف المسؤول">${item.الموظف_المسؤول || '—'}</td>
-          <td data-label="تاريخ التقديم">${formatDate(item.تاريخ_التقديم)}</td>
+          <td data-label="تاريخ التقديم">${item.تاريخ_التقديم || '—'}</td>
           <td data-label="رقم الهاتف">${item.رقم_الهاتف || '—'}</td>
           <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي || '—'}</td>
           <td data-label="العنوان">${item.العنوان || '—'}</td>
-          <td data-label="المواليد">${formatDate(item.المواليد)}</td>
+          <td data-label="المواليد">${item.المواليد || '—'}</td>
           <td data-label="الراتب">${formatSalary(item.الراتب_المتفق_عليه)}</td>
-          <td data-label="النقل">${item.النقل ? '✅' : '❌'}</td>
+          <td data-label="النقل">${item.النقل || '—'}</td>
           <td data-label="وقت العمل">${item.وقت_المباشرة || '—'}</td>
           <td data-label="الشركة السابقة">${item.الشركة_السابقة || '—'}</td>
         `;
@@ -257,13 +257,7 @@
 
     function formatSalary(amount) {
       if (!amount) return '—';
-      return `${Number(amount).toLocaleString('ar-IQ')} د.ع`;
-    }
-
-    function formatDate(dateString) {
-      if (!dateString) return '—';
-      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-      return new Date(dateString).toLocaleDateString('ar-EG', options);
+      return new Intl.NumberFormat('ar-IQ').format(amount) + ' د.ع';
     }
 
     function populateTypeFilter() {
