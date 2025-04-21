@@ -6,6 +6,7 @@
   <title>عقوبات موظفي العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* جميع أنماط CSS السابقة تبقى كما هي */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -85,10 +86,6 @@
       font-weight: 600;
     }
     tr:hover { background: var(--hover); }
-
-    .status-قيد_الانتظار { color: #eab308; }
-    .status-موافق          { color: #22c55e; }
-    .status-مرفوض         { color: #ef4444; }
 
     .loader {
       display: none;
@@ -182,7 +179,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKZ78Ly27Pu4squcrbSsq9nfQKjWiW4MljZg9ZEmn_OiwUVxsEoSO7driCK3g3puiMIw/exec?sheet=عقوبات';
 
     let allData = [];
 
@@ -223,16 +220,18 @@
     function renderTable(data){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = data.map(item => {
-        const cls = 'status-' + (item.الحالة||'').replace(/ /g,'_');
         return `<tr>
-          <td data-label="الاسم">${item.الاسم}</td>
-          <td data-label="القسم">${item.القسم}</td>
-          <td data-label="نوع العقوبة">${item.نوع_العقوبة}</td>
-          <td data-label="التاريخ">${item.التاريخ}</td>
-          <td data-label="سبب العقوبة">${item.السبب}</td>
-          <td data-label="المدير">${item.المدير}</td>
-          <td data-label="ملاحظة">${item.ملاحظات}</td>
-          <td data-label="قيمة الغرامة">${item.قيمة_الغرامة}</td>
+          <td data-label="الاسم">${item.اسم_الموظف || '—'}</td>
+          <td data-label="القسم">${item.القسم || '—'}</td>
+          <td data-label="نوع العقوبة">
+            ${item.نوع_العقوبة?.رقم ? `[${item.نوع_العقوبة.رقم}] ` : ''}
+            ${item.نوع_العقوبة?.نص || '—'}
+          </td>
+          <td data-label="التاريخ">${item.التاريخ || '—'}</td>
+          <td data-label="سبب العقوبة">${item.سبب_العقوبة || '—'}</td>
+          <td data-label="المدير">${item.المدير || '—'}</td>
+          <td data-label="ملاحظة">${item.ملاحظة_الغرامة || '—'}</td>
+          <td data-label="قيمة الغرامة">${item.قيمة_الغرامة || '—'}</td>
         </tr>`;
       }).join('');
     }
@@ -248,20 +247,24 @@
       const kw = document.getElementById('search').value.toLowerCase();
       const dept= document.getElementById('deptFilter').value;
       const filtered = allData.filter(i=>
-        (!dept || i.القسم===dept) &&
-        (i.الاسم.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
+        (!dept || i.القسم === dept) &&
+        (
+          (i.اسم_الموظف?.toLowerCase().includes(kw) || 
+          i.القسم?.toLowerCase().includes(kw))
+        )
       );
       renderTable(filtered);
     }
 
     function clearTable(){
-      allData=[]; document.getElementById('tbody').innerHTML='';
-      document.getElementById('deptFilter').innerHTML='<option value="">كل الأقسام</option>';
+      allData = [];
+      document.getElementById('tbody').innerHTML = '';
+      document.getElementById('deptFilter').innerHTML = '<option value="">كل الأقسام</option>';
     }
 
     function logout(){
       localStorage.clear();
-      location.href='login.html';
+      location.href = 'login.html';
     }
 
     function toggleDarkMode(){
@@ -270,7 +273,7 @@
     }
 
     // تهيئة وضع ليلي وجلب البيانات
-    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode')==='true');
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
     window.addEventListener('DOMContentLoaded', fetchData);
   </script>
 </body>
