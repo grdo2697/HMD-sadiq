@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>طلبات التوظيف - شركة العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -18,7 +18,7 @@
       --background: #1a1a1a;
       --text: #ffffff;
       --border: #444444;
-      --hover: #333;
+      --hover: #333333;
     }
     body {
       font-family: 'Cairo', sans-serif;
@@ -65,6 +65,13 @@
     .controls button.primary:hover {
       background: var(--secondary);
     }
+    .loader {
+      display: none;
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 2rem 0;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -85,16 +92,9 @@
     tr:hover {
       background: var(--hover);
     }
-    .status-قيد_الانتظار { color: #eab308; }
-    .status-موافق { color: #22c55e; }
-    .status-مرفوض { color: #ef4444; }
-    .loader {
-      display: none;
-      text-align: center;
-      font-size: 1.2rem;
-      color: var(--primary);
-      margin: 2rem 0;
-    }
+    .status-قيد_الانتظار { color: #eab308; font-weight: bold; }
+    .status-موافق        { color: #22c55e; font-weight: bold; }
+    .status-مرفوض       { color: #ef4444; font-weight: bold; }
     .logout-btn, .toggle-dark {
       position: fixed;
       top: 1rem;
@@ -108,14 +108,14 @@
       z-index: 1000;
     }
     .toggle-dark { left: 1rem; }
-    .logout-btn { left: 4.5rem; }
+    .logout-btn   { left: 4.5rem; }
     .no-data, .error {
       text-align: center;
       padding: 1.5rem;
       font-weight: bold;
     }
     .no-data { color: #64748b; }
-    .error { color: #ef4444; }
+    .error   { color: #ef4444; }
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -154,7 +154,7 @@
 
     <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
 
-    <table id="requestsTable">
+    <table>
       <thead>
         <tr>
           <th>الاسم</th>
@@ -177,41 +177,48 @@
   </div>
 
   <script>
-    // منع اليوزر hr من الدخول
+    // منع وصول HR لهذه الصفحة
     const user = localStorage.getItem('username');
-    if (!user) { window.location.href = 'login.html'; }
-    else if (user === 'hr') { window.location.href = 'index.html'; }
+    if (!user) {
+      window.location.href = 'login.html';
+    } else if (user === 'hr') {
+      window.location.href = 'index.html';
+    }
 
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDnaFjToFIBf09uuJR5t4E5xoYXu3C2sQOKAnxJ5riB86m9M5GWabRcH19RjDbFdr-3Q/exec?sheet=موظفين%20الحريه%20تقديم';
+    const SCRIPT_URL = 
+      'https://script.google.com/macros/s/AKfycbzWmuDsU4H46EnsMCsNTuaGV_4vK0ZF3K2oEhuRI8E3REKJEomJOfxcPqvL8F_EUKGpWg/exec'
+      + '?sheet=موظفين%20الحريه%20تقديم';
+
     let allData = [];
 
     async function fetchData() {
       showLoading();
       try {
-        const response = await fetch(SCRIPT_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const result = await response.json();
-        if (!result.success) throw new Error(result.error);
-        allData = result.data;
-        if (!allData.length) showEmptyMessage();
-        else renderTable(allData);
+        const res = await fetch(SCRIPT_URL);
+        if (!res.ok) throw new Error('خطأ في الاتصال بالسيرفر');
+        const { success, data, error } = await res.json();
+        if (!success) throw new Error(error);
+        allData = data;
+        if (!allData.length) return showEmpty();
         populateTypeFilter();
-      } catch (err) {
-        showError(`⚠️ فشل جلب البيانات: ${err.message}`);
+        renderTable(allData);
+      } catch (e) {
+        showError(e.message);
       } finally {
         hideLoading();
       }
     }
 
-    function renderTable(data) {
+    function renderTable(arr) {
       const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = data.map(item => {
-        const cls = 'status-' + (item.الحالة||'قيد الانتظار').replace(/ /g,'_');
-        return `
+      tbody.innerHTML = '';
+      arr.forEach(item => {
+        const statusClass = 'status-' + (item.الحالة||'قيد الانتظار').replace(/ /g,'_');
+        tbody.insertAdjacentHTML('beforeend', `
           <tr>
             <td data-label="الاسم">${item.الاسم}</td>
             <td data-label="نوع الطلب">${item.نوع_الطلب}</td>
-            <td data-label="الحالة" class="${cls}">${item.الحالة}</td>
+            <td data-label="الحالة" class="${statusClass}">${item.الحالة}</td>
             <td data-label="الموظف المسؤول">${item.الموظف_المسؤول}</td>
             <td data-label="تاريخ التقديم">${item.تاريخ_التقديم}</td>
             <td data-label="رقم الهاتف">${item.رقم_الهاتف}</td>
@@ -221,42 +228,63 @@
             <td data-label="الراتب">${item.الراتب_المتفق_عليه}</td>
             <td data-label="النقل">${item.النقل}</td>
             <td data-label="وقت المباشرة">${item.وقت_المباشرة}</td>
-            <td data-label="الشركة السابقة">${item.الشركة_السابقة}</td>
-          </tr>`;
-      }).join('');
+            <td data-label="الشركة السابقة">${item.الشركه_السابقة}</td>
+          </tr>
+        `);
+      });
     }
 
     function populateTypeFilter() {
       const sel = document.getElementById('filter-type');
-      const types = [...new Set(allData.map(i=>i.نوع_الطلب))].filter(Boolean);
-      sel.innerHTML = '<option value="">كل أنواع الطلب</option>' + types.map(t=>`<option value="${t}">${t}</option>`).join('');
+      const types = [...new Set(allData.map(i => i.نوع_الطلب))].filter(Boolean).sort();
+      sel.innerHTML = '<option value="">كل أنواع الطلب</option>';
+      types.forEach(t => sel.insertAdjacentHTML('beforeend',
+        `<option value="${t}">${t}</option>`));
     }
 
     function filterTable() {
-      const txt = document.getElementById('search').value.toLowerCase();
-      const typ = document.getElementById('filter-type').value;
-      const filt = allData.filter(i =>
-        (!typ||i.نوع_الطلب===typ) && Object.values(i).some(v=>String(v).toLowerCase().includes(txt))
-      );
+      const txt  = document.getElementById('search').value.toLowerCase();
+      const tp   = document.getElementById('filter-type').value;
+      const filt = allData.filter(i => {
+        const matchType = !tp || i.نوع_الطلب === tp;
+        const matchTxt  = Object.values(i).some(v =>
+          String(v).toLowerCase().includes(txt)
+        );
+        return matchType && matchTxt;
+      });
       renderTable(filt);
     }
 
-    function showEmptyMessage() {
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="13" class="no-data">لا توجد طلبات متاحة حالياً</td></tr>';
+    function clearTable() {
+      allData = [];
+      document.getElementById('tableBody').innerHTML = '';
+      document.getElementById('filter-type').innerHTML = '<option value="">كل أنواع الطلب</option>';
+    }
+
+    function showEmpty() {
+      document.getElementById('tableBody').innerHTML = 
+        `<tr><td colspan="13" class="no-data">لا توجد طلبات حالياً</td></tr>`;
     }
     function showError(msg) {
-      document.getElementById('tableBody').innerHTML = `<tr><td colspan="13" class="error">${msg}</td></tr>`;
-    }
-    function clearTable() {
-      allData=[]; document.getElementById('tableBody').innerHTML=''; document.getElementById('filter-type').innerHTML='<option value="">كل أنواع الطلب</option>';
+      document.getElementById('tableBody').innerHTML =
+        `<tr><td colspan="13" class="error">⚠️ ${msg}</td></tr>`;
     }
     function showLoading(){ document.getElementById('loading').style.display='block'; }
     function hideLoading(){ document.getElementById('loading').style.display='none'; }
 
-    function logout(){ localStorage.clear(); window.location.href='login.html'; }
-    function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
-    document.addEventListener('DOMContentLoaded', ()=>{
-      document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode')==='true');
+    function logout(){
+      localStorage.clear();
+      location.href='login.html';
+    }
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.toggle('dark-mode',
+        localStorage.getItem('darkMode')==='true');
       fetchData();
     });
   </script>
