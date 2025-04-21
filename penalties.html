@@ -63,6 +63,7 @@
     th {
       background:rgba(14,165,233,0.1);
       color:var(--primary);
+      cursor: pointer;
     }
     tr:hover { background: var(--hover); }
     .toggle-dark, .logout-btn {
@@ -87,7 +88,9 @@
   </style>
 </head>
 <body>
+  <!-- Toggle Dark Mode -->
   <button class="toggle-dark" onclick="document.body.classList.toggle('dark-mode')">🌙</button>
+  <!-- Logout (clear session) -->
   <button class="logout-btn" onclick="logout()">🚪</button>
 
   <header>
@@ -125,13 +128,13 @@
   </footer>
 
   <script>
-    // 3. منع الوصول: فقط 'hr' مسموح
+    // 3. منع الوصول - فقط HR مسموح لهم
     const user = localStorage.getItem('username');
     if (!user) {
-      // غير مسجل → تسجيل الدخول
+      // غير مسجل → صفحة تسجيل الدخول
       window.location.href = 'login.html';
     } else if (user !== 'hr') {
-      // مسجل ولكن ليس hr → الصفحة الرئيسية
+      // مسجل لكنه ليس hr → الصفحة الرئيسية
       window.location.href = 'index.html';
     }
 
@@ -140,7 +143,7 @@
 
     let data = [];
 
-    // 4. جلب البيانات من الورقة "عقوبات" عبر Apps Script الجديد
+    // 4. جلب البيانات من ورقة "عقوبات" عبر Apps Script
     async function fetchData() {
       try {
         const res = await fetch(
@@ -155,16 +158,15 @@
       }
     }
 
-    // 1. تعبئة قائمة الأقسام
+    // 1. تعبئة قائمة التصفية حسب القسم
     function populateDeptFilter() {
       const depts = [...new Set(data.map(r => r.department))].sort();
       const sel = document.getElementById('deptFilter');
       sel.innerHTML = '<option value="">كل الأقسام</option>';
-      depts.forEach(d => {
-        sel.innerHTML += `<option value="${d}">${d}</option>`;
-      });
+      depts.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
     }
 
+    // عرض الجدول
     function renderTable(arr) {
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = arr.map(r => `
@@ -180,30 +182,31 @@
       `).join('');
     }
 
+    // 2. مسح الجدول
     function clearTable() {
       data = [];
       document.getElementById('tbody').innerHTML = '';
     }
 
+    // فلترة الجدول
     function filterTable() {
       const term = document.getElementById('search').value.toLowerCase();
       const dept = document.getElementById('deptFilter').value;
       const filtered = data.filter(r =>
         (!dept || r.department === dept) &&
-        (r.name.toLowerCase().includes(term) ||
-         r.reason.toLowerCase().includes(term))
+        (r.name.toLowerCase().includes(term) || r.reason.toLowerCase().includes(term))
       );
       renderTable(filtered);
     }
 
-    // 2. تنزيل Excel (.xlsx)
+    // تنزيل Excel (.xlsx)
     function downloadExcel() {
       const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
       const rows = [header, ...data.map(r => [
         r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
       ])];
       const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-      const blob = new Blob(['\uFEFF'+csv], {
+      const blob = new Blob([`\uFEFF${csv}`], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
       const a = document.createElement('a');
@@ -212,12 +215,13 @@
       a.click();
     }
 
+    // تسجيل الخروج
     function logout() {
       localStorage.clear();
       window.location.href = 'login.html';
     }
 
-    // 5. إطلاق أولي
+    // 5. تحميل البيانات أولاً
     fetchData();
   </script>
 </body>
