@@ -4,9 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>عقوبات موظفي العصر الذكي</title>
-   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* جميع أنماط CSS السابقة تبقى كما هي */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
@@ -109,8 +108,8 @@
       z-index: 1000;
     }
     .toggle-dark { left: 1rem; }
-    .back-btn    { left: 4.5rem; }
-    .logout-btn  { left: 8rem; }
+    .back-btn     { left: 4.5rem; }
+    .logout-btn   { left: 8rem; }
 
     .no-data, .error {
       text-align: center;
@@ -179,19 +178,22 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKZ78Ly27Pu4squcrbSsq9nfQKjWiW4MljZg9ZEmn_OiwUVxsEoSO7driCK3g3puiMIw/exec?sheet=عقوبات';
+    // رابط نشر Google Apps Script ورقة "عقوبات"
+    const SCRIPT_URL = 
+      'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec'
+      + '?sheet=عقوبات';
 
     let allData = [];
 
-    // منع الوصول لغير hr
+    // منع وصول غير hr
     const user = localStorage.getItem('username');
-    if (!user)            location.href='login.html';
-    else if (user!=='hr') location.href='index.html';
+    if (!user)            location.href = 'login.html';
+    else if (user !== 'hr') location.href = 'index.html';
 
     function showLoading() { document.getElementById('loading').style.display = 'block'; }
     function hideLoading() { document.getElementById('loading').style.display = 'none'; }
     function showError(msg) {
-      document.getElementById('tbody').innerHTML = 
+      document.getElementById('tbody').innerHTML =
         `<tr><td colspan="8" class="error">⚠️ ${msg}</td></tr>`;
     }
     function showEmpty() {
@@ -203,15 +205,15 @@
       showLoading();
       try {
         const res = await fetch(SCRIPT_URL);
-        if(!res.ok) throw new Error(res.status);
+        if (!res.ok) throw new Error(res.statusText);
         const json = await res.json();
-        if(!json.success) throw new Error(json.error);
+        if (!json.success) throw new Error(json.error);
         allData = json.data;
-        if(!allData.length) return showEmpty();
+        if (!allData.length) return showEmpty();
         populateFilter();
         renderTable(allData);
       } catch(err) {
-        showError('فشل جلب البيانات: '+ err.message);
+        showError('فشل جلب البيانات: ' + err.message);
       } finally {
         hideLoading();
       }
@@ -219,39 +221,34 @@
 
     function renderTable(data){
       const tbody = document.getElementById('tbody');
-      tbody.innerHTML = data.map(item => {
-        return `<tr>
+      tbody.innerHTML = data.map(item => `
+        <tr>
           <td data-label="الاسم">${item.اسم_الموظف || '—'}</td>
           <td data-label="القسم">${item.القسم || '—'}</td>
-          <td data-label="نوع العقوبة">
-            ${item.نوع_العقوبة?.رقم ? `[${item.نوع_العقوبة.رقم}] ` : ''}
-            ${item.نوع_العقوبة?.نص || '—'}
-          </td>
+          <td data-label="نوع العقوبة">${item.نوع_العقوبة?.نص || '—'}</td>
           <td data-label="التاريخ">${item.التاريخ || '—'}</td>
           <td data-label="سبب العقوبة">${item.سبب_العقوبة || '—'}</td>
           <td data-label="المدير">${item.المدير || '—'}</td>
-          <td data-label="ملاحظة">${item.ملاحظة_الغرامة || '—'}</td>
+          <td data-label="ملاحظة الغرامة">${item.ملاحظة_الغرامة || '—'}</td>
           <td data-label="قيمة الغرامة">${item.قيمة_الغرامة || '—'}</td>
-        </tr>`;
-      }).join('');
+        </tr>
+      `).join('');
     }
 
     function populateFilter(){
       const sel = document.getElementById('deptFilter');
-      const depts = [...new Set(allData.map(i=>i.القسم))].sort();
-      sel.innerHTML = '<option value="">كل الأقسام</option>';
-      depts.forEach(d=> sel.innerHTML += `<option value="${d}">${d}</option>`);
+      sel.innerHTML = '<option value="">كل الأقسام</option>' +
+        [...new Set(allData.map(i => i.القسم))].sort()
+        .map(d => `<option value="${d}">${d}</option>`).join('');
     }
 
     function filterTable(){
-      const kw = document.getElementById('search').value.toLowerCase();
-      const dept= document.getElementById('deptFilter').value;
-      const filtered = allData.filter(i=>
+      const kw   = document.getElementById('search').value.toLowerCase();
+      const dept = document.getElementById('deptFilter').value;
+      const filtered = allData.filter(i =>
         (!dept || i.القسم === dept) &&
-        (
-          (i.اسم_الموظف?.toLowerCase().includes(kw) || 
-          i.القسم?.toLowerCase().includes(kw))
-        )
+        ((i.اسم_الموظف||'').toLowerCase().includes(kw) ||
+         (i.القسم||'').toLowerCase().includes(kw))
       );
       renderTable(filtered);
     }
