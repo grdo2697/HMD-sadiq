@@ -98,7 +98,7 @@
       margin: 2rem 0;
     }
 
-    .logout-btn, .toggle-dark {
+    .logout-btn, .toggle-dark, .back-btn {
       position: fixed;
       top: 1rem;
       width: 45px; height: 45px;
@@ -112,7 +112,8 @@
       z-index: 1000;
     }
     .toggle-dark { left: 1rem; }
-    .logout-btn   { left: 4.5rem; }
+    .back-btn    { left: 4.5rem; }
+    .logout-btn  { left: 8rem; }
 
     .no-data, .error {
       text-align: center;
@@ -144,6 +145,7 @@
 </head>
 <body>
   <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="back-btn" onclick="location.href='index.html'">🏠</button>
   <button class="logout-btn" onclick="logout()">🚪</button>
 
   <header>
@@ -167,7 +169,7 @@
         <tr>
           <th>الاسم</th>
           <th>القسم</th>
-          <th>نوع العقوبة</th>          <!-- هنا عدّلنا العنوان -->
+          <th>نوع العقوبة</th>
           <th>التاريخ</th>
           <th>سبب العقوبة</th>
           <th>المدير</th>
@@ -180,7 +182,7 @@
   </div>
 
   <script>
-   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
 
     let allData = [];
 
@@ -225,7 +227,7 @@
         return `<tr>
           <td data-label="الاسم">${item.الاسم}</td>
           <td data-label="القسم">${item.القسم}</td>
-          <td data-label="نوع العقوبة">${item.نوع_العقوبة}</td>  <!-- هنا بنقرأ المفتاح الصحيح -->
+          <td data-label="نوع العقوبة">${item.نوع_العقوبة}</td>
           <td data-label="التاريخ">${item.التاريخ}</td>
           <td data-label="سبب العقوبة">${item.السبب}</td>
           <td data-label="المدير">${item.المدير}</td>
