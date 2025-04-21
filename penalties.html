@@ -1,163 +1,223 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>عقوبات الموظفين</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>عقوبات موظفي العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
+      --accent: #facc15;
       --background: #f9fafb;
       --text: #0f172a;
       --border: #cbd5e1;
       --hover: #e0f2fe;
     }
     .dark-mode {
-      --background: #1a1a1a;
-      --text: #ffffff;
-      --border: #444444;
-      --hover: #333333;
+      --background: #0f172a;
+      --text: #f9fafb;
+      --border: #334155;
+      --hover: #1e293b;
     }
-    body {
-      font-family: 'Cairo', sans-serif;
-      margin: 0;
-      padding: 2rem;
-      background: var(--background);
-      color: var(--text);
-      transition: all 0.3s;
+    * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+    body { margin:0; background: var(--background); color: var(--text); min-height:100vh; }
+    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding:2rem 1rem; text-align:center; color:#fff; }
+    header h1 { margin:0; font-size:2.5rem; }
+    .controls {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
+      gap:0.5rem;
+      padding:1rem;
+      align-items:center;
     }
+    .controls button,
+    .controls input,
+    .controls select {
+      padding:0.6rem;
+      border:2px solid var(--border);
+      border-radius:8px;
+      background:var(--background);
+      cursor:pointer;
+      font-size:1rem;
+      text-align:right;
+    }
+    .controls button.primary {
+      background: var(--accent);
+      color: #1e293b;
+      border:none;
+      font-weight:600;
+    }
+    .controls button.primary:hover { background: #fde047; }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+      width:100%;
+      border-collapse:collapse;
+      margin-top:1rem;
     }
     th, td {
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      text-align: right;
+      padding:1rem;
+      border-bottom:1px solid var(--border);
+      text-align:right;
     }
     th {
-      background: var(--primary);
-      color: white;
+      background:rgba(14,165,233,0.1);
+      color:var(--primary);
     }
-    .total-row td {
-      font-weight: bold;
-      background: var(--hover);
+    tr:hover { background: var(--hover); }
+    .toggle-dark, .logout-btn {
+      position:fixed;
+      top:1rem;
+      width:40px; height:40px;
+      border:2px solid var(--border);
+      border-radius:50%;
+      display:grid; place-items:center;
+      background:var(--background);
+      cursor:pointer;
     }
-    .controls {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    input, select, button {
-      padding: 8px 12px;
-      border: 2px solid var(--border);
-      border-radius: 8px;
+    .toggle-dark { left:1rem; }
+    .logout-btn { left:4.5rem; }
+    footer {
+      text-align:center;
+      padding:1rem;
+      border-top:1px solid var(--border);
+      margin-top:2rem;
+      background:var(--background);
     }
   </style>
 </head>
 <body>
+  <button class="toggle-dark" onclick="document.body.classList.toggle('dark-mode')">🌙</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
+
+  <header>
+    <h1>عقوبات موظفي العصر الذكي</h1>
+  </header>
+
   <div class="controls">
-    <button onclick="fetchData()">🔄 تحديث</button>
-    <input type="text" id="search" placeholder="بحث..." oninput="filterTable()">
+    <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
+    <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
+    <button class="primary" onclick="downloadExcel()">📥 تنزيل Excel</button>
+    <button class="primary" onclick="window.location.href='index.html'">رجوع للموظفين</button>
     <select id="deptFilter" onchange="filterTable()">
-      <option value="">جميع الأقسام</option>
+      <option value="">كل الأقسام</option>
     </select>
+    <input type="text" id="search" placeholder="بحث..." oninput="filterTable()" />
   </div>
 
   <table>
     <thead>
       <tr>
-        <th>الاسم</th>
+        <th>اسم الموظف</th>
         <th>القسم</th>
-        <th>نوع العقوبة</th>
+        <th>العقوبة/الغرامة</th>
         <th>التاريخ</th>
-        <th>السبب</th>
+        <th>سبب العقوبة</th>
         <th>المدير</th>
-        <th>ملاحظات</th>
-        <th>القيمة</th>
+        <th>ملاحظة الغرامة</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
   </table>
 
+  <footer>
+    جميع الحقوق محفوظة © <span id="year"></span> | لدى - محمد الجواد
+  </footer>
+
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKZ78Ly27Pu4squcrbSsq9nfQKjWiW4MljZg9ZEmn_OiwUVxsEoSO7driCK3g3puiMIw/exec?sheet=عقوبات';
+    // 3. منع الوصول: فقط 'hr' مسموح
+    const user = localStorage.getItem('username');
+    if (!user) {
+      // غير مسجل → تسجيل الدخول
+      window.location.href = 'login.html';
+    } else if (user !== 'hr') {
+      // مسجل ولكن ليس hr → الصفحة الرئيسية
+      window.location.href = 'index.html';
+    }
 
-    let allData = [];
+    // عرض السنة في الفوتر
+    document.getElementById('year').textContent = new Date().getFullYear();
 
+    let data = [];
+
+    // 4. جلب البيانات من الورقة "عقوبات" عبر Apps Script الجديد
     async function fetchData() {
       try {
-        const res = await fetch(SCRIPT_URL);
-        const { data } = await res.json();
-        allData = data;
+        const res = await fetch(
+          'https://script.google.com/macros/s/AKfycbz-Cx0mhpOeFz7X1concAY8SJhinisxHUfn40PF8BgJCr83DIwGvd0QGfKZa5K9uOuDDg/exec?sheet=عقوبات'
+        );
+        data = await res.json();
+        populateDeptFilter();
         renderTable(data);
-        populateFilter();
-      } catch (err) {
-        console.error('فشل جلب البيانات:', err);
+      } catch (e) {
+        alert('فشل تحميل البيانات');
+        console.error(e);
       }
     }
 
-    function renderTable(data) {
+    // 1. تعبئة قائمة الأقسام
+    function populateDeptFilter() {
+      const depts = [...new Set(data.map(r => r.department))].sort();
+      const sel = document.getElementById('deptFilter');
+      sel.innerHTML = '<option value="">كل الأقسام</option>';
+      depts.forEach(d => {
+        sel.innerHTML += `<option value="${d}">${d}</option>`;
+      });
+    }
+
+    function renderTable(arr) {
       const tbody = document.getElementById('tbody');
-      let total = 0;
-
-      const rows = data.map(item => {
-        const fineValue = item.قيمة_الغرامة || 0;
-        total += Number(fineValue);
-
-        return `
-          <tr>
-            <td>${item.الاسم}</td>
-            <td>${item.القسم}</td>
-            <td>${item.نوع_العقوبة?.نص || '—'}</td>
-            <td>${item.التاريخ}</td>
-            <td>${item.سبب_العقوبة}</td>
-            <td>${item.المدير}</td>
-            <td>${item.ملاحظة_الغرامة}</td>
-            <td>${formatNumber(fineValue)} د.ع</td>
-          </tr>
-        `;
-      }).join('');
-
-      tbody.innerHTML = rows + `
-        <tr class="total-row">
-          <td colspan="7">المجموع الكلي</td>
-          <td>${formatNumber(total)} د.ع</td>
+      tbody.innerHTML = arr.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.department}</td>
+          <td>${r.penalty}</td>
+          <td>${r.date}</td>
+          <td>${r.reason}</td>
+          <td>${r.manager}</td>
+          <td>${r.notes}</td>
         </tr>
-      `;
+      `).join('');
     }
 
-    function formatNumber(num) {
-      return new Intl.NumberFormat('en-US').format(num);
-    }
-
-    function populateFilter() {
-      const depts = [...new Set(allData.map(item => item.القسم))];
-      const select = document.getElementById('deptFilter');
-      select.innerHTML = '<option value="">جميع الأقسام</option>' + 
-        depts.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+    function clearTable() {
+      data = [];
+      document.getElementById('tbody').innerHTML = '';
     }
 
     function filterTable() {
-      const searchTerm = document.getElementById('search').value.toLowerCase();
+      const term = document.getElementById('search').value.toLowerCase();
       const dept = document.getElementById('deptFilter').value;
-      
-      const filtered = allData.filter(item => {
-        const matchesDept = !dept || item.القسم === dept;
-        const matchesSearch = Object.values(item).some(val => 
-          String(val).toLowerCase().includes(searchTerm)
-        );
-        return matchesDept && matchesSearch;
-      });
-      
+      const filtered = data.filter(r =>
+        (!dept || r.department === dept) &&
+        (r.name.toLowerCase().includes(term) ||
+         r.reason.toLowerCase().includes(term))
+      );
       renderTable(filtered);
     }
 
-    // التهيئة الأولية
+    // 2. تنزيل Excel (.xlsx)
+    function downloadExcel() {
+      const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
+      const rows = [header, ...data.map(r => [
+        r.name, r.department, r.penalty, r.date, r.reason, r.manager, r.notes
+      ])];
+      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF'+csv], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'عقوبات_الموظفين.xlsx';
+      a.click();
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    // 5. إطلاق أولي
     fetchData();
   </script>
 </body>
