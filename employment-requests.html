@@ -20,7 +20,6 @@
       --border: #444444;
       --hover: #333;
     }
-    
     body {
       font-family: 'Cairo', sans-serif;
       margin: 0;
@@ -29,12 +28,10 @@
       color: var(--text);
       transition: background 0.3s, color 0.3s;
     }
-    
     .container {
       max-width: 1400px;
       margin: 0 auto;
     }
-    
     h1 {
       text-align: center;
       color: var(--primary);
@@ -42,14 +39,12 @@
       padding-bottom: 0.5rem;
       border-bottom: 3px solid var(--primary);
     }
-    
     .controls {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
-    
     .controls input,
     .controls select,
     .controls button {
@@ -62,17 +57,14 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    
     .controls button.primary {
       background: var(--primary);
       color: #fff;
       border: none;
     }
-    
     .controls button.primary:hover {
       background: var(--secondary);
     }
-    
     table {
       width: 100%;
       border-collapse: collapse;
@@ -80,27 +72,22 @@
       box-shadow: 0 1px 10px rgba(0,0,0,0.1);
       margin-bottom: 2rem;
     }
-    
     th, td {
       padding: 1rem;
       border-bottom: 1px solid var(--border);
       text-align: right;
     }
-    
     th {
       background: var(--primary);
       color: #fff;
       font-weight: 600;
     }
-    
     tr:hover {
       background: var(--hover);
     }
-    
     .status-قيد_الانتظار { color: #eab308; }
     .status-موافق { color: #22c55e; }
     .status-مرفوض { color: #ef4444; }
-    
     .loader {
       display: none;
       text-align: center;
@@ -108,7 +95,6 @@
       color: var(--primary);
       margin: 2rem 0;
     }
-    
     .logout-btn, .toggle-dark {
       position: fixed;
       top: 1rem;
@@ -121,10 +107,8 @@
       cursor: pointer;
       z-index: 1000;
     }
-    
     .toggle-dark { left: 1rem; }
     .logout-btn { left: 4.5rem; }
-    
     .no-data, .error {
       text-align: center;
       padding: 1.5rem;
@@ -132,7 +116,6 @@
     }
     .no-data { color: #64748b; }
     .error { color: #ef4444; }
-    
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -185,7 +168,7 @@
           <th>المواليد</th>
           <th>الراتب</th>
           <th>النقل</th>
-          <th>وقت العمل</th>
+          <th>وقت المباشرة</th>
           <th>الشركة السابقة</th>
         </tr>
       </thead>
@@ -194,26 +177,27 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4YebX4H2On6sWKaWhL4ZHy0j7qqiUEB6DcrO_muHBPMjU2AuS7Udo8h2J3afa7OE67A/exec?sheet=موظفين%20الحريه%20تقديم';
+    // منع اليوزر hr من الدخول
+    const user = localStorage.getItem('username');
+    if (!user) { window.location.href = 'login.html'; }
+    else if (user === 'hr') { window.location.href = 'index.html'; }
+
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDnaFjToFIBf09uuJR5t4E5xoYXu3C2sQOKAnxJ5riB86m9M5GWabRcH19RjDbFdr-3Q/exec?sheet=موظفين%20الحريه%20تقديم';
     let allData = [];
 
-    // ========== دوال رئيسية ==========
     async function fetchData() {
       showLoading();
       try {
         const response = await fetch(SCRIPT_URL);
-        if (!response.ok) throw new Error(`خطأ في الاتصال: ${response.status}`);
-        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();
         if (!result.success) throw new Error(result.error);
-        
-        allData = result.data || [];
-        if (allData.length === 0) showEmptyMessage();
+        allData = result.data;
+        if (!allData.length) showEmptyMessage();
         else renderTable(allData);
-        
         populateTypeFilter();
-      } catch (error) {
-        showError(`فشل جلب البيانات: ${error.message}`);
+      } catch (err) {
+        showError(`⚠️ فشل جلب البيانات: ${err.message}`);
       } finally {
         hideLoading();
       }
@@ -221,15 +205,13 @@
 
     function renderTable(data) {
       const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-      
-      data.forEach(item => {
-        const statusClass = `status-${item.الحالة.replace(/ /g, '_')}`;
-        const rowHTML = `
+      tbody.innerHTML = data.map(item => {
+        const cls = 'status-' + (item.الحالة||'قيد الانتظار').replace(/ /g,'_');
+        return `
           <tr>
             <td data-label="الاسم">${item.الاسم}</td>
             <td data-label="نوع الطلب">${item.نوع_الطلب}</td>
-            <td data-label="الحالة" class="${statusClass}">${item.الحالة}</td>
+            <td data-label="الحالة" class="${cls}">${item.الحالة}</td>
             <td data-label="الموظف المسؤول">${item.الموظف_المسؤول}</td>
             <td data-label="تاريخ التقديم">${item.تاريخ_التقديم}</td>
             <td data-label="رقم الهاتف">${item.رقم_الهاتف}</td>
@@ -238,84 +220,43 @@
             <td data-label="المواليد">${item.المواليد}</td>
             <td data-label="الراتب">${item.الراتب_المتفق_عليه}</td>
             <td data-label="النقل">${item.النقل}</td>
-            <td data-label="وقت العمل">${item.وقت_المباشرة}</td>
+            <td data-label="وقت المباشرة">${item.وقت_المباشرة}</td>
             <td data-label="الشركة السابقة">${item.الشركة_السابقة}</td>
-          </tr>
-        `;
-        tbody.insertAdjacentHTML('beforeend', rowHTML);
-      });
+          </tr>`;
+      }).join('');
     }
 
-    // ========== دوال مساعدة ==========
     function populateTypeFilter() {
-      const select = document.getElementById('filter-type');
-      const types = [...new Set(allData.map(item => item.نوع_الطلب))].filter(Boolean);
-      select.innerHTML = '<option value="">كل أنواع الطلب</option>';
-      types.forEach(type => {
-        select.innerHTML += `<option value="${type}">${type}</option>`;
-      });
+      const sel = document.getElementById('filter-type');
+      const types = [...new Set(allData.map(i=>i.نوع_الطلب))].filter(Boolean);
+      sel.innerHTML = '<option value="">كل أنواع الطلب</option>' + types.map(t=>`<option value="${t}">${t}</option>`).join('');
     }
 
     function filterTable() {
-      const searchTerm = document.getElementById('search').value.toLowerCase();
-      const filterType = document.getElementById('filter-type').value;
-      
-      const filtered = allData.filter(item => {
-        const matchesType = !filterType || item.نوع_الطلب === filterType;
-        const matchesSearch = Object.values(item).some(value => 
-          String(value).toLowerCase().includes(searchTerm)
-        );
-        return matchesType && matchesSearch;
-      });
-      
-      renderTable(filtered);
+      const txt = document.getElementById('search').value.toLowerCase();
+      const typ = document.getElementById('filter-type').value;
+      const filt = allData.filter(i =>
+        (!typ||i.نوع_الطلب===typ) && Object.values(i).some(v=>String(v).toLowerCase().includes(txt))
+      );
+      renderTable(filt);
     }
 
     function showEmptyMessage() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="13" class="no-data">لا توجد طلبات متاحة حالياً</td>
-        </tr>
-      `;
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="13" class="no-data">لا توجد طلبات متاحة حالياً</td></tr>';
     }
-
-    function showError(message) {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="13" class="error">⚠️ ${message}</td>
-        </tr>
-      `;
+    function showError(msg) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="13" class="error">${msg}</td></tr>`;
     }
-
     function clearTable() {
-      allData = [];
-      document.getElementById('tableBody').innerHTML = '';
-      document.getElementById('filter-type').innerHTML = '<option value="">كل أنواع الطلب</option>';
+      allData=[]; document.getElementById('tableBody').innerHTML=''; document.getElementById('filter-type').innerHTML='<option value="">كل أنواع الطلب</option>';
     }
+    function showLoading(){ document.getElementById('loading').style.display='block'; }
+    function hideLoading(){ document.getElementById('loading').style.display='none'; }
 
-    function showLoading() {
-      document.getElementById('loading').style.display = 'block';
-    }
-
-    function hideLoading() {
-      document.getElementById('loading').style.display = 'none';
-    }
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = 'login.html';
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-    }
-
-    // التهيئة الأولية
-    document.addEventListener('DOMContentLoaded', () => {
-      document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
+    function logout(){ localStorage.clear(); window.location.href='login.html'; }
+    function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode')==='true');
       fetchData();
     });
   </script>
