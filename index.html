@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -140,6 +140,13 @@
       font-weight: bold;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+    button.bikes {
+      background: #10b981;
+      color: white;
+      border: none;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
     button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(0,0,0,0.15);
@@ -195,9 +202,10 @@
   </style>
 </head>
 <body>
-    <button class="toggle-dark" onclick="document.body.classList.toggle('dark-mode')">🌙</button>
+  <!-- أيقونات التحكم -->
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
   <button class="logout-btn" onclick="logout()">🚪</button>
-  
+
   <header>
     <div class="hamburger" onclick="toggleNav()">☰</div>
     <h1>موظفين شركة العصر الذكي</h1>
@@ -207,6 +215,7 @@
       <button onclick="window.location.href='manage-users.html'">👥 إدارة المستخدمين</button>
       <button id="penaltyBtn" class="penalty" onclick="viewPenalties()">⚖️ عرض العقوبات</button>
       <button id="employmentRequestsBtn" onclick="window.location.href='employment-requests.html'">📝 طلبات التوظيف</button>
+      <button id="bikesBtn" class="bikes" onclick="window.location.href='bikes.html'">🚲 دراجات</button>
     </nav>
   </header>
 
@@ -269,8 +278,9 @@
     document.getElementById("col-id").style.display = isHR ? "" : "none";
     document.getElementById("penaltyBtn").style.display = isHR ? "block" : "none";
     document.getElementById("employmentRequestsBtn").style.display = isHR ? "block" : "none";
+    document.getElementById("bikesBtn").style.display = isHR ? "block" : "none";
 
-    // Toggle hamburger menu
+    // Toggle hamburger
     function toggleNav(){
       const nav = document.getElementById("nav-menu");
       nav.style.display = nav.style.display === "flex" ? "none" : "flex";
