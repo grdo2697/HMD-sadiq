@@ -150,17 +150,9 @@
       opacity: 1;
     }
     @media (max-width: 768px) {
-      table, thead, tbody, th, td, tr { 
-        display: block; 
-      }
-      thead tr { 
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-      }
-      tr { 
-        margin-bottom: 1rem;
-      }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { margin-bottom: 1rem; }
       td {
         border: none;
         position: relative;
@@ -233,20 +225,14 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
     let allData = [];
     const user = localStorage.getItem('username');
-    
-    // التحقق من الصلاحيات
-    if (!user) location.href = 'login.html'; 
+
+    if (!user) location.href = 'login.html';
     else if (user !== 'hr') location.href = 'index.html';
 
     const totalValueEl = document.getElementById('totalValue');
 
-    function showLoading() { 
-      document.getElementById('loading').style.display = 'block'; 
-    }
-    
-    function hideLoading() { 
-      document.getElementById('loading').style.display = 'none'; 
-    }
+    function showLoading() { document.getElementById('loading').style.display = 'block'; }
+    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
 
     async function fetchData() {
       showLoading();
@@ -255,17 +241,15 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!json.success) throw new Error(json.error);
-        
         allData = json.data;
-        if (!allData.length) return showEmpty();
-        
+        if (!allData.length) return;
         populateFilter();
         renderTable(allData);
         updateTotal(allData);
-      } catch (err) { 
-        showError('فشل جلب البيانات: ' + err.message); 
-      } finally { 
-        hideLoading(); 
+      } catch (err) {
+        alert('فشل جلب البيانات: ' + err.message);
+      } finally {
+        hideLoading();
       }
     }
 
@@ -290,71 +274,60 @@
           <td data-label="ملاحظة الغرامة">${item.ملاحظة_الغرامة}</td>
           <td data-label="المجموع">${parsePenaltyValue(item.ملاحظة_الغرامة)}</td>
         </tr>`).join('');
-      
       document.getElementById('totalBox').classList.toggle('visible', data.length > 0);
     }
 
     function populateFilter() {
       const sel = document.getElementById('deptFilter');
       sel.innerHTML = '<option value="">كل الأقسام</option>';
-      [...new Set(allData.map(i => i.القسم))].sort()
-        .forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
+      [...new Set(allData.map(i => i.القسم))].sort().forEach(d => {
+        sel.innerHTML += `<option value="${d}">${d}</option>`;
+      });
     }
 
     function filterTable() {
       const kw = document.getElementById('search').value.toLowerCase();
       const dept = document.getElementById('deptFilter').value;
-      const filtered = allData.filter(i =>
-        (!dept || i.القسم === dept) &&
-        (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
-      );
+      const filtered = allData.filter(row => {
+        const nameMatch = row.اسم_الموظف?.toLowerCase().includes(kw);
+        const deptMatch = row.القسم === dept || dept === '';
+        return nameMatch && deptMatch;
+      });
       renderTable(filtered);
       updateTotal(filtered);
     }
 
+    function updateTotal(data) {
+      const sum = data.reduce((acc, curr) => acc + parsePenaltyValue(curr.ملاحظة_الغرامة), 0);
+      totalValueEl.textContent = sum.toLocaleString();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function logout() {
+      localStorage.removeItem('username');
+      location.href = 'login.html';
+    }
+
     function clearTable() {
-      allData = [];
       document.getElementById('tbody').innerHTML = '';
-      document.getElementById('deptFilter').innerHTML = '<option value="">كل الأقسام</option>';
-      updateTotal([]);
+      totalValueEl.textContent = '0';
+      document.getElementById('totalBox').classList.remove('visible');
     }
 
-    function updateTotal(dataArr) {
-      const sum = dataArr.reduce((acc, it) => acc + parsePenaltyValue(it.ملاحظة_الغرامة), 0);
-      totalValueEl.textContent = sum;
-      document.getElementById('totalBox').classList.toggle('visible', sum > 0);
-    }
-
-    function logout() { 
-      localStorage.clear(); 
-      location.href = 'login.html'; 
-    }
-
-    function toggleDarkMode() { 
-      document.body.classList.toggle('dark-mode'); 
-      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); 
-    }
-
-    // التصدير لإكسل
     function exportToExcel() {
-      const table = document.getElementById("penaltiesTable");
-      const rows = Array.from(table.rows);
-      let csv = rows.map(row => 
-        Array.from(row.cells)
-          .map(cell => cell.innerText)
-          .join(',')
-      ).join('\n');
-
-      const blob = new Blob(["\ufeff"+csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'عقوبات_الموظفين.csv';
-      link.click();
+      const table = document.getElementById('penaltiesTable');
+      const html = table.outerHTML;
+      const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'عقوبات_الموظفين.xls';
+      a.click();
     }
 
-    // التهيئة الأولية
-    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
-    window.addEventListener('DOMContentLoaded', fetchData);
+    fetchData();
   </script>
 </body>
 </html>
