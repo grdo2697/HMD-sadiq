@@ -7,62 +7,165 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* نفس الستايل السابق من penalties.html */
     :root {
       --primary: #0ea5e9;
       --secondary: #38bdf8;
+      --accent: #facc15;
       --background: #f9fafb;
       --text: #0f172a;
       --border: #cbd5e1;
       --hover: #e0f2fe;
     }
     .dark-mode {
-      --background: #1a1a1a;
-      --text: #ffffff;
-      --border: #444444;
-      --hover: #333333;
+      --background: #0f172a;
+      --text: #f9fafb;
+      --border: #334155;
+      --hover: #1e293b;
+    }
+    * {
+      font-family: 'Cairo', sans-serif;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
     }
     body {
-      font-family: 'Cairo', sans-serif;
       margin: 0;
-      padding: 2rem;
       background: var(--background);
       color: var(--text);
-      transition: background 0.3s, color 0.3s;
     }
     header {
+      position: relative;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
-      padding: 1.5rem;
+      padding: 2rem 1rem;
+      border-radius: 0 0 30px 30px;
       text-align: center;
-      color: #fff;
-      border-radius: 0 0 12px 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.1);
     }
-    /* ... باقي الستايلات كما هي ... */
+    h1 {
+      color: white;
+      font-size: 2rem;
+      margin: 0;
+      text-shadow: 1px 2px 6px rgba(0,0,0,0.3);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(255,255,255,0.5);
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      backdrop-filter: blur(8px);
+    }
+    .search-input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    select, button {
+      padding: 0.8rem;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      font-size: 1rem;
+      background: var(--background);
+      color: var(--text);
+      cursor: pointer;
+    }
+    button.primary {
+      background: linear-gradient(to right, var(--accent), #fde047);
+      border: none;
+      color: #0f172a;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    th {
+      background: rgba(14,165,233,0.1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: var(--hover);
+    }
+    .toggle-dark, .logout-btn, .back-btn {
+      position: fixed;
+      top: 1rem;
+      width: 45px;
+      height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .toggle-dark { left: 1rem; }
+    .logout-btn { left: 4.5rem; }
+    .back-btn { left: 8rem; }
+    .loader {
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 2rem 0;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- أيقونات التحكم -->
   <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
   <button class="back-btn" onclick="location.href='index.html'">🏠</button>
   <button class="logout-btn" onclick="logout()">🚪</button>
 
-  <header><h1>نظام متابعة التزام القادة</h1></header>
+  <header>
+    <h1>نظام متابعة التزام القادة</h1>
+  </header>
 
   <div class="container">
     <div class="controls">
-      <button class="primary" onclick="fetchData()">
-        🔄 <span>تحديث البيانات</span>
-      </button>
-      <button class="primary" onclick="exportToExcel()">
-        📊 <span>تصدير لإكسل</span>
-      </button>
-      <input type="text" id="search" placeholder="ابحث بالاسم..." oninput="filterTable()">
+      <input type="text" id="search" class="search-input" placeholder="ابحث باسم الموظف..." onkeyup="filterTable()">
       <select id="statusFilter" onchange="filterTable()">
         <option value="">كل الحالات</option>
         <option value="مبطل">مبطل</option>
         <option value="بعده">بعده</option>
       </select>
+      <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
+      <button class="primary" onclick="exportToExcel()">📊 تصدير Excel</button>
     </div>
 
     <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
@@ -72,7 +175,7 @@
         <thead>
           <tr>
             <th>اسم الموظف</th>
-            <th>مبطل/بعده</th>
+            <th>الحالة</th>
             <th>نسبة الالتزام</th>
             <th>سبب عدم الالتزام</th>
             <th>سبب ترك العمل</th>
@@ -84,15 +187,30 @@
   </div>
 
   <script>
+    // التحقق من الصلاحيات
+    const allowedUsers = ['hr'];
+    const user = localStorage.getItem('username');
+    const pass = localStorage.getItem('password');
+    const allowed = [
+      {u:"hr", p:"100200300"},
+      // يمكن إضافة مستخدمين آخرين هنا
+    ];
+
+    if (!allowed.find(x => x.u === user && x.p === pass) {
+      localStorage.clear();
+      location.href = 'login.html';
+    }
+
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=التزام القادة';
     let allData = [];
-    const user = localStorage.getItem('username');
 
-    if (!user) location.href = 'login.html';
-    else if (user !== 'hr') location.href = 'index.html';
-
-    function showLoading() { document.getElementById('loading').style.display = 'block'; }
-    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+    function showLoading() { 
+      document.getElementById('loading').style.display = 'block'; 
+    }
+    
+    function hideLoading() { 
+      document.getElementById('loading').style.display = 'none'; 
+    }
 
     async function fetchData() {
       showLoading();
@@ -112,21 +230,21 @@
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = data.map(item => `
         <tr>
-          <td data-label="اسم الموظف">${item.اسم_الموظف}</td>
-          <td data-label="مبطل/بعده">${item.مبطل_او_بعده}</td>
-          <td data-label="نسبة الالتزام">${item.نسبه_الالتزام}</td>
-          <td data-label="سبب عدم الالتزام">${item.سبب_عدم_الالتزام}</td>
-          <td data-label="سبب ترك العمل">${item.سبب_ترك_العمل}</td>
+          <td>${item.اسم_الموظف || '--'}</td>
+          <td>${item.مبطل_او_بعده || '--'}</td>
+          <td>${item.نسبه_الالتزام ? item.نسبه_الالتزام + '%' : '--'}</td>
+          <td>${item.سبب_عدم_الالتزام || '--'}</td>
+          <td>${item.سبب_ترك_العمل || '--'}</td>
         </tr>`).join('');
     }
 
     function filterTable() {
-      const kw = document.getElementById('search').value.toLowerCase();
+      const searchTerm = document.getElementById('search').value.toLowerCase();
       const status = document.getElementById('statusFilter').value;
       
-      const filtered = allData.filter(row => {
-        const nameMatch = row.اسم_الموظف?.toLowerCase().includes(kw);
-        const statusMatch = row.مبطل_او_بعده === status || status === '';
+      const filtered = allData.filter(item => {
+        const nameMatch = (item.اسم_الموظف || '').toLowerCase().includes(searchTerm);
+        const statusMatch = !status || (item.مبطل_او_بعده === status);
         return nameMatch && statusMatch;
       });
       
@@ -136,7 +254,7 @@
     function exportToExcel() {
       const rows = Array.from(document.querySelectorAll('#tbody tr'));
       
-      const headers = ['اسم الموظف', 'مبطل/بعده', 'نسبة الالتزام', 'سبب عدم الالتزام', 'سبب ترك العمل'];
+      const headers = ['اسم الموظف', 'الحالة', 'نسبة الالتزام', 'سبب عدم الالتزام', 'سبب ترك العمل'];
       
       const data = rows.map(row => [
         row.cells[0].textContent,
@@ -158,15 +276,18 @@
       XLSX.writeFile(wb, `التزام_القادة_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
     }
 
-    // الدوال المشتركة
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     }
 
     function logout() {
-      localStorage.removeItem('username');
+      localStorage.clear();
       location.href = 'login.html';
     }
+
+    // تفعيل الوضع الليلي إن كان مفعل سابقاً
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
 
     fetchData();
   </script>
