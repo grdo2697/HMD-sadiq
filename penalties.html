@@ -15,21 +15,21 @@
     .controls button, .controls input, .controls select { padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 1rem; cursor: pointer; transition: background 0.2s; }
     .controls button.primary { background: var(--primary); color: #fff; border: none; }
     .controls button.primary:hover { background: var(--secondary); }
-    table { width: 100%; border-collapse: collapse; background: var(--background); box-shadow: 0 1px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; background: var(--background); box-shadow: 0 1px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
     th, td { padding: 0.8rem; border-bottom: 1px solid var(--border); text-align: right; }
     th { background: var(--primary); color: #fff; font-weight: 600; }
     tr:hover { background: var(--hover); }
     .loader { display: none; text-align: center; font-size: 1.2rem; color: var(--primary); margin: 2rem 0; }
     .logout-btn, .toggle-dark, .back-btn { position: fixed; top: 1rem; width: 45px; height: 45px; background: var(--background); color: var(--text); border: 2px solid var(--border); border-radius: 50%; display: grid; place-items: center; cursor: pointer; z-index: 1000; }
     .toggle-dark { left: 1rem; } .back-btn { left: 4.5rem; } .logout-btn { left: 8rem; }
-    .no-data, .error { text-align: center; padding: 1rem; font-weight: bold; }
-    .no-data { color: #64748b; } .error { color: #ef4444; }
+    .total-box { border: 2px solid var(--border); padding: 1rem; border-radius: 8px; background: var(--hover); font-weight: 600; text-align: center; width: max-content; margin: 0 auto; }
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
       tr { margin-bottom: 1rem; }
       td { border: none; position: relative; padding-left: 50%; text-align: left; }
       td:before { position: absolute; right: 10px; content: attr(data-label); font-weight: bold; color: var(--primary); }
+      .total-box { width: 100%; }
     }
   </style>
 </head>
@@ -64,21 +64,18 @@
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
-      <tfoot>
-        <tr>
-          <td colspan="7">المجموع</td>
-          <td id="totalCell">0</td>
-        </tr>
-      </tfoot>
     </table>
+
+    <div class="total-box" id="totalBox">المجموع: <span id="totalValue">0</span></div>
   </div>
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
     let allData = [];
     const user = localStorage.getItem('username');
-    if (!user) location.href = 'login.html';
-    else if (user !== 'hr') location.href = 'index.html';
+    if (!user) location.href = 'login.html'; else if (user !== 'hr') location.href = 'index.html';
+
+    const totalValueEl = document.getElementById('totalValue');
 
     function showLoading() { document.getElementById('loading').style.display = 'block'; }
     function hideLoading() { document.getElementById('loading').style.display = 'none'; }
@@ -101,7 +98,6 @@
       finally { hideLoading(); }
     }
 
-    // يحول نص الغرامة إلى رقم
     function parsePenaltyValue(str) {
       if (!str) return 0;
       const m = str.match(/(\d+(?:[\.,]\d+)?)/);
@@ -111,8 +107,7 @@
     }
 
     function renderTable(data) {
-      const tbody = document.getElementById('tbody');
-      tbody.innerHTML = data.map(item => `
+      document.getElementById('tbody').innerHTML = data.map(item => `
         <tr>
           <td data-label="الاسم">${item.اسم_الموظف}</td>
           <td data-label="القسم">${item.القسم}</td>
@@ -122,22 +117,22 @@
           <td data-label="المدير">${item.المدير}</td>
           <td data-label="ملاحظة الغرامة">${item.ملاحظة_الغرامة}</td>
           <td data-label="المجموع">${parsePenaltyValue(item.ملاحظة_الغرامة)}</td>
-        </tr>
-      `).join('');
+        </tr>`).join('');
     }
 
     function populateFilter() {
       const sel = document.getElementById('deptFilter');
-      const depts = [...new Set(allData.map(i => i.القسم))].sort();
       sel.innerHTML = '<option value="">كل الأقسام</option>';
-      depts.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
+      [...new Set(allData.map(i => i.القسم))].sort()
+        .forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
     }
 
     function filterTable() {
       const kw = document.getElementById('search').value.toLowerCase();
       const dept = document.getElementById('deptFilter').value;
-      const filtered = allData.filter(i => (!dept || i.القسم === dept)
-        && (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
+      const filtered = allData.filter(i =>
+        (!dept || i.القسم === dept) &&
+        (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
       );
       renderTable(filtered);
       updateTotal(filtered);
@@ -152,12 +147,11 @@
 
     function updateTotal(dataArr) {
       const sum = dataArr.reduce((acc, it) => acc + parsePenaltyValue(it.ملاحظة_الغرامة), 0);
-      document.getElementById('totalCell').textContent = sum;
+      totalValueEl.textContent = sum;
     }
 
     function logout() { localStorage.clear(); location.href = 'login.html'; }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
-
     document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
     window.addEventListener('DOMContentLoaded', fetchData);
   </script>
