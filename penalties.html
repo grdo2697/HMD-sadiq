@@ -24,7 +24,13 @@
     .toggle-dark { left: 1rem; } .back-btn { left: 4.5rem; } .logout-btn { left: 8rem; }
     .no-data, .error { text-align: center; padding: 1rem; font-weight: bold; }
     .no-data { color: #64748b; } .error { color: #ef4444; }
-    @media (max-width: 768px) { table, thead, tbody, th, td, tr { display: block; } thead tr { position: absolute; top: -9999px; left: -9999px; } tr { margin-bottom: 1rem; } td { border: none; position: relative; padding-left: 50%; text-align: left; } td:before { position: absolute; right: 10px; content: attr(data-label); font-weight: bold; color: var(--primary); } }
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { margin-bottom: 1rem; }
+      td { border: none; position: relative; padding-left: 50%; text-align: left; }
+      td:before { position: absolute; right: 10px; content: attr(data-label); font-weight: bold; color: var(--primary); }
+    }
   </style>
 </head>
 <body>
@@ -47,29 +53,37 @@
     <table id="penaltiesTable">
       <thead>
         <tr>
-          <th>الاسم</th><th>القسم</th><th>نوع العقوبة</th><th>التاريخ</th><th>سبب العقوبة</th><th>المدير</th><th>ملاحظة الغرامة</th>
+          <th>الاسم</th>
+          <th>القسم</th>
+          <th>نوع العقوبة</th>
+          <th>التاريخ</th>
+          <th>سبب العقوبة</th>
+          <th>المدير</th>
+          <th>ملاحظة الغرامة</th>
+          <th>المجموع</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
       <tfoot>
         <tr>
-          <td colspan="6">المجموع</td><td id="totalCell">0</td>
+          <td colspan="7">المجموع</td>
+          <td id="totalCell">0</td>
         </tr>
       </tfoot>
     </table>
   </div>
 
   <script>
-    const SCRIPT_URL =
-      'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
     let allData = [];
     const user = localStorage.getItem('username');
-    if (!user) location.href = 'login.html'; else if (user !== 'hr') location.href = 'index.html';
+    if (!user) location.href = 'login.html';
+    else if (user !== 'hr') location.href = 'index.html';
 
     function showLoading() { document.getElementById('loading').style.display = 'block'; }
     function hideLoading() { document.getElementById('loading').style.display = 'none'; }
-    function showError(msg) { document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="error">⚠️ ${msg}</td></tr>`; updateTotal([]); }
-    function showEmpty() { document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="no-data">لا توجد بيانات</td></tr>`; updateTotal([]); }
+    function showError(msg) { document.getElementById('tbody').innerHTML = `<tr><td colspan="8" class="error">⚠️ ${msg}</td></tr>`; updateTotal([]); }
+    function showEmpty() { document.getElementById('tbody').innerHTML = `<tr><td colspan="8" class="no-data">لا توجد بيانات</td></tr>`; updateTotal([]); }
 
     async function fetchData() {
       showLoading();
@@ -83,9 +97,17 @@
         populateFilter();
         renderTable(allData);
         updateTotal(allData);
-      } catch (err) {
-        showError('فشل جلب البيانات: ' + err.message);
-      } finally { hideLoading(); }
+      } catch (err) { showError('فشل جلب البيانات: ' + err.message); }
+      finally { hideLoading(); }
+    }
+
+    // يحول نص الغرامة إلى رقم
+    function parsePenaltyValue(str) {
+      if (!str) return 0;
+      const m = str.match(/(\d+(?:[\.,]\d+)?)/);
+      let num = m ? parseFloat(m[1].replace(/,/g, '.')) : 0;
+      if (/الف|ألف/.test(str)) num *= 1000;
+      return num;
     }
 
     function renderTable(data) {
@@ -99,7 +121,9 @@
           <td data-label="سبب العقوبة">${item.سبب_العقوبة}</td>
           <td data-label="المدير">${item.المدير}</td>
           <td data-label="ملاحظة الغرامة">${item.ملاحظة_الغرامة}</td>
-        </tr>`).join('');
+          <td data-label="المجموع">${parsePenaltyValue(item.ملاحظة_الغرامة)}</td>
+        </tr>
+      `).join('');
     }
 
     function populateFilter() {
@@ -112,8 +136,8 @@
     function filterTable() {
       const kw = document.getElementById('search').value.toLowerCase();
       const dept = document.getElementById('deptFilter').value;
-      const filtered = allData.filter(i => (!dept || i.القسم === dept) &&
-        (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
+      const filtered = allData.filter(i => (!dept || i.القسم === dept)
+        && (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
       );
       renderTable(filtered);
       updateTotal(filtered);
@@ -127,12 +151,13 @@
     }
 
     function updateTotal(dataArr) {
-      const sum = dataArr.reduce((acc, i) => acc + (parseFloat(i.قيمة_الغرامة) || 0), 0);
+      const sum = dataArr.reduce((acc, it) => acc + parsePenaltyValue(it.ملاحظة_الغرامة), 0);
       document.getElementById('totalCell').textContent = sum;
     }
 
     function logout() { localStorage.clear(); location.href = 'login.html'; }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
+
     document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
     window.addEventListener('DOMContentLoaded', fetchData);
   </script>
