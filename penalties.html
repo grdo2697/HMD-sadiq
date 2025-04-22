@@ -6,30 +6,177 @@
   <title>عقوبات موظفي العصر الذكي</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root { --primary: #0ea5e9; --secondary: #38bdf8; --background: #f9fafb; --text: #0f172a; --border: #cbd5e1; --hover: #e0f2fe; }
-    .dark-mode { --background: #1a1a1a; --text: #ffffff; --border: #444444; --hover: #333333; }
-    body { font-family: 'Cairo', sans-serif; margin: 0; padding: 2rem; background: var(--background); color: var(--text); transition: background 0.3s, color 0.3s; }
-    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 1.5rem; text-align: center; color: #fff; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-    header h1 { margin:0; font-size:2rem; }
-    .controls { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; }
-    .controls button, .controls input, .controls select { padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 1rem; cursor: pointer; transition: background 0.2s; }
-    .controls button.primary { background: var(--primary); color: #fff; border: none; }
-    .controls button.primary:hover { background: var(--secondary); }
-    .controls .export-btn { background: #32cd32; color: white; border: none; }
-    .controls .export-btn:hover { background: #28a745; }
-    table { width: 100%; border-collapse: collapse; background: var(--background); box-shadow: 0 1px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
-    th, td { padding: 0.8rem; border-bottom: 1px solid var(--border); text-align: right; }
-    th { background: var(--primary); color: #fff; font-weight: 600; }
-    tr:hover { background: var(--hover); }
-    .loader { display: none; text-align: center; font-size: 1.2rem; color: var(--primary); margin: 2rem 0; }
-    .logout-btn, .toggle-dark, .back-btn { position: fixed; top: 1rem; width: 45px; height: 45px; background: var(--background); color: var(--text); border: 2px solid var(--border); border-radius: 50%; display: grid; place-items: center; cursor: pointer; z-index: 1000; }
-    .toggle-dark { left: 1rem; } .back-btn { left: 4.5rem; } .logout-btn { left: 8rem; }
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+    .dark-mode {
+      --background: #1a1a1a;
+      --text: #ffffff;
+      --border: #444444;
+      --hover: #333333;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 1.5rem;
+      text-align: center;
+      color: #fff;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      margin:0;
+      font-size:2rem;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      background: var(--hover);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .controls > * {
+      flex: 1 1 auto;
+      min-width: 120px;
+    }
+    .controls button, 
+    .controls input, 
+    .controls select {
+      padding: 0.7rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button.primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .controls button.primary:hover {
+      background: var(--secondary);
+    }
+    .table-container {
+      position: relative;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:hover {
+      background: var(--hover);
+    }
+    .loader {
+      display: none;
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 2rem 0;
+    }
+    .logout-btn, 
+    .toggle-dark, 
+    .back-btn {
+      position: fixed;
+      top: 1rem;
+      width: 45px;
+      height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 1000;
+      transition: transform 0.2s;
+    }
+    .toggle-dark { right: 1rem; }
+    .back-btn { right: 4.5rem; }
+    .logout-btn { right: 8rem; }
+    .total-box {
+      border: 2px solid var(--border);
+      padding: 1rem;
+      border-radius: 8px;
+      background: var(--hover);
+      font-weight: 600;
+      text-align: center;
+      width: max-content;
+      margin: 1rem 0;
+      float: left;
+      opacity: 0;
+      display: none;
+      transition: opacity 0.3s;
+    }
+    .total-box.visible {
+      display: block;
+      opacity: 1;
+    }
     @media (max-width: 768px) {
-      table, thead, tbody, th, td, tr { display: block; }
-      thead tr { position: absolute; top: -9999px; left: -9999px; }
-      tr { margin-bottom: 1rem; }
-      td { border: none; position: relative; padding-left: 50%; text-align: left; }
-      td:before { position: absolute; right: 10px; content: attr(data-label); font-weight: bold; color: var(--primary); }
+      table, thead, tbody, th, td, tr { 
+        display: block; 
+      }
+      thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      tr { 
+        margin-bottom: 1rem;
+      }
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+      }
+      td:before {
+        position: absolute;
+        right: 10px;
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+      }
+      .controls button.primary span {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -42,37 +189,64 @@
 
   <div class="container">
     <div class="controls">
-      <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
-      <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
+      <button class="primary" onclick="fetchData()">
+        🔄 <span>تحديث البيانات</span>
+      </button>
+      <button class="primary" onclick="clearTable()">
+        🗑️ <span>مسح الكل</span>
+      </button>
+      <button class="primary" onclick="exportToExcel()">
+        📊 <span>تصدير لإكسل</span>
+      </button>
       <input type="text" id="search" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
-      <select id="deptFilter" onchange="filterTable()"><option value="">كل الأقسام</option></select>
-      <button class="export-btn" onclick="exportToExcel()">📊 تصدير إلى إكسل</button>
+      <select id="deptFilter" onchange="filterTable()">
+        <option value="">كل الأقسام</option>
+      </select>
     </div>
 
     <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
 
-    <table id="penaltiesTable">
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>القسم</th>
-          <th>نوع العقوبة</th>
-          <th>التاريخ</th>
-          <th>سبب العقوبة</th>
-          <th>المدير</th>
-          <th>ملاحظة الغرامة</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+    <div class="table-container">
+      <table id="penaltiesTable">
+        <thead>
+          <tr>
+            <th>الاسم</th>
+            <th>القسم</th>
+            <th>نوع العقوبة</th>
+            <th>التاريخ</th>
+            <th>سبب العقوبة</th>
+            <th>المدير</th>
+            <th>ملاحظة الغرامة</th>
+            <th>المجموع</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
 
+    <div class="total-box" id="totalBox">
+      المجموع: <span id="totalValue">0</span>
+    </div>
   </div>
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
     let allData = [];
     const user = localStorage.getItem('username');
-    if (!user) location.href = 'login.html'; else if (user !== 'hr') location.href = 'index.html';
+    
+    // التحقق من الصلاحيات
+    if (!user) location.href = 'login.html'; 
+    else if (user !== 'hr') location.href = 'index.html';
+
+    const totalValueEl = document.getElementById('totalValue');
+
+    function showLoading() { 
+      document.getElementById('loading').style.display = 'block'; 
+    }
+    
+    function hideLoading() { 
+      document.getElementById('loading').style.display = 'none'; 
+    }
 
     async function fetchData() {
       showLoading();
@@ -81,21 +255,31 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!json.success) throw new Error(json.error);
+        
         allData = json.data;
         if (!allData.length) return showEmpty();
+        
         populateFilter();
         renderTable(allData);
-      } catch (err) { showError('فشل جلب البيانات: ' + err.message); }
-      finally { hideLoading(); }
+        updateTotal(allData);
+      } catch (err) { 
+        showError('فشل جلب البيانات: ' + err.message); 
+      } finally { 
+        hideLoading(); 
+      }
     }
 
-    function showLoading() { document.getElementById('loading').style.display = 'block'; }
-    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
-    function showError(msg) { document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="error">⚠️ ${msg}</td></tr>`; }
-    function showEmpty() { document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="no-data">لا توجد بيانات</td></tr>`; }
+    function parsePenaltyValue(str) {
+      if (!str) return 0;
+      const m = str.match(/(\d+(?:[\.,]\d+)?)/);
+      let num = m ? parseFloat(m[1].replace(/,/g, '.')) : 0;
+      if (/الف|ألف/.test(str)) num *= 1000;
+      return num;
+    }
 
     function renderTable(data) {
-      document.getElementById('tbody').innerHTML = data.map(item => `
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = data.map(item => `
         <tr>
           <td data-label="الاسم">${item.اسم_الموظف}</td>
           <td data-label="القسم">${item.القسم}</td>
@@ -104,7 +288,10 @@
           <td data-label="سبب العقوبة">${item.سبب_العقوبة}</td>
           <td data-label="المدير">${item.المدير}</td>
           <td data-label="ملاحظة الغرامة">${item.ملاحظة_الغرامة}</td>
+          <td data-label="المجموع">${parsePenaltyValue(item.ملاحظة_الغرامة)}</td>
         </tr>`).join('');
+      
+      document.getElementById('totalBox').classList.toggle('visible', data.length > 0);
     }
 
     function populateFilter() {
@@ -122,36 +309,52 @@
         (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
       );
       renderTable(filtered);
+      updateTotal(filtered);
     }
 
     function clearTable() {
       allData = [];
       document.getElementById('tbody').innerHTML = '';
       document.getElementById('deptFilter').innerHTML = '<option value="">كل الأقسام</option>';
+      updateTotal([]);
     }
 
-    function logout() { localStorage.clear(); location.href = 'login.html'; }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
-    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
-    window.addEventListener('DOMContentLoaded', fetchData);
+    function updateTotal(dataArr) {
+      const sum = dataArr.reduce((acc, it) => acc + parsePenaltyValue(it.ملاحظة_الغرامة), 0);
+      totalValueEl.textContent = sum;
+      document.getElementById('totalBox').classList.toggle('visible', sum > 0);
+    }
 
-    // Export function to export data to Excel
+    function logout() { 
+      localStorage.clear(); 
+      location.href = 'login.html'; 
+    }
+
+    function toggleDarkMode() { 
+      document.body.classList.toggle('dark-mode'); 
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); 
+    }
+
+    // التصدير لإكسل
     function exportToExcel() {
       const table = document.getElementById("penaltiesTable");
       const rows = Array.from(table.rows);
-      let csv = '';
-      rows.forEach(row => {
-        const cells = Array.from(row.cells);
-        const rowData = cells.map(cell => cell.innerText).join(',');
-        csv += rowData + '\n';
-      });
+      let csv = rows.map(row => 
+        Array.from(row.cells)
+          .map(cell => cell.innerText)
+          .join(',')
+      ).join('\n');
 
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(["\ufeff"+csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'penalties_data.csv';
+      link.download = 'عقوبات_الموظفين.csv';
       link.click();
     }
+
+    // التهيئة الأولية
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
+    window.addEventListener('DOMContentLoaded', fetchData);
   </script>
 </body>
 </html>
