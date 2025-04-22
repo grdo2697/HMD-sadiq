@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>التزام القادة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /* نفس الستايل السابق من penalties.html */
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+    .dark-mode {
+      --background: #1a1a1a;
+      --text: #ffffff;
+      --border: #444444;
+      --hover: #333333;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 1.5rem;
+      text-align: center;
+      color: #fff;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    /* ... باقي الستايلات كما هي ... */
+  </style>
+</head>
+<body>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
+
+  <header><h1>نظام متابعة التزام القادة</h1></header>
+
+  <div class="container">
+    <div class="controls">
+      <button class="primary" onclick="fetchData()">
+        🔄 <span>تحديث البيانات</span>
+      </button>
+      <button class="primary" onclick="exportToExcel()">
+        📊 <span>تصدير لإكسل</span>
+      </button>
+      <input type="text" id="search" placeholder="ابحث بالاسم..." oninput="filterTable()">
+      <select id="statusFilter" onchange="filterTable()">
+        <option value="">كل الحالات</option>
+        <option value="مبطل">مبطل</option>
+        <option value="بعده">بعده</option>
+      </select>
+    </div>
+
+    <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
+
+    <div class="table-container">
+      <table id="complianceTable">
+        <thead>
+          <tr>
+            <th>اسم الموظف</th>
+            <th>مبطل/بعده</th>
+            <th>نسبة الالتزام</th>
+            <th>سبب عدم الالتزام</th>
+            <th>سبب ترك العمل</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=التزام القادة';
+    let allData = [];
+    const user = localStorage.getItem('username');
+
+    if (!user) location.href = 'login.html';
+    else if (user !== 'hr') location.href = 'index.html';
+
+    function showLoading() { document.getElementById('loading').style.display = 'block'; }
+    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+
+    async function fetchData() {
+      showLoading();
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const json = await res.json();
+        allData = json.data;
+        renderTable(allData);
+      } catch (err) {
+        alert('فشل جلب البيانات: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = data.map(item => `
+        <tr>
+          <td data-label="اسم الموظف">${item.اسم_الموظف}</td>
+          <td data-label="مبطل/بعده">${item.مبطل_او_بعده}</td>
+          <td data-label="نسبة الالتزام">${item.نسبه_الالتزام}</td>
+          <td data-label="سبب عدم الالتزام">${item.سبب_عدم_الالتزام}</td>
+          <td data-label="سبب ترك العمل">${item.سبب_ترك_العمل}</td>
+        </tr>`).join('');
+    }
+
+    function filterTable() {
+      const kw = document.getElementById('search').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+      
+      const filtered = allData.filter(row => {
+        const nameMatch = row.اسم_الموظف?.toLowerCase().includes(kw);
+        const statusMatch = row.مبطل_او_بعده === status || status === '';
+        return nameMatch && statusMatch;
+      });
+      
+      renderTable(filtered);
+    }
+
+    function exportToExcel() {
+      const rows = Array.from(document.querySelectorAll('#tbody tr'));
+      
+      const headers = ['اسم الموظف', 'مبطل/بعده', 'نسبة الالتزام', 'سبب عدم الالتزام', 'سبب ترك العمل'];
+      
+      const data = rows.map(row => [
+        row.cells[0].textContent,
+        row.cells[1].textContent,
+        Number(row.cells[2].textContent.replace('%', '')),
+        row.cells[3].textContent,
+        row.cells[4].textContent
+      ]);
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      
+      ws['!cols'] = [
+        {wch: 25}, {wch: 15}, {wch: 15},
+        {wch: 30}, {wch: 30}
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, 'التزام القادة');
+      XLSX.writeFile(wb, `التزام_القادة_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
+    }
+
+    // الدوال المشتركة
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function logout() {
+      localStorage.removeItem('username');
+      location.href = 'login.html';
+    }
+
+    fetchData();
+  </script>
+</body>
+</html>
