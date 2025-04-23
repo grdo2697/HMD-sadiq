@@ -11,12 +11,14 @@
     .card { margin-bottom: 1rem; }
     .badge { cursor: pointer; }
     .permission-badge { margin: 2px; }
+    .edit-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); z-index: 1000; }
   </style>
 </head>
 <body class="container py-4">
 
   <h2 class="text-center mb-4">إدارة المستخدمين 👥</h2>
 
+  <!-- نموذج الإضافة/التعديل -->
   <div class="card p-3 mb-4">
     <div class="row g-2">
       <div class="col-md-4">
@@ -26,38 +28,73 @@
         <input type="password" id="password" class="form-control" placeholder="كلمة المرور">
       </div>
       <div class="col-md-4 d-flex gap-2 flex-wrap align-items-center">
-        <span class="badge bg-primary permission-badge" onclick="togglePermission(this)">📥 تنزيل Excel</span>
-        <span class="badge bg-primary permission-badge" onclick="togglePermission(this)">📋 عرض التقييمات</span>
+        <template id="permissionTemplate">
+          <span class="badge bg-primary permission-badge" onclick="togglePermission(this)"></span>
+        </template>
         <button class="back-btn" onclick="location.href='index.html'">🏠</button>  
-        <button class="btn btn-success ms-auto" onclick="addUser()">➕ إضافة</button>
+        <button class="btn btn-success ms-auto" onclick="saveUser()">💾 حفظ</button>
       </div>
     </div>
   </div>
 
   <div id="usersContainer"></div>
 
+  <!-- مودال التعديل -->
+  <div id="editModal" class="edit-modal">
+    <h5>تعديل المستخدم</h5>
+    <input type="text" id="editUsername" class="form-control mb-2" disabled>
+    <input type="password" id="editPassword" class="form-control mb-2" placeholder="كلمة مرور جديدة">
+    <div id="editPermissions" class="mb-2"></div>
+    <button class="btn btn-primary" onclick="updateUser()">تحديث</button>
+    <button class="btn btn-secondary" onclick="closeEditModal()">إغلاق</button>
+  </div>
+
   <script>
     const SECRET_KEY = "smart_era_secret_@2024";
+    const ALL_PERMISSIONS = [
+      '📥 تنزيل Excel',
+      '📋 عرض التقييمات',
+      '👥 إدارة المستخدمين',
+      '⚖️ عرض العقوبات',
+      '📝 طلبات التوظيف',
+      '🚲 دراجات',
+      '📈 التزام القادة'
+    ];
 
-    // تأكيد الدخول فقط لـ hr
+    let currentEditUser = null;
+
+    // تهيئة الصلاحيات
+    function initPermissions() {
+      const container = document.querySelector('.col-md-4.d-flex');
+      ALL_PERMISSIONS.forEach(permission => {
+        const badge = document.getElementById('permissionTemplate').content.cloneNode(true);
+        badge.querySelector('.badge').textContent = permission;
+        container.insertBefore(badge, container.querySelector('button'));
+      });
+    }
+
+    // التحقق من الصلاحية
+    function hasPermission(permission) {
+      const session = decryptSession();
+      return session?.permissions?.includes(permission);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const session = decryptSession();
-      if (!session || session.username !== "hr") {
-        handleAuthError(); // يرجعه على login.html
-      } else {
-        renderUsers();
-      }
+      if (!session) handleAuthError();
+      if (!hasPermission('👥 إدارة المستخدمين')) handleAuthError();
+      
+      initPermissions();
+      renderUsers();
     });
 
     function decryptSession() {
       const encryptedSession = sessionStorage.getItem('auth');
       if (encryptedSession) {
         try {
-          const decrypted = CryptoJS.AES.decrypt(encryptedSession, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-          return JSON.parse(decrypted);
+          return JSON.parse(CryptoJS.AES.decrypt(encryptedSession, SECRET_KEY).toString(CryptoJS.enc.Utf8));
         } catch (e) {
           console.error("فشل فك التشفير:", e);
-          return null;
         }
       }
       return null;
@@ -77,45 +114,78 @@
       return Array.from(document.querySelectorAll('.permission-badge.bg-success')).map(b => b.textContent.trim());
     }
 
-    function addUser() {
+    function getUsers() {
+      const encryptedUsers = localStorage.getItem('users');
+      if (!encryptedUsers) return [];
+      try {
+        return JSON.parse(CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8));
+      } catch (e) {
+        console.error("فشل فك التشفير:", e);
+        return [];
+      }
+    }
+
+    function saveUser() {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
       const permissions = getSelectedPermissions();
 
-      if (!username || !password) return alert("يرجى إدخال اسم المستخدم وكلمة المرور");
+      if (!username || !password) return alert("يرجى إدخال بيانات المستخدم");
 
-      const encryptedUsers = localStorage.getItem('users');
-      let users = [];
-      if (encryptedUsers) {
-        try {
-          const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-          users = JSON.parse(decrypted);
-        } catch (e) {
-          console.error("فشل فك التشفير:", e);
-        }
-      }
+      const users = getUsers();
+      const existingUser = users.find(u => u.username === username);
 
-      if (users.find(u => u.username === username)) return alert("اسم المستخدم موجود بالفعل");
+      if (existingUser) return alert("اسم المستخدم موجود!");
 
       users.push({ username, password, permissions });
-
-      const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString();
-      localStorage.setItem('users', encrypted);
+      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString());
       renderUsers();
+      clearForm();
+    }
+
+    function openEditModal(user) {
+      currentEditUser = user;
+      document.getElementById('editUsername').value = user.username;
+      document.getElementById('editPassword').value = '';
+      populateEditPermissions(user.permissions);
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    function populateEditPermissions(permissions) {
+      const container = document.getElementById('editPermissions');
+      container.innerHTML = '';
+      ALL_PERMISSIONS.forEach(perm => {
+        const badge = document.createElement('span');
+        badge.className = `badge ${permissions.includes(perm) ? 'bg-success' : 'bg-primary'} permission-badge me-1`;
+        badge.textContent = perm;
+        badge.onclick = () => togglePermission(badge);
+        container.appendChild(badge);
+      });
+    }
+
+    function updateUser() {
+      const newPassword = document.getElementById('editPassword').value.trim();
+      const permissions = Array.from(document.querySelectorAll('#editPermissions .badge.bg-success'))
+                            .map(b => b.textContent.trim());
+
+      const users = getUsers();
+      const userIndex = users.findIndex(u => u.username === currentEditUser.username);
+      
+      if (newPassword) users[userIndex].password = newPassword;
+      users[userIndex].permissions = permissions;
+
+      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString());
+      renderUsers();
+      closeEditModal();
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+      currentEditUser = null;
     }
 
     function renderUsers() {
-      const encryptedUsers = localStorage.getItem('users');
-      let users = [];
-      if (encryptedUsers) {
-        try {
-          const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-          users = JSON.parse(decrypted);
-        } catch (e) {
-          console.error("فشل فك التشفير:", e);
-        }
-      }
-      
+      const users = getUsers();
       const container = document.getElementById('usersContainer');
       container.innerHTML = '';
 
@@ -129,7 +199,10 @@
               <div>${user.permissions.map(p => `<span class="badge bg-secondary me-1">${p}</span>`).join('')}</div>
             </div>
             <div>
-              <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')">🗑 حذف</button>
+              ${user.username !== 'hr' ? `
+                <button class="btn btn-sm btn-warning me-2" onclick="openEditModal(${JSON.stringify(user)})">✏️ تعديل</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')">🗑 حذف</button>
+              ` : ''}
             </div>
           </div>
         `;
@@ -138,23 +211,19 @@
     }
 
     function deleteUser(username) {
-      if (username === "hr") return alert("لا يمكن حذف هذا المستخدم");
-
-      const encryptedUsers = localStorage.getItem('users');
-      let users = [];
-      if (encryptedUsers) {
-        try {
-          const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-          users = JSON.parse(decrypted);
-        } catch (e) {
-          console.error("فشل فك التشفير:", e);
-        }
-      }
-
-      users = users.filter(u => u.username !== username);
-      const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString();
-      localStorage.setItem('users', encrypted);
+      if (username === 'hr') return alert("لا يمكن حذف المدير");
+      const users = getUsers().filter(u => u.username !== username);
+      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString());
       renderUsers();
+    }
+
+    function clearForm() {
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      document.querySelectorAll('.permission-badge').forEach(b => {
+        b.classList.remove('bg-success');
+        b.classList.add('bg-primary');
+      });
     }
   </script>
 </body>
