@@ -55,33 +55,54 @@
       }
     }
 
-    function login() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
+function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
 
-      const encryptedUsers = localStorage.getItem('users');
-      if (!encryptedUsers) return alert("لا يوجد مستخدمين مسجلين");
+  if (!username || !password) return alert("يرجى إدخال جميع البيانات");
 
-      try {
-        const users = JSON.parse(CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8));
-        const user = users.find(u => u.username === username && u.password === password);
+  try {
+    const encryptedUsers = localStorage.getItem('users');
+    if (!encryptedUsers) throw new Error("لا يوجد مستخدمين مسجلين");
 
-        if (!user) return alert("بيانات الدخول غير صحيحة");
+    // فك التشفير
+    const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY);
+    const users = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
 
-        const session = {
-          username: user.username,
-          permissions: user.permissions
-        };
+    // البحث عن المستخدم
+    const user = users.find(u => 
+      u.username === username && 
+      u.password === password
+    );
 
-        const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify(session), SECRET_KEY).toString();
-        sessionStorage.setItem('auth', encryptedSession);
-        
-        window.location.href = user.username === 'hr' ? 'manage-users.html' : 'index.html';
-      } catch (e) {
-        console.error("خطأ في الدخول:", e);
-        alert("حدث خطأ أثناء الدخول");
-      }
+    if (!user) throw new Error("بيانات الدخول غير صحيحة");
+
+    // إنشاء الجلسة
+    const sessionData = {
+      username: user.username,
+      permissions: user.permissions,
+      loginTime: new Date().getTime()
+    };
+
+    const encryptedSession = CryptoJS.AES.encrypt(
+      JSON.stringify(sessionData), 
+      SECRET_KEY
+    ).toString();
+
+    sessionStorage.setItem('auth', encryptedSession);
+
+    // التوجيه حسب الصلاحيات
+    if (user.permissions.includes('👥 إدارة المستخدمين')) {
+      window.location.href = 'manage-users.html';
+    } else {
+      window.location.href = 'dashboard.html'; // صفحة المستخدم العادي
     }
+
+  } catch (error) {
+    console.error('خطأ في التسجيل:', error);
+    alert(error.message || 'حدث خطأ أثناء التسجيل');
+  }
+}
 
     // تهيئة المستخدم الافتراضي عند التحميل
     initDefaultUsers();
