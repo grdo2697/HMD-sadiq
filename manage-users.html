@@ -28,6 +28,7 @@
       <div class="col-md-4 d-flex gap-2 flex-wrap align-items-center">
         <span class="badge bg-primary permission-badge" onclick="togglePermission(this)">📥 تنزيل Excel</span>
         <span class="badge bg-primary permission-badge" onclick="togglePermission(this)">📋 عرض التقييمات</span>
+        <button class="back-btn" onclick="location.href='index.html'">🏠</button>  
         <button class="btn btn-success ms-auto" onclick="addUser()">➕ إضافة</button>
       </div>
     </div>
@@ -38,10 +39,10 @@
   <script>
     const SECRET_KEY = "smart_era_secret_@2024";
 
-    // تأكيد الدخول فقط لـ hradmin
+    // تأكيد الدخول فقط لـ hr
     document.addEventListener('DOMContentLoaded', () => {
       const session = decryptSession();
-      if (!session || session.username !== "hradmin") {
+      if (!session || session.username !== "hr") {
         handleAuthError(); // يرجعه على login.html
       } else {
         renderUsers();
@@ -137,7 +138,7 @@
     }
 
     function deleteUser(username) {
-      if (username === "hradmin") return alert("لا يمكن حذف هذا المستخدم");
+      if (username === "hr") return alert("لا يمكن حذف هذا المستخدم");
 
       const encryptedUsers = localStorage.getItem('users');
       let users = [];
