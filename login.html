@@ -4,13 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>تسجيل الدخول - العصر الذكي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet>
   <style>
-    /* نفس الأنماط السابقة بدون تعديل */
     body {
       font-family: 'Cairo', sans-serif;
       margin: 0;
-      background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+      background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -21,7 +20,7 @@
       background: rgba(255, 255, 255, 0.95);
       padding: 2.5rem 2rem;
       border-radius: 24px;
-      box-shadow: 0 12px 40px rgba(14, 165, 233, 0.15);
+      box-shadow: 0 15px 25px rgba(0,0,0,.2);
       width: 100%;
       max-width: 420px;
       text-align: center;
@@ -29,124 +28,150 @@
       overflow: hidden;
     }
 
- /* From Uiverse.io by guilhermeyohan */ 
-.login-box {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 400px;
-  padding: 40px;
-  transform: translate(-50%, -50%);
-  background: rgba(24, 20, 20, 0.987);
-  box-sizing: border-box;
-  box-shadow: 0 15px 25px rgba(0,0,0,.6);
-  border-radius: 10px;
-}
+    h2 {
+      color: #0f172a;
+      margin-bottom: 2rem;
+      font-size: 1.8rem;
+      font-weight: 700;
+      position: relative;
+    }
 
-.login-box .user-box {
-  position: relative;
-}
+    h2::after {
+      content: '';
+      width: 60px;
+      height: 3px;
+      background: #0ea5e9;
+      position: absolute;
+      bottom: -12px;
+      right: 50%;
+      transform: translateX(50%);
+      border-radius: 2px;
+    }
 
-.login-box .user-box input {
-  width: 100%;
-  padding: 10px 0;
-  font-size: 16px;
-  color: #fff;
-  margin-bottom: 30px;
-  border: none;
-  border-bottom: 1px solid #fff;
-  outline: none;
-  background: transparent;
-}
+    .input-group {
+      position: relative;
+      margin-bottom: 2rem;
+    }
 
-.login-box .user-box label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 10px 0;
-  font-size: 16px;
-  color: #fff;
-  pointer-events: none;
-  transition: .5s;
-}
+    input {
+      width: 100%;
+      padding: 1rem 0;
+      font-size: 16px;
+      color: #333;
+      border: none;
+      border-bottom: 2px solid #ddd;
+      outline: none;
+      background: transparent;
+      transition: all 0.3s ease;
+    }
 
-.login-box .user-box input:focus ~ label,
-.login-box .user-box input:valid ~ label {
-  top: -20px;
-  left: 0;
-  color: #bdb8b8;
-  font-size: 12px;
-}
+    input:focus,
+    input:valid {
+      border-bottom-color: #0ea5e9;
+    }
 
-.login-box form a {
-  position: relative;
-  display: inline-block;
-  padding: 10px 20px;
-  color: #ffffff;
-  font-size: 16px;
-  text-decoration: none;
-  text-transform: uppercase;
-  overflow: hidden;
-  transition: .5s;
-  margin-top: 40px;
-  letter-spacing: 4px
-}
+    input:focus ~ label,
+    input:valid ~ label {
+      top: -20px;
+      right: 0;
+      color: #0ea5e9;
+      font-size: 14px;
+    }
 
-.login-box a:hover {
-  background: #03f40f;
-  color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 5px #03f40f,
-              0 0 25px #03f40f,
-              0 0 50px #03f40f,
-              0 0 100px #03f40f;
-}
+    label {
+      position: absolute;
+      top: 1rem;
+      right: 0;
+      padding: 10px 0;
+      font-size: 16px;
+      color: #666;
+      pointer-events: none;
+      transition: .5s;
+    }
 
-.login-box a span {
-  position: absolute;
-  display: block;
-}
+    button {
+      position: relative;
+      width: 100%;
+      padding: 1rem;
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: .5s;
+      overflow: hidden;
+      margin-top: 2rem;
+    }
 
-@keyframes btn-anim1 {
-  0% {
-    left: -100%;
-  }
+    button:hover {
+      background: #0369a1;
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
+    }
 
-  50%,100% {
-    left: 100%;
-  }
-}
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+      transition: 0.5s;
+    }
 
-.login-box a span:nth-child(1) {
-  bottom: 2px;
-  left: -100%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #03f40f);
-  animation: btn-anim1 2s linear infinite;
-}
+    button:hover::before {
+      right: 100%;
+    }
+
+    .error {
+      color: #dc2626;
+      margin-top: 1.5rem;
+      padding: 0.8rem;
+      background: #fee2e2;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        margin: 1rem;
+        padding: 2rem 1.5rem;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="login-container">
     <h2>مرحباً بك في العصر الذكي</h2>
     <div class="input-group">
-      <input type="text" id="username" placeholder="اسم المستخدم" />
-      <span class="icon">👤</span>
+      <input type="text" id="username" required />
+      <label>اسم المستخدم</label>
     </div>
     <div class="input-group">
-      <input type="password" id="password" placeholder="كلمة المرور" />
-      <span class="icon">🔒</span>
+      <input type="password" id="password" required />
+      <label>كلمة المرور</label>
     </div>
     <button onclick="login()">الدخول إلى النظام</button>
     <div id="error" class="error">
-      <span class="error-icon">⚠️</span>
+      <span>⚠️</span>
       اسم المستخدم أو كلمة المرور غير صحيحة
     </div>
   </div>
 
   <script>
-    // نفس اليوزرات الأصلية
     const users = JSON.parse(localStorage.getItem("users")) || [
       { username: "siana", password: "Aa112233" },
       { username: "Corleone", password: "20032003" },
@@ -155,7 +180,6 @@
       { username: "hr", password: "100200300" }
     ];
 
-    // نفس الدوال البرمجية الأصلية
     function login() {
       const user = document.getElementById("username").value.trim();
       const pass = document.getElementById("password").value.trim();
@@ -174,11 +198,10 @@
 
         window.location.href = "index.html";
       } else {
-        document.getElementById("error").style.display = "block";
+        document.getElementById("error").style.display = "flex";
       }
     }
 
-    // نفس الأحداث الأصلية
     document.getElementById("username").addEventListener("input", () => {
       document.getElementById("error").style.display = "none";
     });
