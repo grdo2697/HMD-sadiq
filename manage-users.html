@@ -1,53 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>إدارة المستخدمين</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <style>
-    body { background-color: #f8f9fa; }
-    .card { margin-bottom: 1rem; }
-    .badge { cursor: pointer; }
-    .permission-badge { margin: 2px; }
-    .edit-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); z-index: 1000; }
-  </style>
+  <!-- ... (بقية الhead كما هي) ... -->
 </head>
 <body class="container py-4">
 
-  <h2 class="text-center mb-4">إدارة المستخدمين 👥</h2>
-
-  <!-- نموذج الإضافة/التعديل -->
-  <div class="card p-3 mb-4">
-    <div class="row g-2">
-      <div class="col-md-4">
-        <input type="text" id="username" class="form-control" placeholder="اسم المستخدم">
-      </div>
-      <div class="col-md-4">
-        <input type="password" id="password" class="form-control" placeholder="كلمة المرور">
-      </div>
-      <div class="col-md-4 d-flex gap-2 flex-wrap align-items-center">
-        <template id="permissionTemplate">
-          <span class="badge bg-primary permission-badge" onclick="togglePermission(this)"></span>
-        </template>
-        <button class="back-btn" onclick="location.href='index.html'">🏠</button>  
-        <button class="btn btn-success ms-auto" onclick="saveUser()">💾 حفظ</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="usersContainer"></div>
-
-  <!-- مودال التعديل -->
-  <div id="editModal" class="edit-modal">
-    <h5>تعديل المستخدم</h5>
-    <input type="text" id="editUsername" class="form-control mb-2" disabled>
-    <input type="password" id="editPassword" class="form-control mb-2" placeholder="كلمة مرور جديدة">
-    <div id="editPermissions" class="mb-2"></div>
-    <button class="btn btn-primary" onclick="updateUser()">تحديث</button>
-    <button class="btn btn-secondary" onclick="closeEditModal()">إغلاق</button>
-  </div>
+  <!-- ... (بقية الHTML كما هي) ... -->
 
   <script>
     const SECRET_KEY = "smart_era_secret_@2024";
@@ -61,170 +19,111 @@
       '📈 التزام القادة'
     ];
 
-    let currentEditUser = null;
-
-    // تهيئة الصلاحيات
-    function initPermissions() {
-      const container = document.querySelector('.col-md-4.d-flex');
-      ALL_PERMISSIONS.forEach(permission => {
-        const badge = document.getElementById('permissionTemplate').content.cloneNode(true);
-        badge.querySelector('.badge').textContent = permission;
-        container.insertBefore(badge, container.querySelector('button'));
-      });
-    }
-
-    // التحقق من الصلاحية
-    function hasPermission(permission) {
-      const session = decryptSession();
-      return session?.permissions?.includes(permission);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const session = decryptSession();
-      if (!session) handleAuthError();
-      if (!hasPermission('👥 إدارة المستخدمين')) handleAuthError();
-      
-      initPermissions();
-      renderUsers();
-    });
-
-    function decryptSession() {
-      const encryptedSession = sessionStorage.getItem('auth');
-      if (encryptedSession) {
-        try {
-          return JSON.parse(CryptoJS.AES.decrypt(encryptedSession, SECRET_KEY).toString(CryptoJS.enc.Utf8));
-        } catch (e) {
-          console.error("فشل فك التشفير:", e);
-        }
+    // تهيئة المستخدمين الافتراضيين
+    function initializeDefaultUsers() {
+      if (!localStorage.getItem('users')) {
+        const defaultUsers = [{
+          username: "hr",
+          password: "100200300",
+          permissions: ALL_PERMISSIONS,
+          createdAt: new Date().toISOString()
+        }];
+        
+        const encryptedData = CryptoJS.AES.encrypt(
+          JSON.stringify(defaultUsers), 
+          SECRET_KEY
+        ).toString();
+        
+        localStorage.setItem('users', encryptedData);
       }
-      return null;
     }
 
-    function handleAuthError() {
-      sessionStorage.removeItem("auth");
-      window.location.href = "login.html";
-    }
-
-    function togglePermission(el) {
-      el.classList.toggle('bg-primary');
-      el.classList.toggle('bg-success');
-    }
-
-    function getSelectedPermissions() {
-      return Array.from(document.querySelectorAll('.permission-badge.bg-success')).map(b => b.textContent.trim());
-    }
-
-    function getUsers() {
-      const encryptedUsers = localStorage.getItem('users');
-      if (!encryptedUsers) return [];
+    // تحميل المستخدمين
+    function loadUsers() {
+      const encryptedData = localStorage.getItem('users');
+      if (!encryptedData) return [];
+      
       try {
-        return JSON.parse(CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8));
-      } catch (e) {
-        console.error("فشل فك التشفير:", e);
+        const decrypted = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY);
+        return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8)) || [];
+      } catch (error) {
+        console.error("خطأ في تحميل البيانات:", error);
         return [];
       }
     }
 
-    function saveUser() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const permissions = getSelectedPermissions();
+    // حفظ المستخدمين
+    function saveUsers(users) {
+      const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(users), 
+        SECRET_KEY
+      ).toString();
+      
+      localStorage.setItem('users', encryptedData);
+    }
 
-      if (!username || !password) return alert("يرجى إدخال بيانات المستخدم");
+    function addUser() {
+      const newUser = {
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value.trim(),
+        permissions: getSelectedPermissions(),
+        createdAt: new Date().toISOString()
+      };
 
-      const users = getUsers();
-      const existingUser = users.find(u => u.username === username);
+      if (!newUser.username || !newUser.password) {
+        return alert("يرجى تعبئة جميع الحقول");
+      }
 
-      if (existingUser) return alert("اسم المستخدم موجود!");
+      const existingUsers = loadUsers();
+      if (existingUsers.some(u => u.username === newUser.username)) {
+        return alert("اسم المستخدم موجود مسبقاً!");
+      }
 
-      users.push({ username, password, permissions });
-      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString());
+      existingUsers.push(newUser);
+      saveUsers(existingUsers);
+      
       renderUsers();
       clearForm();
-    }
-
-    function openEditModal(user) {
-      currentEditUser = user;
-      document.getElementById('editUsername').value = user.username;
-      document.getElementById('editPassword').value = '';
-      populateEditPermissions(user.permissions);
-      document.getElementById('editModal').style.display = 'block';
-    }
-
-    function populateEditPermissions(permissions) {
-      const container = document.getElementById('editPermissions');
-      container.innerHTML = '';
-      ALL_PERMISSIONS.forEach(perm => {
-        const badge = document.createElement('span');
-        badge.className = `badge ${permissions.includes(perm) ? 'bg-success' : 'bg-primary'} permission-badge me-1`;
-        badge.textContent = perm;
-        badge.onclick = () => togglePermission(badge);
-        container.appendChild(badge);
-      });
-    }
-
-    function updateUser() {
-      const newPassword = document.getElementById('editPassword').value.trim();
-      const permissions = Array.from(document.querySelectorAll('#editPermissions .badge.bg-success'))
-                            .map(b => b.textContent.trim());
-
-      const users = getUsers();
-      const userIndex = users.findIndex(u => u.username === currentEditUser.username);
-      
-      if (newPassword) users[userIndex].password = newPassword;
-      users[userIndex].permissions = permissions;
-
-      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString());
-      renderUsers();
-      closeEditModal();
-    }
-
-    function closeEditModal() {
-      document.getElementById('editModal').style.display = 'none';
-      currentEditUser = null;
+      alert("تم إضافة المستخدم بنجاح ✅");
     }
 
     function renderUsers() {
-      const users = getUsers();
+      const users = loadUsers();
       const container = document.getElementById('usersContainer');
       container.innerHTML = '';
 
       users.forEach(user => {
-        const card = document.createElement('div');
-        card.className = 'card p-3';
-        card.innerHTML = `
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h5>${user.username}</h5>
-              <div>${user.permissions.map(p => `<span class="badge bg-secondary me-1">${p}</span>`).join('')}</div>
+        const userCard = `
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">${user.username}</h5>
+              <p class="card-text">
+                الصلاحيات: 
+                ${user.permissions.map(p => `<span class="badge bg-primary me-1">${p}</span>`).join('')}
+              </p>
+              <div class="d-flex gap-2">
+                <button onclick="editUser('${user.username}')" 
+                  class="btn btn-warning btn-sm">✏️ تعديل</button>
+                <button onclick="deleteUser('${user.username}')" 
+                  class="btn btn-danger btn-sm">🗑 حذف</button>
+              </div>
             </div>
-            <div>
-              ${user.username !== 'hr' ? `
-                <button class="btn btn-sm btn-warning me-2" onclick="openEditModal(${JSON.stringify(user)})">✏️ تعديل</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')">🗑 حذف</button>
-              ` : ''}
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
+          </div>`;
+        container.insertAdjacentHTML('beforeend', userCard);
       });
     }
 
     function deleteUser(username) {
-      if (username === 'hr') return alert("لا يمكن حذف المدير");
-      const users = getUsers().filter(u => u.username !== username);
-      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(users), SECRET_KEY).toString());
+      if (username === 'hr') return alert("لا يمكن حذف المدير الرئيسي");
+      
+      const users = loadUsers().filter(u => u.username !== username);
+      saveUsers(users);
       renderUsers();
     }
 
-    function clearForm() {
-      document.getElementById('username').value = '';
-      document.getElementById('password').value = '';
-      document.querySelectorAll('.permission-badge').forEach(b => {
-        b.classList.remove('bg-success');
-        b.classList.add('bg-primary');
-      });
-    }
+    // التهيئة الأولية
+    initializeDefaultUsers();
+    renderUsers();
   </script>
 </body>
 </html>
