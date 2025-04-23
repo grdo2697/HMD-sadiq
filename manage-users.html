@@ -3,169 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>إدارة المستخدمين</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+  <title>إدارة المستخدمين - العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
-    body { background-color: #f8f9fa; }
-    .card { margin-bottom: 1rem; }
-    .badge { cursor: pointer; }
-    .permission-badge { margin: 2px; }
-    .edit-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); z-index: 1000; }
+    body { font-family: 'Cairo', sans-serif; margin:0; padding:2rem; background:#f9fafb; color:#0f172a; }
+    h1 { text-align:center; color:#0ea5e9; }
+    .controls { margin-bottom:1rem; }
+    .controls input, .controls button { padding:0.5rem; margin-right:0.5rem; }
+    table { width:100%; border-collapse:collapse; margin-top:1rem;}
+    th, td { border:1px solid #cbd5e1; padding:0.5rem; text-align:right; }
+    .badge { cursor:pointer; padding:0.2em 0.5em; border-radius:4px; margin-left:0.3em;}
+    .bg-primary { background:#0ea5e9; color:#fff; }
+    .bg-success { background:#22c55e; color:#fff; }
+    .bg-danger  { background:#ef4444; color:#fff; }
+    .logout { position:fixed; top:1rem; left:1rem; }
   </style>
 </head>
-<body class="container py-4">
+<body>
 
-  <h2 class="text-center mb-4">إدارة المستخدمين 👥</h2>
+  <button class="logout" onclick="logout()">🚪 تسجيل خروج</button>
+  <h1>إدارة المستخدمين</h1>
 
-  <!-- نموذج الإضافة/التعديل -->
-  <div class="card p-3 mb-4">
-    <div class="row g-2">
-      <div class="col-md-4">
-        <input type="text" id="username" class="form-control" placeholder="اسم المستخدم">
-      </div>
-      <div class="col-md-4">
-        <input type="password" id="password" class="form-control" placeholder="كلمة المرور">
-      </div>
-      <div class="col-md-4 d-flex gap-2 flex-wrap align-items-center">
-        <template id="permissionTemplate">
-          <span class="badge bg-primary permission-badge" onclick="togglePermission(this)"></span>
-        </template>
-        <button class="back-btn" onclick="location.href='index.html'">🏠</button>  
-        <button class="btn btn-success ms-auto" onclick="saveUser()">💾 حفظ</button>
-      </div>
-    </div>
+  <div class="controls">
+    <input id="new-username" placeholder="اسم المستخدم" />
+    <input id="new-password" type="password" placeholder="كلمة المرور" />
+    <span>أذونات:</span>
+    <span class="badge bg-primary permission" data-perm="manage_users">إدارة مستخدمين</span>
+    <span class="badge bg-primary permission" data-perm="view_penalties">عقوبات</span>
+    <span class="badge bg-primary permission" data-perm="view_ratings">تقييمات</span>
+    <span class="badge bg-primary permission" data-perm="view_requests">طلبات توظيف</span>
+    <button onclick="addUser()">➕ أضف مستخدم</button>
   </div>
 
-  <div id="usersContainer"></div>
-
-  <!-- مودال التعديل -->
-  <div id="editModal" class="edit-modal">
-    <h5>تعديل المستخدم</h5>
-    <input type="text" id="editUsername" class="form-control mb-2" disabled>
-    <input type="password" id="editPassword" class="form-control mb-2" placeholder="كلمة مرور جديدة">
-    <div id="editPermissions" class="mb-2"></div>
-    <button class="btn btn-primary" onclick="updateUser()">تحديث</button>
-    <button class="btn btn-secondary" onclick="closeEditModal()">إغلاق</button>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>المستخدم</th><th>أذونات</th><th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="users-body"></tbody>
+  </table>
 
   <script>
-    const SECRET_KEY = "smart_era_secret_@2024";
-    const ALL_PERMISSIONS = [
-      '📥 تنزيل Excel',
-      '📋 عرض التقييمات',
-      '👥 إدارة المستخدمين',
-      '⚖️ عرض العقوبات',
-      '📝 طلبات التوظيف',
-      '🚲 دراجات',
-      '📈 التزام القادة'
-    ];
+    const SECRET_KEY = 'smart_era_secret_@2024';
 
-    // تهيئة المستخدمين الافتراضيين
-    function initializeDefaultUsers() {
-      if (!localStorage.getItem('users')) {
-        const defaultUsers = [{
-          username: "hr",
-          password: "100200300",
-          permissions: ALL_PERMISSIONS,
-          createdAt: new Date().toISOString()
-        }];
-        
-        const encryptedData = CryptoJS.AES.encrypt(
-          JSON.stringify(defaultUsers), 
-          SECRET_KEY
-        ).toString();
-        
-        localStorage.setItem('users', encryptedData);
+    // retrieve & decrypt or seed defaults
+    function getUsers() {
+      const e = localStorage.getItem('users');
+      if (!e) {
+        const defaults = [
+          { u:'hr', p:'100200300', perms:['manage_users','view_penalties','view_ratings','view_requests'] }
+        ];
+        localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(defaults), SECRET_KEY).toString());
+        return defaults;
       }
+      const json = CryptoJS.AES.decrypt(e, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+      return JSON.parse(json||'[]');
     }
 
-    // تحميل المستخدمين
-    function loadUsers() {
-      const encryptedData = localStorage.getItem('users');
-      if (!encryptedData) return [];
-      
-      try {
-        const decrypted = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY);
-        return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8)) || [];
-      } catch (error) {
-        console.error("خطأ في تحميل البيانات:", error);
-        return [];
-      }
+    function saveUsers(arr) {
+      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(arr), SECRET_KEY).toString());
     }
 
-    // حفظ المستخدمين
-    function saveUsers(users) {
-      const encryptedData = CryptoJS.AES.encrypt(
-        JSON.stringify(users), 
-        SECRET_KEY
-      ).toString();
-      
-      localStorage.setItem('users', encryptedData);
-    }
-
-    function addUser() {
-      const newUser = {
-        username: document.getElementById('username').value.trim(),
-        password: document.getElementById('password').value.trim(),
-        permissions: getSelectedPermissions(),
-        createdAt: new Date().toISOString()
-      };
-
-      if (!newUser.username || !newUser.password) {
-        return alert("يرجى تعبئة جميع الحقول");
-      }
-
-      const existingUsers = loadUsers();
-      if (existingUsers.some(u => u.username === newUser.username)) {
-        return alert("اسم المستخدم موجود مسبقاً!");
-      }
-
-      existingUsers.push(newUser);
-      saveUsers(existingUsers);
-      
-      renderUsers();
-      clearForm();
-      alert("تم إضافة المستخدم بنجاح ✅");
-    }
-
-    function renderUsers() {
-      const users = loadUsers();
-      const container = document.getElementById('usersContainer');
-      container.innerHTML = '';
-
-      users.forEach(user => {
-        const userCard = `
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">${user.username}</h5>
-              <p class="card-text">
-                الصلاحيات: 
-                ${user.permissions.map(p => `<span class="badge bg-primary me-1">${p}</span>`).join('')}
-              </p>
-              <div class="d-flex gap-2">
-                <button onclick="editUser('${user.username}')" 
-                  class="btn btn-warning btn-sm">✏️ تعديل</button>
-                <button onclick="deleteUser('${user.username}')" 
-                  class="btn btn-danger btn-sm">🗑 حذف</button>
-              </div>
-            </div>
-          </div>`;
-        container.insertAdjacentHTML('beforeend', userCard);
+    function render() {
+      const body = document.getElementById('users-body');
+      body.innerHTML = '';
+      getUsers().forEach((u,i) => {
+        const perms = u.perms.map(p=>`<span class="badge bg-success">${p}</span>`).join('');
+        body.innerHTML += `
+          <tr>
+            <td>${u.u}</td>
+            <td>${perms}</td>
+            <td><button onclick="deleteUser(${i})">❌</button></td>
+          </tr>`;
       });
     }
 
-    function deleteUser(username) {
-      if (username === 'hr') return alert("لا يمكن حذف المدير الرئيسي");
-      
-      const users = loadUsers().filter(u => u.username !== username);
+    function addUser() {
+      const name = document.getElementById('new-username').value.trim();
+      const pass = document.getElementById('new-password').value;
+      if (!name||!pass) return alert('أدخل اسم ومفتاح');
+      // collect permissions
+      const perms = Array.from(document.querySelectorAll('.permission.bg-success'))
+                         .map(b=>b.dataset.perm);
+      const users = getUsers();
+      if (users.find(u=>u.u===name)) return alert('المستخدم موجود');
+      users.push({u:name,p:pass,perms});
       saveUsers(users);
-      renderUsers();
+      render();
     }
 
-    // التهيئة الأولية
-    initializeDefaultUsers();
-    renderUsers();
+    function deleteUser(idx) {
+      const users = getUsers();
+      users.splice(idx,1);
+      saveUsers(users);
+      render();
+    }
+
+    // toggle badge selection
+    document.querySelectorAll('.permission').forEach(b=>{
+      b.onclick = ()=> b.classList.toggle('bg-success');
+    });
+
+    function logout() {
+      sessionStorage.removeItem('auth');
+      window.location.href='login.html';
+    }
+
+    // init
+    render();
   </script>
 </body>
 </html>
