@@ -15,7 +15,6 @@
       align-items: center;
       min-height: 100vh;
     }
-
     .login-box {
       position: relative;
       width: 400px;
@@ -25,103 +24,50 @@
       border-radius: 10px;
       text-align: center;
     }
-
     .login-box h2 {
       color: #fff;
       margin-bottom: 2rem;
       font-size: 1.8rem;
     }
-
-    .user-box {
-      position: relative;
-      margin-bottom: 2.5rem;
-    }
-
+    .user-box { position: relative; margin-bottom: 2.5rem; }
     .user-box input {
-      width: 100%;
-      padding: 10px 0;
-      font-size: 16px;
-      color: #fff;
-      border: none;
-      border-bottom: 1px solid #fff;
-      outline: none;
-      background: transparent;
+      width: 100%; padding: 10px 0; font-size: 16px;
+      color: #fff; border: none; border-bottom: 1px solid #fff;
+      outline: none; background: transparent;
     }
-
     .user-box label {
-      position: absolute;
-      top: 0;
-      right: 0;
-      padding: 10px 0;
-      font-size: 16px;
-      color: #fff;
-      pointer-events: none;
-      transition: .5s;
+      position: absolute; top: 0; right: 0;
+      padding: 10px 0; font-size: 16px; color: #fff;
+      pointer-events: none; transition: .5s;
     }
-
     .user-box input:focus ~ label,
     .user-box input:valid ~ label {
-      top: -20px;
-      right: 0;
-      color: #03f40f;
-      font-size: 12px;
+      top: -20px; right: 0; color: #03f40f; font-size: 12px;
     }
-
     button {
-      position: relative;
-      display: inline-block;
-      padding: 10px 20px;
-      color: #03f40f;
-      font-size: 16px;
-      text-decoration: none;
-      text-transform: uppercase;
-      overflow: hidden;
-      transition: .5s;
-      margin-top: 40px;
-      letter-spacing: 4px;
-      background: none;
-      border: none;
+      position: relative; display: inline-block;
+      padding: 10px 20px; color: #03f40f; font-size: 16px;
+      text-decoration: none; text-transform: uppercase;
+      overflow: hidden; transition: .5s; margin-top: 40px;
+      letter-spacing: 4px; background: none; border: none;
       cursor: pointer;
     }
-
     button:hover {
-      background: #03f40f;
-      color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 0 5px #03f40f,
-                  0 0 25px #03f40f,
-                  0 0 50px #03f40f,
-                  0 0 100px #03f40f;
+      background: #03f40f; color: #fff; border-radius: 5px;
+      box-shadow: 0 0 5px #03f40f, 0 0 25px #03f40f,
+                  0 0 50px #03f40f, 0 0 100px #03f40f;
     }
-
-    button span {
-      position: absolute;
-      display: block;
-    }
-
+    button span { position: absolute; display: block; }
     button span:nth-child(1) {
-      bottom: 2px;
-      right: -100%;
-      width: 100%;
-      height: 2px;
+      bottom: 2px; right: -100%; width: 100%; height: 2px;
       background: linear-gradient(270deg, transparent, #03f40f);
       animation: btn-anim1 2s linear infinite;
     }
-
     @keyframes btn-anim1 {
-      0% {
-        right: -100%;
-      }
-      50%,100% {
-        right: 100%;
-      }
+      0% { right: -100%; }
+      50%,100% { right: 100%; }
     }
-
-    .error {
-      color: #ff4444;
-      margin-top: 1.5rem;
-      display: none;
-    }
+    .error { color: #ff4444; margin-top: 1.5rem; display: none; }
   </style>
 </head>
 <body>
@@ -135,16 +81,14 @@
       <input type="password" id="password" required>
       <label>كلمة المرور</label>
     </div>
-    <button onclick="login()">
-      <span></span>
-      دخول
+    <button id="loginBtn">
+      <span></span> دخول
     </button>
-    <div id="error" class="error">
-      ! بيانات الدخول غير صحيحة
-    </div>
+    <div id="error" class="error">! بيانات الدخول غير صحيحة</div>
   </div>
 
   <script>
+    // التعريف بالمستخدمين الافتراضيين
     const users = JSON.parse(localStorage.getItem("users")) || [
       { username: "siana", password: "Aa112233" },
       { username: "Corleone", password: "20032003" },
@@ -153,35 +97,37 @@
       { username: "hr", password: "100200300" }
     ];
 
+    const inputUsername = document.getElementById('username');
+    const inputPassword = document.getElementById('password');
+    const errorDiv = document.getElementById('error');
+    const loginBtn = document.getElementById('loginBtn');
+
     function login() {
-      const user = document.getElementById("username").value.trim();
-      const pass = document.getElementById("password").value.trim();
+      const user = inputUsername.value.trim();
+      const pass = inputPassword.value.trim();
       const valid = users.find(u => u.username === user && u.password === pass);
 
       if (valid) {
         localStorage.setItem("username", user);
         localStorage.setItem("password", pass);
-
-        if (user.toLowerCase() === "hr") {
-          const hrPermissions = ["📥 تنزيل Excel", "📋 عرض التقييمات"];
-          localStorage.setItem("permissions", JSON.stringify(hrPermissions));
-        } else {
-          localStorage.removeItem("permissions");
-        }
-
         window.location.href = "index.html";
       } else {
-        document.getElementById("error").style.display = "block";
+        errorDiv.style.display = "block";
       }
     }
 
-    document.getElementById("username").addEventListener("input", () => {
-      document.getElementById("error").style.display = "none";
+    // الاستماع لحدث Enter على المدخلات
+    [inputUsername, inputPassword].forEach(el => {
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          login();
+        }
+      });
     });
 
-    document.getElementById("password").addEventListener("input", () => {
-      document.getElementById("error").style.display = "none";
-    });
+    // اخفاء رسالة الخطأ عند الكتابة
+    inputUsername.addEventListener("input", () => errorDiv.style.display = "none");
+    inputPassword.addEventListener("input", () => errorDiv.style.display = "none");
   </script>
 </body>
 </html>
