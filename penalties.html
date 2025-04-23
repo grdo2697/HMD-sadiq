@@ -127,7 +127,7 @@
       <table id="penaltiesTable">
         <thead>
           <tr>
-            <th>الاسم</th>
+            <th>اسم الموظف</th>
             <th>القسم</th>
             <th>نوع العقوبة</th>
             <th>التاريخ</th>
@@ -188,7 +188,7 @@
     function renderTable(data) {
       document.getElementById('tbody').innerHTML = data.map(item=>`
         <tr>
-          <td data-label="الاسم">${item.الاسم}</td>
+          <td data-label="اسم الموظف">${item.الاسم}</td>
           <td data-label="القسم">${item.القسم}</td>
           <td data-label="نوع العقوبة">${item.نوع_العقوبة}</td>
           <td data-label="التاريخ">${item.التاريخ}</td>
@@ -226,7 +226,7 @@
     }
 
     function downloadExcel() {
-      const headers = ['الاسم','القسم','نوع العقوبة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة','المجموع'];
+      const headers = ['اسم الموظف','القسم','نوع العقوبة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة','المجموع'];
       const rows = Array.from(document.querySelectorAll('#tbody tr'))
         .map(tr=>Array.from(tr.children).map(td=>td.textContent.trim()));
       const wb = XLSX.utils.book_new();
