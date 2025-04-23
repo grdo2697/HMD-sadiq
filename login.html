@@ -27,26 +27,11 @@
 
   <script>
     const SECRET_KEY = "smart_era_secret_@2024";
-    
-    // قائمة الصلاحيات الكاملة
     const ALL_PERMISSIONS = [
-      '📥 تنزيل Excel',
-      '📋 عرض التقييمات',
-      '👥 إدارة المستخدمين',
-      '⚖️ عرض العقوبات',
-      '📝 طلبات التوظيف',
-      '🚲 دراجات',
-      '📈 التزام القادة'
+      '📥 تنزيل Excel', '📋 عرض التقييمات', '👥 إدارة المستخدمين',
+      '⚖️ عرض العقوبات', '📝 طلبات التوظيف', '🚲 دراجات', '📈 التزام القادة'
     ];
-
-    // المستخدم الافتراضي
-    const DEFAULT_USERS = [
-      {
-        username: "hr",
-        password: "100200300", // تم تغيير كلمة المرور هنا
-        permissions: ALL_PERMISSIONS // جميع الصلاحيات
-      }
-    ];
+    const DEFAULT_USERS = [ { username: "hr", password: "100200300", permissions: ALL_PERMISSIONS } ];
 
     function initDefaultUsers() {
       if (!localStorage.getItem('users')) {
@@ -55,56 +40,29 @@
       }
     }
 
-function login() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-
-  if (!username || !password) return alert("يرجى إدخال جميع البيانات");
-
-  try {
-    const encryptedUsers = localStorage.getItem('users');
-    if (!encryptedUsers) throw new Error("لا يوجد مستخدمين مسجلين");
-
-    // فك التشفير
-    const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY);
-    const users = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
-
-    // البحث عن المستخدم
-    const user = users.find(u => 
-      u.username === username && 
-      u.password === password
-    );
-
-    if (!user) throw new Error("بيانات الدخول غير صحيحة");
-
-    // إنشاء الجلسة
-    const sessionData = {
-      username: user.username,
-      permissions: user.permissions,
-      loginTime: new Date().getTime()
-    };
-
-    const encryptedSession = CryptoJS.AES.encrypt(
-      JSON.stringify(sessionData), 
-      SECRET_KEY
-    ).toString();
-
-    sessionStorage.setItem('auth', encryptedSession);
-
-    // التوجيه حسب الصلاحيات
-    if (user.permissions.includes('👥 إدارة المستخدمين')) {
-      window.location.href = 'manage-users.html';
-    } else {
-      window.location.href = 'dashboard.html'; // صفحة المستخدم العادي
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) return alert("يرجى إدخال جميع البيانات");
+      try {
+        const encryptedUsers = localStorage.getItem('users');
+        if (!encryptedUsers) throw new Error("لا يوجد مستخدمين مسجلين");
+        const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY);
+        const users = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+        const user = users.find(u => u.username === username && u.password === password);
+        if (!user) throw new Error("بيانات الدخول غير صحيحة");
+        const sessionData = { username: user.username, permissions: user.permissions, loginTime: new Date().getTime() };
+        const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify(sessionData), SECRET_KEY).toString();
+        // استخدم localStorage بدلا من sessionStorage للحفاظ على الجلسة بعد التحديث
+        localStorage.setItem('auth', encryptedSession);
+        // إعادة توجيه حسب الصلاحيات
+        if (user.permissions.includes('👥 إدارة المستخدمين')) window.location.href = 'manage-users.html';
+        else window.location.href = 'index.html';
+      } catch (error) {
+        console.error('خطأ في التسجيل:', error);
+        alert(error.message || 'حدث خطأ أثناء التسجيل');
+      }
     }
-
-  } catch (error) {
-    console.error('خطأ في التسجيل:', error);
-    alert(error.message || 'حدث خطأ أثناء التسجيل');
-  }
-}
-
-    // تهيئة المستخدم الافتراضي عند التحميل
     initDefaultUsers();
   </script>
 </body>
