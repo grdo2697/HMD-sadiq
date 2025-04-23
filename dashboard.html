@@ -14,6 +14,9 @@
     .permission-card:hover {
       transform: translateY(-5px);
     }
+    .hr-special {
+      background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+    }
   </style>
 </head>
 <body class="container py-4">
@@ -26,47 +29,54 @@
 
   <script>
     function checkAuth() {
-      const encryptedSession = sessionStorage.getItem('auth');
-      if (!encryptedSession) location.href = 'login.html';
+      const sessionUser = localStorage.getItem('username');
+      const sessionPermissions = JSON.parse(localStorage.getItem('permissions') || [];
+      
+      if (!sessionUser) {
+        location.href = 'login.html';
+        return;
+      }
 
-      try {
-        const decrypted = CryptoJS.AES.decrypt(encryptedSession, "smart_era_secret_@2024");
-        const session = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
-        
-        document.getElementById('username').textContent = session.username;
-        renderPermissions(session.permissions);
-      } catch (error) {
-        logout();
+      document.getElementById('username').textContent = sessionUser;
+      renderPermissions(sessionPermissions);
+      
+      // إضافة خصائص خاصة لموظف الـ HR
+      if (sessionUser.toLowerCase() === 'hr') {
+        document.body.classList.add('hr-special');
+        document.title = "لوحة تحكم الموارد البشرية";
       }
     }
 
     function renderPermissions(permissions) {
       const container = document.getElementById('permissionsContainer');
       const allPermissions = {
-        '📥 تنزيل Excel': 'يمكنك تنزيل التقارير بصيغة Excel',
-        '📋 عرض التقييمات': 'عرض تقييمات الموظفين والأقسام',
-        '⚖️ عرض العقوبات': 'عرض سجل العقوبات والإجراءات التأديبية',
-        '📝 طلبات التوظيف': 'إدارة طلبات التوظيف والمرشحين',
-        '🚲 دراجات': 'إدارة نظام مشاركة الدراجات',
-        '📈 التزام القادة': 'مراقبة مؤشرات أداء القيادات'
+        '📥 تنزيل Excel': 'تنزيل كافة البيانات بصيغة اكسل',
+        '📋 عرض التقييمات': 'مراجعة تقييمات الأداء الشهرية',
+        '📝 إدارة الموظفين': 'إضافة/تعديل بيانات الموظفين',
+        '💰 إدارة الرواتب': 'تعديل هياكل الرواتب والمكافآت',
+        '📅 إدارة الإجازات': 'الموافقة على طلبات الإجازات',
+        '📊 تقارير إحصائية': 'عرض التقارير الإدارية'
       };
 
       container.innerHTML = Object.entries(allPermissions)
-        .map(([perm, desc]) => `
-          <div class="col-md-4">
-            <div class="card permission-card p-3 ${permissions.includes(perm) ? '' : 'bg-secondary text-light'}">
-              <h3>${perm}</h3>
-              <p>${desc}</p>
-              ${permissions.includes(perm) ? 
-                '<span class="badge bg-success">مفعل</span>' : 
-                '<span class="badge bg-danger">غير متاح</span>'}
+        .map(([perm, desc]) => {
+          const hasAccess = permissions.includes(perm) || permissions.length === 0;
+          return `
+            <div class="col-md-4">
+              <div class="card permission-card p-3 ${hasAccess ? '' : 'bg-secondary text-light'}">
+                <h3>${perm}</h3>
+                <p>${desc}</p>
+                ${hasAccess ? 
+                  '<span class="badge bg-success">مفعل</span>' : 
+                  '<span class="badge bg-danger">غير متاح</span>'}
+              </div>
             </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
     }
 
     function logout() {
-      sessionStorage.removeItem('auth');
+      localStorage.clear();
       location.href = 'login.html';
     }
 
