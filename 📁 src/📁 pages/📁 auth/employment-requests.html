@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>طلبات التوظيف - شركة العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+    .dark-mode {
+      --background: #1a1a1a;
+      --text: #ffffff;
+      --border: #444444;
+      --hover: #333333;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--primary);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .controls input,
+    .controls select,
+    .controls button {
+      padding: 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button.primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+    .controls button.primary:hover {
+      background: var(--secondary);
+    }
+    .loader {
+      display: none;
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 2rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:hover {
+      background: var(--hover);
+    }
+    .status-قيد_الانتظار { color: #eab308; font-weight: bold; }
+    .status-موافق        { color: #22c55e; font-weight: bold; }
+    .status-مرفوض       { color: #ef4444; font-weight: bold; }
+    .logout-btn, .toggle-dark {
+      position: fixed;
+      top: 1rem;
+      width: 45px; height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .toggle-dark { left: 1rem; }
+    .logout-btn   { left: 4.5rem; }
+    .no-data, .error {
+      text-align: center;
+      padding: 1.5rem;
+      font-weight: bold;
+    }
+    .no-data { color: #64748b; }
+    .error   { color: #ef4444; }
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { margin-bottom: 1rem; }
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+      }
+      td:before {
+        position: absolute;
+        right: 10px;
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
+  <button class="back-btn" onclick="location.href='index.html'">🏠</button>  
+
+  <div class="container">
+    <h1>🗃️ طلبات التوظيف الجديدة</h1>
+
+    <div class="controls">
+      <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
+      <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
+      <input type="text" id="search" placeholder="ابحث باسم أو رقم هاتف..." oninput="filterTable()">
+      <select id="filter-type" onchange="filterTable()">
+        <option value="">كل أنواع الطلب</option>
+      </select>
+    </div>
+
+    <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>نوع الطلب</th>
+          <th>الحالة</th>
+          <th>الموظف المسؤول</th>
+          <th>تاريخ التقديم</th>
+          <th>رقم الهاتف</th>
+          <th>التحصيل الدراسي</th>
+          <th>العنوان</th>
+          <th>المواليد</th>
+          <th>الراتب</th>
+          <th>النقل</th>
+          <th>وقت المباشرة</th>
+          <th>الشركة السابقة</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // السماح فقط لمستخدم "hr" بالبقاء
+    const user = localStorage.getItem('username');
+    if (user !== 'hr') {
+      window.location.href = 'index.html';
+    }
+
+    // رابط النشر مع ورقة "موظفين الحريه تقديم"
+    const SCRIPT_URL = 
+      'https://script.google.com/macros/s/AKfycbzWmuDsU4H46EnsMCsNTuaGV_4vK0ZF3K2oEhuRI8E3REKJEomJOfxcPqvL8F_EUKGpWg/exec'
+      + '?sheet=موظفين%20الحريه%20تقديم';
+
+    let allData = [];
+
+    async function fetchData() {
+      showLoading();
+      try {
+        const res  = await fetch(SCRIPT_URL);
+        if (!res.ok) throw new Error('خطأ في الاتصال بالسيرفر');
+        const obj  = await res.json();
+        if (!obj.success) throw new Error(obj.error);
+        allData = obj.data;
+        if (!allData.length) return showEmpty();
+        populateTypeFilter();
+        renderTable(allData);
+      } catch (e) {
+        showError(e.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function renderTable(arr) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      arr.forEach(item => {
+        const cls = 'status-' + (item.الحالة||'قيد الانتظار').replace(/ /g,'_');
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td data-label="الاسم">${item.الاسم}</td>
+            <td data-label="نوع الطلب">${item.نوع_الطلب}</td>
+            <td data-label="الحالة" class="${cls}">${item.الحالة}</td>
+            <td data-label="الموظف المسؤول">${item.الموظف_المسؤول}</td>
+            <td data-label="تاريخ التقديم">${item.تاريخ_التقديم}</td>
+            <td data-label="رقم الهاتف">${item.رقم_الهاتف}</td>
+            <td data-label="التحصيل الدراسي">${item.التحصيل_الدراسي}</td>
+            <td data-label="العنوان">${item.العنوان}</td>
+            <td data-label="المواليد">${item.المواليد}</td>
+            <td data-label="الراتب">${item.الراتب_المتفق_عليه}</td>
+            <td data-label="النقل">${item.النقل}</td>
+            <td data-label="وقت المباشرة">${item.وقت_المباشرة}</td>
+            <td data-label="الشركة السابقة">${item.الشركه_السابقة}</td>
+          </tr>
+        `);
+      });
+    }
+
+    function populateTypeFilter() {
+      const sel = document.getElementById('filter-type');
+      const types = [...new Set(allData.map(i => i.نوع_الطلب))].filter(Boolean).sort();
+      sel.innerHTML = '<option value="">كل أنواع الطلب</option>';
+      types.forEach(t => sel.insertAdjacentHTML('beforeend',
+        `<option value="${t}">${t}</option>`));
+    }
+
+    // فلترة الاسم أو رقم الهاتف
+    function filterTable() {
+      const txt = document.getElementById('search').value.toLowerCase();
+      const tp  = document.getElementById('filter-type').value;
+      const filt = allData.filter(i => {
+        const byType  = !tp   || i.نوع_الطلب === tp;
+        const byName  = i.الاسم.toLowerCase().includes(txt);
+        const byPhone = i.رقم_الهاتف.toLowerCase().includes(txt);
+        return byType && (byName || byPhone);
+      });
+      renderTable(filt);
+    }
+
+    function clearTable() {
+      allData = [];
+      document.getElementById('tableBody').innerHTML = '';
+      document.getElementById('filter-type').innerHTML = '<option value="">كل أنواع الطلب</option>';
+    }
+
+    function showEmpty() {
+      document.getElementById('tableBody').innerHTML =
+        `<tr><td colspan="13" class="no-data">لا توجد طلبات حالياً</td></tr>`;
+    }
+    function showError(msg) {
+      document.getElementById('tableBody').innerHTML =
+        `<tr><td colspan="13" class="error">⚠️ ${msg}</td></tr>`;
+    }
+    function showLoading(){ document.getElementById('loading').style.display='block'; }
+    function hideLoading(){ document.getElementById('loading').style.display='none'; }
+
+    function logout(){
+      localStorage.clear();
+      location.href='login.html';
+    }
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.toggle('dark-mode',
+        localStorage.getItem('darkMode')==='true');
+      fetchData();
+    });
+  </script>
+</body>
+</html>
