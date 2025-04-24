@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تقييمات موظفين شركة العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --accent: #facc15;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+
+    .dark-mode {
+      --background: #0f172a;
+      --text: #f9fafb;
+      --border: #334155;
+      --hover: #1e293b;
+    }
+
+    * {
+      font-family: 'Cairo', sans-serif;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2rem 1rem;
+      border-radius: 0 0 30px 30px;
+      text-align: center;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin: 0;
+      text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem 1rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+    }
+
+    button, select, input {
+      padding: 0.8rem 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover, select:hover {
+      background: var(--secondary);
+    }
+
+    input[type="text"] {
+      background: white;
+      color: black;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    th {
+      background: rgba(14, 165, 233, 0.1);
+      color: var(--primary);
+    }
+
+    tr:hover {
+      background-color: var(--hover);
+    }
+
+    .sort-btn {
+      background: var(--accent);
+      color: #1e293b;
+      border: 1px solid var(--border);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // الحماية - منع الوصول بدون تسجيل دخول
+    const username = localStorage.getItem("username");
+    if (!username) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <header>
+    <h1>عرض التقييمات</h1>
+  </header>
+
+  <div class="container" id="reviews-container" style="display: none;">
+    <div class="controls">
+      <button onclick="fetchReviews()">🔄 تحديث البيانات</button>
+      <button onclick="clearTable()">🗑️ مسح الكل</button>
+      <button onclick="downloadExcel()">📥 تنزيل Excel</button>
+      <select id="gradeFilter" onchange="filterTable()">
+        <option value="">تصفية حسب الدرجة الوظيفية</option>
+      </select>
+      <button class="sort-btn" onclick="sortBy('operationRating')">⇅ عدد العمليات</button>
+      <button class="sort-btn" onclick="sortBy('overallRating')">⇅ التقييم الكلي</button>
+      <button onclick="toggleDarkMode()">🌙/☀️ وضع ليلي</button>
+      <input type="text" id="searchInput" placeholder="بحث..." oninput="filterTable()">
+     <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>اسم الموظف</th>
+          <th>القسم</th>
+          <th>الدرجة الوظيفية</th>
+          <th>التقييم الكلي</th>
+          <th>التقييم حسب عدد العمليات</th>
+          <th>عدد أيام التقييم</th>
+          <th>تاريخ التقييم</th>
+        </tr>
+      </thead>
+      <tbody id="reviews-body"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
+  </footer>
+
+  <script>
+    let reviewsData = [];
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+    document.getElementById("reviews-container").style.display = "block";
+
+    async function fetchReviews() {
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات");
+        if (!response.ok) throw new Error('خطأ في جلب البيانات');
+        const reviews = await response.json();
+        reviewsData = reviews;
+        populateGradeFilter();
+        displayReviews(reviews);
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    function displayReviews(reviews) {
+      const tbody = document.getElementById("reviews-body");
+      tbody.innerHTML = "";
+      reviews.forEach(review => {
+        const row = `
+          <tr>
+            <td>${review.name}</td>
+            <td>${review.department}</td>
+            <td>${review.jobGrade}</td>
+            <td>${review.overallRating}</td>
+            <td>${review.operationRating}</td>
+            <td>${review.ratingDays}</td>
+            <td>${review.reviewDate}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function clearTable() {
+      document.getElementById("reviews-body").innerHTML = "";
+    }
+
+    function downloadExcel() {
+      const table = document.querySelector("table");
+      let csvContent = "";
+      const rows = table.querySelectorAll("tr");
+      rows.forEach(row => {
+        const cols = Array.from(row.querySelectorAll("th, td")).map(cell => `"${cell.innerText}"`);
+        csvContent += cols.join(",") + "\n";
+      });
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "تقييمات_الموظفين.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function filterTable() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const grade = document.getElementById("gradeFilter").value;
+      const filtered = reviewsData.filter(r => {
+        const matchSearch = `${r.name} ${r.department} ${r.jobGrade}`.toLowerCase().includes(input);
+        const matchGrade = !grade || r.jobGrade === grade;
+        return matchSearch && matchGrade;
+      });
+      displayReviews(filtered);
+    }
+
+    function populateGradeFilter() {
+      const select = document.getElementById("gradeFilter");
+      const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade))];
+      select.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
+      uniqueGrades.forEach(grade => {
+        select.innerHTML += `<option value="${grade}">${grade}</option>`;
+      });
+    }
+
+    let sortOrder = {
+      operationRating: 'asc',
+      overallRating: 'asc'
+    };
+
+    function sortBy(key) {
+      const direction = sortOrder[key] === 'asc' ? 1 : -1;
+      reviewsData.sort((a, b) => (parseFloat(a[key]) - parseFloat(b[key])) * direction);
+      sortOrder[key] = sortOrder[key] === 'asc' ? 'desc' : 'asc';
+      filterTable();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+
+    fetchReviews();
+  </script>
+</body>
+</html>
