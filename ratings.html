@@ -380,10 +380,10 @@
             <select id="gradeFilter" onchange="filterTable()">
                 <option value="">تصفية حسب الدرجة الوظيفية</option>
             </select>
-            <button class="action-button sort-btn" onclick="sortBy('operationRating')">
+            <button class="action-button sort-btn" onclick="sortBy('التقييم حسب عدد العمليات')">
                 <i class="fas fa-sort"></i> <span>عدد العمليات</span>
             </button>
-            <button class="action-button sort-btn" onclick="sortBy('overallRating')">
+            <button class="action-button sort-btn" onclick="sortBy('التقييم الكلي')">
                 <i class="fas fa-sort"></i> <span>التقييم الكلي</span>
             </button>
             <input type="text" id="searchInput" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
@@ -431,7 +431,11 @@
             window.location.href = "login.html";
         }
 
+        // ******** تأكد من أن هذا الرابط هو الصحيح والمحدث من Google Apps Script الخاص بك ********
+        // هذا الرابط يجب أن يكون الرابط المباشر للـ Web App بعد نشره بصلاحية "Anyone"
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات";
+        // ***********************************************************************************
+        
         const reviewsBody = document.getElementById("reviews-body");
         const loadingEl = document.getElementById("loading");
         const gradeFilter = document.getElementById("gradeFilter");
@@ -445,10 +449,13 @@
             reviewsBody.innerHTML = ''; // Clear existing data
             try {
                 const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر');
+                if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر: ' + response.statusText);
                 const result = await response.json();
 
-                if (!result.success) throw new Error(result.error || 'فشل جلب البيانات.');
+                // تحقق من بنية الاستجابة
+                if (!result || !result.success || !Array.isArray(result.data)) {
+                    throw new Error(result.error || 'فشل جلب البيانات: بنية غير صحيحة.');
+                }
                 
                 reviewsData = result.data;
                 if (!reviewsData.length) {
@@ -472,13 +479,13 @@
             }
             reviewsBody.innerHTML = reviewsToDisplay.map(review => `
                 <tr>
-                    <td data-label="اسم الموظف">${review.name || ''}</td>
-                    <td data-label="القسم">${review.department || ''}</td>
-                    <td data-label="الدرجة الوظيفية">${review.jobGrade || ''}</td>
-                    <td data-label="التقييم الكلي">${review.overallRating || ''}</td>
-                    <td data-label="التقييم حسب عدد العمليات">${review.operationRating || ''}</td>
-                    <td data-label="عدد أيام التقييم">${review.ratingDays || ''}</td>
-                    <td data-label="تاريخ التقييم">${review.reviewDate || ''}</td>
+                    <td data-label="اسم الموظف">${review['اسم الموظف'] || ''}</td>
+                    <td data-label="القسم">${review['القسم'] || ''}</td>
+                    <td data-label="الدرجة الوظيفية">${review['الدرجه الوضيفيه'] || ''}</td>
+                    <td data-label="التقييم الكلي">${review['التقييم الكلي'] || ''}</td>
+                    <td data-label="التقييم حسب عدد العمليات">${review['التقييم حسب عدد العمليات'] || ''}</td>
+                    <td data-label="عدد أيام التقييم">${review['عدد أيام التقييم'] || ''}</td>
+                    <td data-label="تاريخ التقييم">${review['تاريخ التقييم'] || ''}</td>
                 </tr>
             `).join('');
         }
@@ -497,13 +504,13 @@
             }
 
             const headers = [
-                'اسم الموظف', 'القسم', 'الدرجة الوظيفية', 'التقييم الكلي',
+                'اسم الموظف', 'القسم', 'الدرجه الوضيفيه', 'التقييم الكلي',
                 'التقييم حسب عدد العمليات', 'عدد أيام التقييم', 'تاريخ التقييم'
             ];
             const dataToExport = reviewsData.map(review => [
-                review.name, review.department, review.jobGrade,
-                review.overallRating, review.operationRating,
-                review.ratingDays, review.reviewDate
+                review['اسم الموظف'], review['القسم'], review['الدرجه الوضيفيه'],
+                review['التقييم الكلي'], review['التقييم حسب عدد العمليات'],
+                review['عدد أيام التقييم'], review['تاريخ التقييم']
             ]);
 
             const ws = XLSX.utils.aoa_to_sheet([headers, ...dataToExport]);
@@ -526,11 +533,11 @@
 
             const filtered = reviewsData.filter(review => {
                 const searchMatch = 
-                    (review.name && review.name.toLowerCase().includes(inputVal)) ||
-                    (review.department && review.department.toLowerCase().includes(inputVal)) ||
-                    (review.jobGrade && review.jobGrade.toLowerCase().includes(inputVal));
+                    (review['اسم الموظف'] && review['اسم الموظف'].toLowerCase().includes(inputVal)) ||
+                    (review['القسم'] && review['القسم'].toLowerCase().includes(inputVal)) ||
+                    (review['الدرجه الوضيفيه'] && review['الدرجه الوضيفيه'].toLowerCase().includes(inputVal));
                 
-                const gradeMatch = !selectedGrade || (review.jobGrade === selectedGrade);
+                const gradeMatch = !selectedGrade || (review['الدرجه الوضيفيه'] === selectedGrade);
                 
                 return searchMatch && gradeMatch;
             });
@@ -538,10 +545,11 @@
         }
 
         function populateGradeFilter() {
-            const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade).filter(Boolean))].sort();
-            gradeFilter.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
+            const select = document.getElementById("gradeFilter");
+            const uniqueGrades = [...new Set(reviewsData.map(r => r['الدرجه الوضيفيه']).filter(Boolean))].sort();
+            select.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
             uniqueGrades.forEach(grade => {
-                gradeFilter.innerHTML += `<option value="${grade}">${grade}</option>`;
+                select.innerHTML += `<option value="${grade}">${grade}</option>`;
             });
         }
 
