@@ -1,379 +1,612 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>العصر الذكي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #0ea5e9;
-      --secondary: #38bdf8;
-      --accent: #facc15;
-      --background: #f9fafb;
-      --text: #0f172a;
-      --border: #cbd5e1;
-      --hover: #e0f2fe;
-    }
-    .dark-mode {
-      --background: #0f172a;
-      --text: #f9fafb;
-      --border: #334155;
-      --hover: #1e293b;
-    }
-    * {
-      font-family: 'Cairo', sans-serif;
-      box-sizing: border-box;
-      transition: all 0.3s ease;
-    }
-    body {
-      margin: 0;
-      background: var(--background);
-      color: var(--text);
-    }
-    header {
-      position: relative;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      padding: 2rem 1rem;
-      border-radius: 0 0 30px 30px;
-      text-align: center;
-      box-shadow: 0 6px 10px rgba(0,0,0,0.1);
-    }
-    .hamburger {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      font-size: 1.8rem;
-      color: white;
-      cursor: pointer;
-    }
-    nav {
-      position: absolute;
-      top: 3.5rem;
-      right: 1rem;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      z-index: 1000;
-    }
-    nav button {
-      background: none;
-      border: none;
-      padding: 0.8rem 1.2rem;
-      text-align: right;
-      width: 100%;
-      color: var(--text);
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    nav button:hover {
-      background: var(--hover);
-    }
-    h1 {
-      color: white;
-      font-size: 2.5rem;
-      margin: 0;
-      text-shadow: 1px 2px 6px rgba(0,0,0,0.3);
-    }
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 2rem 1rem;
-    }
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-      background: rgba(255,255,255,0.5);
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      backdrop-filter: blur(8px);
-    }
-    .input-group { position: relative; }
-    .search-input {
-      width: 100%;
-      padding: 0.8rem 1rem 0.8rem 2.5rem;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      background: var(--background);
-      color: var(--text);
-      font-size: 1rem;
-    }
-    .search-icon {
-      position: absolute;
-      left: 1rem; top: 50%;
-      transform: translateY(-50%);
-      color: #64748b;
-    }
-    select, button {
-      padding: 0.8rem;
-      border-radius: 10px;
-      border: 2px solid var(--border);
-      font-size: 1rem;
-      background: var(--background);
-      color: var(--text);
-      cursor: pointer;
-    }
-    button.primary {
-      background: linear-gradient(to right, var(--accent), #fde047);
-      border: none;
-      color: #0f172a;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    button.danger {
-      background: #ef4444;
-      color: white;
-      border: none;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    button.penalty {
-      background: #f59e0b;
-      color: white;
-      border: none;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    button.bikes {
-      background: #10b981;
-      color: white;
-      border: none;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--background);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    }
-    th, td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-      text-align: right;
-    }
-    th {
-      background: rgba(14,165,233,0.1);
-      color: var(--primary);
-    }
-    tr:hover {
-      background-color: var(--hover);
-    }
-    .toggle-dark, .logout-btn {
-      position: fixed;
-      top: 1rem;
-      width: 45px;
-      height: 45px;
-      background: var(--background);
-      color: var(--text);
-      border: 2px solid var(--border);
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-    }
-    .toggle-dark { left: 1rem; }
-    .logout-btn { left: 4.5rem; }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background: var(--background);
-      color: var(--text);
-      font-size: 0.9rem;
-      border-top: 1px solid var(--border);
-      margin-top: 2rem;
-    }
-    @media (max-width: 768px) {
-      h1 { font-size: 2rem; }
-      .controls { grid-template-columns: 1fr; }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>العصر الذكي - إدارة الموظفين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #0ea5e9; /* Sky 500 */
+            --secondary-blue: #38bdf8; /* Sky 400 */
+            --accent-yellow: #facc15; /* Yellow 400 */
+            --background-light: #f8fafc; /* Slate 50 */
+            --text-dark: #1e293b; /* Slate 800 */
+            --border-light: #e2e8f0; /* Slate 200 */
+            --hover-light: #f0f9ff; /* Sky 50 */
+            --card-bg-light: #ffffff;
+            --shadow-light: rgba(15, 23, 42, 0.05); /* Slate 900 with opacity */
+
+            /* Specific button colors */
+            --danger-red: #ef4444; /* Red 500 */
+            --penalty-orange: #f97316; /* Orange 500 */
+            --bikes-green: #22c55e; /* Green 500 */
+            --compliance-purple: #8b5cf6; /* Violet 500 */
+        }
+
+        .dark-mode {
+            --primary-blue: #0ea5e9;
+            --secondary-blue: #38bdf8;
+            --accent-yellow: #facc15;
+            --background-light: #1f2937; /* Gray 800 */
+            --text-dark: #f1f5f9; /* Slate 100 */
+            --border-light: #475569; /* Slate 600 */
+            --hover-light: #334155; /* Slate 700 */
+            --card-bg-light: #374151; /* Gray 700 */
+            --shadow-light: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            font-family: 'Cairo', sans-serif;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--background-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- Header & Navigation --- */
+        header {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            padding: 2.5rem 1.5rem;
+            border-radius: 0 0 40px 40px;
+            text-align: center;
+            box-shadow: 0 8px 15px var(--shadow-light);
+            color: white;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin: 0;
+            text-shadow: 1px 2px 8px rgba(0,0,0,0.4);
+            font-weight: 700;
+        }
+
+        .header-actions {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem; /* For RTL, left for icons */
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header-action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .hamburger {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem; /* For RTL, right for hamburger */
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            z-index: 101; /* Ensure it's above nav when open */
+        }
+
+        nav {
+            position: absolute;
+            top: 0;
+            right: -300px; /* Hidden by default */
+            width: 280px;
+            height: 100vh;
+            background: var(--card-bg-light);
+            border-left: 1px solid var(--border-light); /* Border on the left for RTL slide-in */
+            box-shadow: -6px 0 15px var(--shadow-light);
+            display: flex;
+            flex-direction: column;
+            padding-top: 6rem; /* Space for header title */
+            z-index: 99;
+            transition: right 0.3s ease-in-out;
+        }
+        nav.open {
+            right: 0;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            padding: 1.2rem 1.5rem;
+            text-align: right;
+            width: 100%;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        nav button:hover {
+            background: var(--hover-light);
+            color: var(--primary-blue);
+        }
+
+        nav button i {
+            font-size: 1.2rem;
+        }
+
+        /* --- Main Content --- */
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            background: var(--card-bg-light);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem; /* Padding adjusted for RTL icon */
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            background: var(--background-light);
+            color: var(--text-dark);
+            font-size: 1.05rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem; /* Icon on the right for RTL */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b; /* Slate 500 */
+        }
+
+        select, .action-button {
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-light);
+            font-size: 1.05rem;
+            background: var(--background-light);
+            color: var(--text-dark);
+            cursor: pointer;
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: left 0.7rem center; /* Arrow on the left for RTL */
+            background-size: 1.5em;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        select:focus, .action-button:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        }
+
+        .action-button {
+            border: none;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .action-button.primary {
+            background: linear-gradient(to right, var(--accent-yellow), #fde047); /* Yellow 400 to Yellow 300 */
+            color: var(--text-dark);
+        }
+        .action-button.danger {
+            background: var(--danger-red);
+        }
+        .action-button.penalty {
+            background: var(--penalty-orange);
+        }
+        .action-button.bikes {
+            background: var(--bikes-green);
+        }
+        .action-button.compliance {
+            background: var(--compliance-purple); /* New button color */
+        }
+
+        /* --- Table Styling --- */
+        table {
+            width: 100%;
+            border-collapse: separate; /* Use separate to allow border-radius on table */
+            border-spacing: 0;
+            background: var(--card-bg-light);
+            border-radius: 15px;
+            overflow: hidden; /* Ensures border-radius applies to content */
+            box-shadow: 0 3px 10px var(--shadow-light);
+            animation: fadeIn 0.7s ease-out;
+        }
+
+        th, td {
+            padding: 1.2rem 1.5rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        th {
+            background: rgba(14,165,233,0.1); /* Light primary blue background */
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 1.05rem;
+            position: sticky; /* Make header sticky if scrolling */
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:last-child td {
+            border-bottom: none; /* No border for the last row */
+        }
+
+        tbody tr:hover {
+            background-color: var(--hover-light);
+            cursor: pointer;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--background-light);
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 3rem;
+            box-shadow: 0 -2px 10px var(--shadow-light);
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Media Queries for Responsiveness --- */
+        @media (max-width: 992px) {
+            h1 { font-size: 2.5rem; }
+            .controls { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+            th, td { padding: 1rem; }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            header { padding: 2rem 1rem; border-radius: 0 0 30px 30px; }
+            .header-actions { top: 1rem; left: 1rem; gap: 0.5rem;}
+            .header-action-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+            .hamburger { top: 1rem; right: 1rem; font-size: 1.8rem; }
+            nav { width: 250px; padding-top: 5rem; }
+            nav button { padding: 1rem 1.2rem; font-size: 1rem; }
+            .container { padding: 1.5rem 1rem; }
+            .controls { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem; }
+            .search-input, select, .action-button { padding: 0.8rem; font-size: 1rem; }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .header-actions { top: 0.75rem; left: 0.75rem; gap: 0.4rem;}
+            .header-action-btn { width: 38px; height: 38px; font-size: 1rem; }
+            .hamburger { top: 0.75rem; right: 0.75rem; font-size: 1.6rem; }
+            nav { width: 220px; }
+            .controls { padding: 1rem; }
+        }
+    </style>
 </head>
 <body>
-  <!-- أيقونات التحكم -->
-  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
-  <button class="logout-btn" onclick="logout()">🚪</button>
-
-  <header>
-    <div class="hamburger" onclick="toggleNav()">☰</div>
-    <h1>موظفين شركة العصر الذكي</h1>
-    <nav id="nav-menu">
-      <button onclick="downloadExcel()">📥 تنزيل Excel</button>
-      <button onclick="viewReviews()">📋 عرض التقييمات</button>
-      <button onclick="window.location.href='manage-users.html'">👥 إدارة المستخدمين</button>
-      <button id="penaltyBtn" class="penalty" onclick="viewPenalties()">⚖️ عرض العقوبات</button>
-      <button id="employmentRequestsBtn" onclick="window.location.href='employment-requests.html'">📝 طلبات التوظيف</button>
-      <button id="bikesBtn" class="bikes" onclick="window.location.href='bikes.html'">🚲 دراجات</button>
-      <button id="bikesBtn" class="bikes" onclick="window.location.href='compliance.html'">>📈 التزام القادة</button>                
-    </nav>
-  </header>
-
-  <div class="container">
-    <div class="controls">
-      <div class="input-group">
-        <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8" stroke-width="2"/>
-          <path d="M21 21l-4.35-4.35" stroke-width="2"/>
-        </svg>
-      </div>
-
-      <select id="filter-role" onchange="filterEmployees()">
-        <option value="">كل المناصب</option>
-      </select>
-
-      <select id="filter-status" onchange="filterEmployees()">
-        <option value="">كل الحالات</option>
-      </select>
-
-      <button class="primary" onclick="fetchEmployees()">🔄 تحديث البيانات</button>
-      <button class="danger" onclick="clearTable()">🗑️ مسح الكل</button>
+    <div class="header-actions">
+        <button class="header-action-btn" onclick="toggleDarkMode()" aria-label="تبديل الوضع الليلي">
+            <i class="fas fa-moon" id="dark-mode-icon"></i>
+        </button>
+        <button class="header-action-btn" onclick="logout()" aria-label="تسجيل الخروج">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>اسم الموظف</th>
-          <th id="col-id">الرقم</th>
-          <th>المنصب</th>
-          <th>الحالة</th>
-        </tr>
-      </thead>
-      <tbody id="employee-body"></tbody>
-    </table>
-  </div>
+    <header>
+        <div class="hamburger" onclick="toggleNav()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <h1>موظفين شركة العصر الذكي</h1>
+        <nav id="nav-menu">
+            <button onclick="downloadExcel()">
+                <i class="fas fa-file-excel"></i> تنزيل Excel
+            </button>
+            <button onclick="viewReviews()">
+                <i class="fas fa-star"></i> عرض التقييمات
+            </button>
+            <button onclick="window.location.href='manage-users.html'">
+                <i class="fas fa-users-cog"></i> إدارة المستخدمين
+            </button>
+            <button id="penaltyBtn" class="penalty" onclick="viewPenalties()">
+                <i class="fas fa-balance-scale-right"></i> عرض العقوبات
+            </button>
+            <button id="employmentRequestsBtn" onclick="window.location.href='employment-requests.html'">
+                <i class="fas fa-file-alt"></i> طلبات التوظيف
+            </button>
+            <button id="bikesBtn" class="bikes" onclick="window.location.href='bikes.html'">
+                <i class="fas fa-bicycle"></i> دراجات
+            </button>
+            <button id="complianceBtn" class="compliance" onclick="window.location.href='compliance.html'">
+                <i class="fas fa-chart-line"></i> التزام القادة
+            </button>
+        </nav>
+    </header>
 
-  <footer>
-    جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
-  </footer>
+    <div class="container">
+        <div class="controls">
+            <div class="input-group">
+                <input id="search" type="text" class="search-input" placeholder="ابحث باسم الموظف أو الرقم..." onkeyup="filterEmployees()">
+                <i class="fas fa-search search-icon"></i>
+            </div>
 
-  <script>
-    // مصادقة
-    const user = localStorage.getItem("username");
-    const pass = localStorage.getItem("password");
-    const allowed = [
-      {u:"siana", p:"Aa112233"},
-      {u:"Corleone", p:"20032003"},
-      {u:"sales", p:"Aa332211"},
-      {u:"trke", p:"Aa1122335"},
-      {u:"hr", p:"100200300"}
-    ];
-    if (!allowed.find(x=>x.u===user&&x.p===pass)) {
-      localStorage.clear(); location.href="login.html";
-    }
+            <select id="filter-role" onchange="filterEmployees()">
+                <option value="">كل المناصب</option>
+            </select>
 
-    // HR-only features
-    const isHR = (user === "hr");
-    document.getElementById("col-id").style.display = isHR ? "" : "none";
-    document.getElementById("penaltyBtn").style.display = isHR ? "block" : "none";
-    document.getElementById("employmentRequestsBtn").style.display = isHR ? "block" : "none";
-    document.getElementById("bikesBtn").style.display = isHR ? "block" : "none";
+            <select id="filter-status" onchange="filterEmployees()">
+                <option value="">كل الحالات</option>
+            </select>
 
-    // Toggle hamburger
-    function toggleNav(){
-      const nav = document.getElementById("nav-menu");
-      nav.style.display = nav.style.display === "flex" ? "none" : "flex";
-    }
+            <button class="action-button primary" onclick="fetchEmployees()">
+                <i class="fas fa-sync-alt"></i> تحديث البيانات
+            </button>
+            <button class="action-button danger" onclick="clearTable()">
+                <i class="fas fa-trash-alt"></i> مسح الكل
+            </button>
+        </div>
 
-    document.getElementById("year").textContent = new Date().getFullYear();
-    let allEmployees = [];
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم الموظف</th>
+                    <th id="col-id">الرقم</th>
+                    <th>المنصب</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="employee-body"></tbody>
+        </table>
+    </div>
 
-    async function fetchEmployees(){
-      try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
-        allEmployees = await res.json();
-        updateFilters();
-        displayEmployees(allEmployees);
-      } catch(e){
-        alert("فشل تحميل البيانات");
-        console.error(e);
-      }
-    }
+    <footer>
+        جميع الحقوق محفوظة &copy; <span id="year"></span> | لشركة العصر الذكي
+    </footer>
 
-    function displayEmployees(data){
-      const tb = document.getElementById("employee-body");
-      tb.innerHTML = "";
-      data.forEach(emp => {
-        const idCell = isHR ? `<td>${emp.id}</td>` : "";
-        tb.innerHTML += `
-          <tr>
-            <td>${emp.name}</td>
-            ${idCell}
-            <td>${emp.role}</td>
-            <td>${emp.status}</td>
-          </tr>`;
-      });
-    }
+    <script>
+        // Authentication (unchanged from original for functionality)
+        const user = localStorage.getItem("username");
+        const pass = localStorage.getItem("password");
+        const allowed = [
+            {u:"siana", p:"Aa112233"},
+            {u:"Corleone", p:"20032003"},
+            {u:"sales", p:"Aa332211"},
+            {u:"trke", p:"Aa1122335"},
+            {u:"hr", p:"100200300"}
+        ];
+        if (!allowed.find(x=>x.u===user&&x.p===pass)) {
+            localStorage.clear();
+            location.href="login.html";
+        }
 
-    function filterEmployees(){
-      const s = document.getElementById("search").value.toLowerCase();
-      const r = document.getElementById("filter-role").value;
-      const st = document.getElementById("filter-status").value;
-      const f = allEmployees.filter(emp =>
-        emp.name.toLowerCase().includes(s) &&
-        (!r || emp.role === r) &&
-        (!st || emp.status === st)
-      );
-      displayEmployees(f);
-    }
+        // HR-only features
+        const isHR = (user === "hr");
+        document.getElementById("col-id").style.display = isHR ? "" : "none";
+        document.getElementById("penaltyBtn").style.display = isHR ? "flex" : "none"; // Use flex for buttons
+        document.getElementById("employmentRequestsBtn").style.display = isHR ? "flex" : "none";
+        document.getElementById("bikesBtn").style.display = isHR ? "flex" : "none";
+        document.getElementById("complianceBtn").style.display = isHR ? "flex" : "none"; // New button
 
-    function updateFilters(){
-      const roles = [...new Set(allEmployees.map(e=>e.role))];
-      const sts = [...new Set(allEmployees.map(e=>e.status))];
-      const selR = document.getElementById("filter-role");
-      const selS = document.getElementById("filter-status");
-      roles.forEach(r=> selR.innerHTML += `<option value="${r}">${r}</option>`);
-      sts.forEach(s=> selS.innerHTML += `<option value="${s}">${s}</option>`);
-    }
+        // Toggle hamburger navigation
+        function toggleNav(){
+            const nav = document.getElementById("nav-menu");
+            nav.classList.toggle("open");
+        }
 
-    function clearTable(){
-      document.getElementById("employee-body").innerHTML="";
-    }
+        // Close nav when clicking outside (optional, but good UX)
+        document.addEventListener('click', function(event) {
+            const nav = document.getElementById("nav-menu");
+            const hamburger = document.querySelector('.hamburger');
+            if (!nav.contains(event.target) && !hamburger.contains(event.target) && nav.classList.contains('open')) {
+                nav.classList.remove('open');
+            }
+        });
 
-    function downloadExcel(){
-      if (!isHR) return;
-      const csv = ["الاسم,الرقم,المنصب,الحالة",
-        ...allEmployees.map(e=>`${e.name},${e.id},${e.role},${e.status}`)]
-        .join("\n");
-      const blob = new Blob(["\uFEFF"+csv],{type:'text/csv'});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "employees.csv";
-      a.click();
-    }
+        document.getElementById("year").textContent = new Date().getFullYear();
+        let allEmployees = [];
 
-    function viewReviews(){
-      if (isHR) window.location.href = "ratings.html";
-    }
+        async function fetchEmployees(){
+            try {
+                // Show a loading indicator if desired
+                const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                allEmployees = await res.json();
+                updateFilters();
+                displayEmployees(allEmployees);
+            } catch(e){
+                alert("فشل تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.");
+                console.error("Error fetching employees:", e);
+            }
+        }
 
-    function viewPenalties(){
-      if (isHR) window.location.href = "penalties.html";
-    }
+        function displayEmployees(data){
+            const tb = document.getElementById("employee-body");
+            tb.innerHTML = "";
+            if (data.length === 0) {
+                tb.innerHTML = `<tr><td colspan="${isHR ? '4' : '3'}" style="text-align:center; padding: 2rem;">لا توجد بيانات لعرضها.</td></tr>`;
+                return;
+            }
+            data.forEach(emp => {
+                const idCell = isHR ? `<td>${emp.id || 'N/A'}</td>` : ""; // Handle missing ID
+                tb.innerHTML += `
+                    <tr>
+                        <td>${emp.name || 'N/A'}</td>
+                        ${idCell}
+                        <td>${emp.role || 'N/A'}</td>
+                        <td>${emp.status || 'N/A'}</td>
+                    </tr>`;
+            });
+        }
 
-    function logout(){
-      localStorage.clear();
-      location.href="login.html";
-    }
+        function filterEmployees(){
+            const s = document.getElementById("search").value.toLowerCase();
+            const r = document.getElementById("filter-role").value;
+            const st = document.getElementById("filter-status").value;
 
-    function toggleDarkMode(){
-      document.body.classList.toggle("dark-mode");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-    }
-    document.body.classList.toggle("dark-mode", localStorage.getItem("darkMode")==="true");
+            const filtered = allEmployees.filter(emp => {
+                const nameMatch = emp.name.toLowerCase().includes(s);
+                const idMatch = isHR && emp.id ? String(emp.id).includes(s) : false; // Search by ID if HR
+                const roleMatch = !r || emp.role === r;
+                const statusMatch = !st || emp.status === st;
+                return (nameMatch || idMatch) && roleMatch && statusMatch;
+            });
+            displayEmployees(filtered);
+        }
 
-    fetchEmployees();
-  </script>
+        function updateFilters(){
+            const roles = [...new Set(allEmployees.map(e=>e.role).filter(Boolean))]; // Filter out undefined/null
+            const statuses = [...new Set(allEmployees.map(e=>e.status).filter(Boolean))]; // Filter out undefined/null
+
+            const selR = document.getElementById("filter-role");
+            const selS = document.getElementById("filter-status");
+
+            selR.innerHTML = '<option value="">كل المناصب</option>'; // Reset options
+            selS.innerHTML = '<option value="">كل الحالات</option>'; // Reset options
+
+            roles.sort().forEach(r => { // Sort alphabetically
+                if (r) selR.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+            statuses.sort().forEach(s => { // Sort alphabetically
+                if (s) selS.innerHTML += `<option value="${s}">${s}</option>`;
+            });
+        }
+
+        function clearTable(){
+            document.getElementById("employee-body").innerHTML = `<tr><td colspan="${isHR ? '4' : '3'}" style="text-align:center; padding: 2rem;">لا توجد بيانات. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
+            allEmployees = []; // Clear the data array
+            document.getElementById("search").value = ""; // Clear search
+            document.getElementById("filter-role").value = ""; // Reset filters
+            document.getElementById("filter-status").value = "";
+            updateFilters(); // Re-populate filters with empty options
+        }
+
+        function downloadExcel(){
+            if (!isHR) {
+                alert("ليس لديك صلاحية لتنزيل ملف Excel.");
+                return;
+            }
+            const csvHeader = "الاسم,الرقم,المنصب,الحالة";
+            const csvRows = allEmployees.map(e => `${e.name || ''},${e.id || ''},${e.role || ''},${e.status || ''}`);
+            const csvContent = [csvHeader, ...csvRows].join("\n");
+            
+            const blob = new Blob(["\uFEFF" + csvContent], {type:'text/csv;charset=utf-8;'});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "موظفين_العصر_الذكي.csv";
+            document.body.appendChild(a); // Required for Firefox
+            a.click();
+            document.body.removeChild(a); // Clean up
+        }
+
+        function viewReviews(){
+            if (isHR) {
+                window.location.href = "ratings.html";
+            } else {
+                alert("ليس لديك صلاحية لعرض التقييمات.");
+            }
+        }
+
+        function viewPenalties(){
+            if (isHR) {
+                window.location.href = "penalties.html";
+            } else {
+                alert("ليس لديك صلاحية لعرض العقوبات.");
+            }
+        }
+
+        function logout(){
+            if (confirm("هل أنت متأكد من تسجيل الخروج؟")) {
+                localStorage.clear();
+                location.href="login.html";
+            }
+        }
+
+        function toggleDarkMode(){
+            const isDark = document.body.classList.toggle("dark-mode");
+            localStorage.setItem("darkMode", isDark);
+            const icon = document.getElementById("dark-mode-icon");
+            if (isDark) {
+                icon.classList.remove("fa-moon");
+                icon.classList.add("fa-sun");
+            } else {
+                icon.classList.remove("fa-sun");
+                icon.classList.add("fa-moon");
+            }
+        }
+        // Apply dark mode preference on load
+        const savedDarkMode = localStorage.getItem("darkMode") === "true";
+        if (savedDarkMode) {
+            document.body.classList.add("dark-mode");
+            document.getElementById("dark-mode-icon").classList.remove("fa-moon");
+            document.getElementById("dark-mode-icon").classList.add("fa-sun");
+        } else {
+            document.getElementById("dark-mode-icon").classList.remove("fa-sun");
+            document.getElementById("dark-mode-icon").classList.add("fa-moon");
+        }
+
+
+        // Initial fetch
+        fetchEmployees();
+    </script>
 </body>
 </html>
