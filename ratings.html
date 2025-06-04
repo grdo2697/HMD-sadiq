@@ -19,14 +19,9 @@
             --card-bg-light: #ffffff;
             --shadow-light: rgba(15, 23, 42, 0.05); /* Slate 900 with opacity */
 
-            /* Button colors */
+            /* Specific button colors */
             --danger-red: #ef4444; /* Red 500 */
             --success-green: #22c55e; /* Green 500 */
-
-            /* Rating specific colors */
-            --rating-good: #22c55e; /* Green */
-            --rating-average: #eab308; /* Amber */
-            --rating-bad: #ef4444; /* Red */
         }
 
         .dark-mode {
@@ -39,11 +34,6 @@
             --hover-light: #334155; /* Slate 700 */
             --card-bg-light: #374151; /* Gray 700 */
             --shadow-light: rgba(0, 0, 0, 0.3);
-
-            /* Dark mode rating colors */
-            --rating-good: #4ade80;
-            --rating-average: #facc15;
-            --rating-bad: #f87171;
         }
 
         * {
@@ -117,7 +107,7 @@
         .container {
             max-width: 1200px;
             margin: auto;
-            padding: 0 1.5rem 2.5rem 1.5rem;
+            padding: 0 1.5rem 2.5rem 1.5rem; /* Adjusted padding-top to avoid header overlap */
             flex-grow: 1; /* Allows container to grow and push footer down */
         }
 
@@ -211,6 +201,7 @@
             background: #eab308; /* Yellow 600 */
         }
 
+
         /* --- Loading Indicator --- */
         .loader {
             display: none; /* Changed from block to none by default */
@@ -274,23 +265,16 @@
             display: none;
         }
 
-        /* Rating display styles */
-        .rating-cell {
-            font-weight: 600;
-        }
-        .rating-good { color: var(--rating-good); }
-        .rating-average { color: var(--rating-average); }
-        .rating-bad { color: var(--rating-bad); }
-
         /* --- No Data / Error messages --- */
-        .no-data, .error-message {
+        .no-data, .error {
             text-align: center;
             padding: 1.5rem;
             font-weight: bold;
             font-size: 1.1rem;
         }
         .no-data { color: var(--text-dark); opacity: 0.7; }
-        .error-message { color: var(--danger-red); }
+        .error { color: var(--danger-red); }
+
 
         /* --- Footer --- */
         footer {
@@ -379,10 +363,10 @@
     </div>
 
     <header>
-        <h1><i class="fas fa-star"></i> تقييمات موظفي العصر الذكي</h1>
+        <h1><i class="fas fa-star"></i> تقييمات موظفين شركة العصر الذكي</h1>
     </header>
 
-    <div class="container" id="main-content">
+    <div class="container" id="reviews-container">
         <div class="controls">
             <button class="action-button primary" onclick="fetchReviews()">
                 <i class="fas fa-sync-alt"></i> <span>تحديث البيانات</span>
@@ -393,16 +377,16 @@
             <button class="action-button success" onclick="downloadExcel()">
                 <i class="fas fa-file-excel"></i> <span>تنزيل Excel</span>
             </button>
-            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
             <select id="gradeFilter" onchange="filterTable()">
                 <option value="">تصفية حسب الدرجة الوظيفية</option>
             </select>
             <button class="action-button sort-btn" onclick="sortBy('operationRating')">
-                <i class="fas fa-sort"></i> <span>الفرز (عدد العمليات)</span>
+                <i class="fas fa-sort"></i> <span>عدد العمليات</span>
             </button>
             <button class="action-button sort-btn" onclick="sortBy('overallRating')">
-                <i class="fas fa-sort"></i> <span>الفرز (التقييم الكلي)</span>
+                <i class="fas fa-sort"></i> <span>التقييم الكلي</span>
             </button>
+            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
         </div>
 
         <div class="loader" id="loading">
@@ -415,7 +399,7 @@
                     <tr>
                         <th>اسم الموظف</th>
                         <th>القسم</th>
-                        <th>الدرجه الوضيفيه</th>
+                        <th>الدرجة الوظيفية</th>
                         <th>التقييم الكلي</th>
                         <th>التقييم حسب عدد العمليات</th>
                         <th>عدد أيام التقييم</th>
@@ -434,25 +418,20 @@
     </footer>
 
     <script>
+        let reviewsData = [];
+        let currentSortKey = '';
+        let sortDirection = {}; // Store sort direction for each key
+
         // Set current year in footer
         document.getElementById("year").textContent = new Date().getFullYear();
 
-        // Protection - prevent access without login
+        // Authentication check
         const username = localStorage.getItem("username");
         if (!username) {
             window.location.href = "login.html";
         }
-        // If you want to restrict this page to specific users, e.g., 'hr' only:
-        // if (username !== 'hr') {
-        //     alert("ليس لديك صلاحية الوصول لهذه الصفحة.");
-        //     window.location.href = "index.html";
-        // }
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات";
-        let reviewsData = [];
-        let currentSortKey = null;
-        let currentSortDirection = {}; // To keep track of 'asc' or 'desc' for each key
-
         const reviewsBody = document.getElementById("reviews-body");
         const loadingEl = document.getElementById("loading");
         const gradeFilter = document.getElementById("gradeFilter");
@@ -467,37 +446,28 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر');
-                const result = await response.json(); // Assuming the response is an object with a 'data' array
-                if (!result.success || !Array.isArray(result.data)) {
-                    throw new Error(result.error || 'صيغة البيانات غير صحيحة');
-                }
+                const result = await response.json();
 
+                if (!result.success) throw new Error(result.error || 'فشل جلب البيانات.');
+                
                 reviewsData = result.data;
                 if (!reviewsData.length) {
-                    showEmptyMessage();
+                    showEmpty();
                 } else {
                     populateGradeFilter();
-                    filterTable(); // Render table with initial filters (if any)
+                    displayReviews(reviewsData);
                 }
             } catch (error) {
-                showErrorMessage(error.message);
+                showError(error.message);
                 console.error("Error fetching reviews:", error);
             } finally {
                 hideLoading();
             }
         }
 
-        function getRatingClass(rating) {
-            const numRating = parseFloat(rating);
-            if (isNaN(numRating)) return '';
-            if (numRating >= 4) return 'rating-good'; // Assuming 1-5 scale, 4-5 is good
-            if (numRating >= 2.5) return 'rating-average'; // 2.5-3.9 is average
-            return 'rating-bad'; // Below 2.5 is bad
-        }
-
         function displayReviews(reviewsToDisplay) {
             if (reviewsToDisplay.length === 0) {
-                showEmptyMessage();
+                showEmpty();
                 return;
             }
             reviewsBody.innerHTML = reviewsToDisplay.map(review => `
@@ -505,8 +475,8 @@
                     <td data-label="اسم الموظف">${review.name || ''}</td>
                     <td data-label="القسم">${review.department || ''}</td>
                     <td data-label="الدرجة الوظيفية">${review.jobGrade || ''}</td>
-                    <td data-label="التقييم الكلي" class="rating-cell ${getRatingClass(review.overallRating)}">${review.overallRating || ''}</td>
-                    <td data-label="التقييم حسب عدد العمليات" class="rating-cell ${getRatingClass(review.operationRating)}">${review.operationRating || ''}</td>
+                    <td data-label="التقييم الكلي">${review.overallRating || ''}</td>
+                    <td data-label="التقييم حسب عدد العمليات">${review.operationRating || ''}</td>
                     <td data-label="عدد أيام التقييم">${review.ratingDays || ''}</td>
                     <td data-label="تاريخ التقييم">${review.reviewDate || ''}</td>
                 </tr>
@@ -514,30 +484,15 @@
         }
 
         function clearTable() {
-            reviewsData = []; // Clear all stored data
-            reviewsBody.innerHTML = '';
-            searchInput.value = ''; // Clear search input
-            gradeFilter.innerHTML = '<option value="">تصفية حسب الدرجة الوظيفية</option>'; // Reset filter options
-            showEmptyMessage("تم مسح البيانات مؤقتاً. اضغط على 'تحديث البيانات' لإعادة التحميل.");
+            reviewsData = []; // Clear all data
+            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">تم مسح البيانات مؤقتاً. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
+            gradeFilter.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
+            searchInput.value = '';
         }
 
         function downloadExcel() {
             if (reviewsData.length === 0) {
-                showErrorMessage("لا توجد بيانات لتصديرها.");
-                return;
-            }
-            
-            // Apply current filters before exporting
-            const input = searchInput.value.toLowerCase();
-            const grade = gradeFilter.value;
-            const filteredData = reviewsData.filter(r => {
-                const matchSearch = `${r.name || ''} ${r.department || ''} ${r.jobGrade || ''}`.toLowerCase().includes(input);
-                const matchGrade = !grade || r.jobGrade === grade;
-                return matchSearch && matchGrade;
-            });
-
-            if (filteredData.length === 0) {
-                showErrorMessage("لا توجد بيانات مطابقة للفلترات الحالية لتصديرها.");
+                alert("لا توجد بيانات لتصديرها.");
                 return;
             }
 
@@ -545,44 +500,40 @@
                 'اسم الموظف', 'القسم', 'الدرجة الوظيفية', 'التقييم الكلي',
                 'التقييم حسب عدد العمليات', 'عدد أيام التقييم', 'تاريخ التقييم'
             ];
-            const dataToExport = filteredData.map(r => [
-                r.name || '',
-                r.department || '',
-                r.jobGrade || '',
-                r.overallRating || '',
-                r.operationRating || '',
-                r.ratingDays || '',
-                r.reviewDate || ''
+            const dataToExport = reviewsData.map(review => [
+                review.name, review.department, review.jobGrade,
+                review.overallRating, review.operationRating,
+                review.ratingDays, review.reviewDate
             ]);
 
             const ws = XLSX.utils.aoa_to_sheet([headers, ...dataToExport]);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "تقييمات الموظفين");
-            XLSX.writeFile(wb, `تقييمات_الموظفين_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "التقييمات");
+
+            // Adjust column widths
+            const max_width = dataToExport.map(row => headers.map((header, i) => Math.max(
+                header.length,
+                String(row[i]).length
+            ))).reduce((a, b) => a.map((val, i) => Math.max(val, b[i])), Array(headers.length).fill(0));
+            ws['!cols'] = max_width.map(w => ({wch: w + 2}));
+
+            XLSX.writeFile(wb, `تقييمات_الموظفين_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
         function filterTable() {
-            const input = searchInput.value.toLowerCase();
-            const grade = gradeFilter.value;
-            let filtered = reviewsData.filter(r => {
-                const matchSearch = `${r.name || ''} ${r.department || ''} ${r.jobGrade || ''}`.toLowerCase().includes(input);
-                const matchGrade = !grade || r.jobGrade === grade;
-                return matchSearch && matchGrade;
+            const inputVal = searchInput.value.toLowerCase();
+            const selectedGrade = gradeFilter.value;
+
+            const filtered = reviewsData.filter(review => {
+                const searchMatch = 
+                    (review.name && review.name.toLowerCase().includes(inputVal)) ||
+                    (review.department && review.department.toLowerCase().includes(inputVal)) ||
+                    (review.jobGrade && review.jobGrade.toLowerCase().includes(inputVal));
+                
+                const gradeMatch = !selectedGrade || (review.jobGrade === selectedGrade);
+                
+                return searchMatch && gradeMatch;
             });
-
-            // Reapply current sorting after filtering
-            if (currentSortKey) {
-                const direction = currentSortDirection[currentSortKey] === 'asc' ? 1 : -1;
-                filtered.sort((a, b) => {
-                    const valA = parseFloat(a[currentSortKey]);
-                    const valB = parseFloat(b[currentSortKey]);
-                    if (isNaN(valA) && isNaN(valB)) return 0;
-                    if (isNaN(valA)) return -1 * direction;
-                    if (isNaN(valB)) return 1 * direction;
-                    return (valA - valB) * direction;
-                });
-            }
-
             displayReviews(filtered);
         }
 
@@ -595,11 +546,19 @@
         }
 
         function sortBy(key) {
-            // Toggle sort direction for the clicked key
-            currentSortDirection[key] = currentSortDirection[key] === 'asc' ? 'desc' : 'asc';
-            currentSortKey = key; // Set the current sorting key
+            // Toggle sort direction
+            sortDirection[key] = (sortDirection[key] === 'asc') ? 'desc' : 'asc';
+            const direction = sortDirection[key] === 'asc' ? 1 : -1;
 
-            // Re-filter and re-render the table with the new sort order
+            reviewsData.sort((a, b) => {
+                const valA = parseFloat(a[key]) || 0; // Handle non-numeric or empty values
+                const valB = parseFloat(b[key]) || 0;
+
+                if (valA < valB) return -1 * direction;
+                if (valA > valB) return 1 * direction;
+                return 0;
+            });
+            // Re-apply filters to display sorted data based on current filters
             filterTable();
         }
 
@@ -622,13 +581,13 @@
                 location.href = 'login.html';
             }
         }
-
-        function showEmptyMessage(message = "لا توجد بيانات لعرضها.") {
-            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">${message}</td></tr>`;
+        
+        function showEmpty() {
+            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">لا توجد تقييمات حالياً.</td></tr>`;
         }
 
-        function showErrorMessage(message) {
-            reviewsBody.innerHTML = `<tr><td colspan="7" class="error-message"><i class="fas fa-exclamation-triangle"></i> ${message}</td></tr>`;
+        function showError(message) {
+            reviewsBody.innerHTML = `<tr><td colspan="7" class="error"><i class="fas fa-exclamation-triangle"></i> ${message}</td></tr>`;
         }
 
         // Apply dark mode preference on load
@@ -642,7 +601,7 @@
                 document.getElementById('dark-mode-icon').classList.remove('fa-sun');
                 document.getElementById('dark-mode-icon').classList.add('fa-moon');
             }
-            fetchReviews(); // Fetch data when the page loads
+            fetchReviews();
         });
     </script>
 </body>
