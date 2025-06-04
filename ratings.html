@@ -1,616 +1,276 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>تقييمات موظفين شركة العصر الذكي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        :root {
-            --primary-blue: #0ea5e9; /* Sky 500 */
-            --secondary-blue: #38bdf8; /* Sky 400 */
-            --accent-yellow: #facc15; /* Yellow 400 */
-            --background-light: #f8fafc; /* Slate 50 */
-            --text-dark: #1e293b; /* Slate 800 */
-            --border-light: #e2e8f0; /* Slate 200 */
-            --hover-light: #f0f9ff; /* Sky 50 */
-            --card-bg-light: #ffffff;
-            --shadow-light: rgba(15, 23, 42, 0.05); /* Slate 900 with opacity */
-
-            /* Specific button colors */
-            --danger-red: #ef4444; /* Red 500 */
-            --success-green: #22c55e; /* Green 500 */
-        }
-
-        .dark-mode {
-            --primary-blue: #0ea5e9;
-            --secondary-blue: #38bdf8;
-            --accent-yellow: #facc15;
-            --background-light: #1f2937; /* Gray 800 */
-            --text-dark: #f1f5f9; /* Slate 100 */
-            --border-light: #475569; /* Slate 600 */
-            --hover-light: #334155; /* Slate 700 */
-            --card-bg-light: #374151; /* Gray 700 */
-            --shadow-light: rgba(0, 0, 0, 0.3);
-        }
-
-        * {
-            font-family: 'Cairo', sans-serif;
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background: var(--background-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-            transition: background 0.3s ease, color 0.3s ease;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* --- Header & Fixed Buttons --- */
-        header {
-            position: relative;
-            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
-            padding: 2.5rem 1.5rem;
-            border-radius: 0 0 40px 40px;
-            text-align: center;
-            box-shadow: 0 8px 15px var(--shadow-light);
-            color: white;
-            z-index: 100;
-            margin-bottom: 2.5rem; /* Ensure space below header */
-        }
-
-        h1 {
-            font-size: 2.8rem;
-            margin: 0;
-            text-shadow: 1px 2px 8px rgba(0,0,0,0.4);
-            font-weight: 700;
-        }
-
-        .header-actions {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem; /* For RTL, right for icons */
-            display: flex;
-            gap: 0.75rem;
-            z-index: 1001; /* Above everything else */
-        }
-
-        .header-action-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            font-size: 1.3rem;
-            color: white;
-            cursor: pointer;
-            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .header-action-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        /* --- Main Container --- */
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 0 1.5rem 2.5rem 1.5rem; /* Adjusted padding-top to avoid header overlap */
-            flex-grow: 1; /* Allows container to grow and push footer down */
-        }
-
-        /* --- Controls Section --- */
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-            background: var(--card-bg-light);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px var(--shadow-light);
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .controls input,
-        .controls select {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid var(--border-light);
-            border-radius: 12px;
-            background: var(--background-light);
-            color: var(--text-dark);
-            font-size: 1.05rem;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            appearance: none; /* Remove default arrow for select */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: left 0.7rem center; /* Arrow on the left for RTL */
-            background-size: 1.5em;
-        }
-        .dark-mode .controls input,
-        .dark-mode .controls select {
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23f1f5f9" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-        }
-
-        .controls input:focus,
-        .controls select:focus {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-        }
-
-        .action-button {
-            padding: 1rem;
-            border-radius: 12px;
-            border: none;
-            color: white;
-            font-weight: 600;
-            font-size: 1.05rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        }
-
-        .action-button.primary {
-            background: var(--primary-blue);
-        }
-        .action-button.primary:hover {
-            background: var(--secondary-blue);
-        }
-        .action-button.danger {
-            background: var(--danger-red);
-        }
-        .action-button.danger:hover {
-            background: #dc2626; /* Red 600 */
-        }
-        .action-button.success {
-            background: var(--success-green);
-        }
-        .action-button.success:hover {
-            background: #16a34a; /* Green 600 */
-        }
-        .action-button.sort-btn {
-            background: var(--accent-yellow);
-            color: var(--text-dark);
-        }
-        .action-button.sort-btn:hover {
-            background: #eab308; /* Yellow 600 */
-        }
-
-
-        /* --- Loading Indicator --- */
-        .loader {
-            display: none; /* Changed from block to none by default */
-            flex-direction: row; /* Ensure icon and text are in a row */
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: var(--primary-blue);
-            margin: 2rem 0;
-            gap: 0.8rem; /* Space between icon and text */
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* --- Table Styling --- */
-        .table-container {
-            overflow-x: auto;
-            position: relative; /* Needed for sticky header on mobile */
-        }
-        table {
-            width: 100%;
-            border-collapse: separate; /* Use separate to allow border-radius on table */
-            border-spacing: 0;
-            background: var(--card-bg-light);
-            border-radius: 15px;
-            overflow: hidden; /* Ensures border-radius applies to content */
-            box-shadow: 0 3px 10px var(--shadow-light);
-            animation: fadeIn 0.7s ease-out;
-        }
-
-        th, td {
-            padding: 1.2rem 1.5rem;
-            text-align: right;
-            border-bottom: 1px solid var(--border-light);
-            white-space: nowrap; /* Prevent wrapping in cells */
-        }
-
-        th {
-            background: rgba(14,165,233,0.1); /* Light primary blue background */
-            color: var(--primary-blue);
-            font-weight: 700;
-            font-size: 1.05rem;
-            position: sticky; /* Make header sticky if scrolling */
-            top: 0;
-            z-index: 1;
-        }
-
-        tr:last-child td {
-            border-bottom: none; /* No border for the last row */
-        }
-
-        tbody tr:hover {
-            background-color: var(--hover-light);
-            cursor: pointer;
-        }
-        tbody tr:empty { /* Hide empty row */
-            display: none;
-        }
-
-        /* --- No Data / Error messages --- */
-        .no-data, .error {
-            text-align: center;
-            padding: 1.5rem;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        .no-data { color: var(--text-dark); opacity: 0.7; }
-        .error { color: var(--danger-red); }
-
-
-        /* --- Footer --- */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            background: var(--background-light);
-            color: var(--text-dark);
-            font-size: 0.95rem;
-            border-top: 1px solid var(--border-light);
-            margin-top: 3rem;
-            box-shadow: 0 -2px 10px var(--shadow-light);
-        }
-
-        /* --- Animations --- */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- Media Queries for Responsiveness --- */
-        @media (max-width: 992px) {
-            h1 { font-size: 2.5rem; }
-            .controls { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-            th, td { padding: 1rem; }
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            header { padding: 2rem 1rem; border-radius: 0 0 30px 30px; }
-            .header-actions { top: 1rem; right: 1rem; gap: 0.5rem;}
-            .header-action-btn { width: 40px; height: 40px; font-size: 1.1rem; }
-
-            .controls { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem; }
-            .controls input, .controls select, .action-button { padding: 0.8rem; font-size: 1rem; }
-            .action-button span { display: none; } /* Hide text on small screens */
-
-            /* Table Reflow for small screens */
-            table, thead, tbody, th, td, tr { display: block; }
-            thead tr { position: absolute; top: -9999px; left: -9999px; }
-            tr {
-                margin-bottom: 1rem;
-                border: 1px solid var(--border-light);
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            }
-            td {
-                border: none;
-                position: relative;
-                padding-right: 50%; /* Adjusted for RTL */
-                text-align: left;
-                white-space: normal; /* Allow text wrapping */
-            }
-            td:before {
-                position: absolute;
-                left: 1rem; /* Label on the left for RTL */
-                top: 50%;
-                transform: translateY(-50%);
-                content: attr(data-label);
-                font-weight: 700;
-                color: var(--primary-blue);
-                width: 45%; /* Give label some width */
-                text-align: right; /* Align label text to right */
-            }
-        }
-
-        @media (max-width: 480px) {
-            h1 { font-size: 1.8rem; }
-            .header-actions { top: 0.75rem; right: 0.75rem; gap: 0.4rem;}
-            .header-action-btn { width: 38px; height: 38px; font-size: 1rem; }
-            .controls { padding: 1rem; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>عقوبات موظفي العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --secondary: #38bdf8;
+      --background: #f9fafb;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --hover: #e0f2fe;
+    }
+    .dark-mode {
+      --background: #1a1a1a;
+      --text: #ffffff;
+      --border: #444444;
+      --hover: #333333;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 1.5rem;
+      text-align: center;
+      color: #fff;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    header h1 { margin:0; font-size:2rem; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .controls button,
+    .controls input,
+    .controls select {
+      padding: 0.7rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button.primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+    .controls button.primary:hover {
+      background: var(--secondary);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--background);
+      box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:hover { background: var(--hover); }
+    .loader {
+      display: none;
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 2rem 0;
+    }
+    .logout-btn, .toggle-dark, .back-btn {
+      position: fixed;
+      top: 1rem;
+      width: 45px; height: 45px;
+      background: var(--background);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .toggle-dark { left: 1rem; }
+    .back-btn    { left: 4.5rem; }
+    .logout-btn  { left: 8rem; }
+    .no-data, .error {
+      text-align: center;
+      padding: 1rem;
+      font-weight: bold;
+    }
+    .no-data { color: #64748b; }
+    .error   { color: #ef4444; }
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { margin-bottom: 1rem; }
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+      }
+      td:before {
+        position: absolute;
+        right: 10px;
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="header-actions">
-        <button class="header-action-btn" onclick="toggleDarkMode()" aria-label="تبديل الوضع الليلي">
-            <i class="fas fa-moon" id="dark-mode-icon"></i>
-        </button>
-        <button class="header-action-btn" onclick="location.href='index.html'" aria-label="العودة للصفحة الرئيسية">
-            <i class="fas fa-home"></i>
-        </button>
-        <button class="header-action-btn" onclick="logout()" aria-label="تسجيل الخروج">
-            <i class="fas fa-sign-out-alt"></i>
-        </button>
+  <!-- أزرار التحكم -->
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
+  <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+  <button class="logout-btn" onclick="logout()">🚪</button>
+
+  <header>
+    <h1>عقوبات موظفي العصر الذكي</h1>
+  </header>
+
+  <div class="container">
+    <div class="controls">
+      <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
+      <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
+      <input type="text" id="search" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
+      <select id="deptFilter" onchange="filterTable()">
+        <option value="">كل الأقسام</option>
+      </select>
     </div>
 
-    <header>
-        <h1><i class="fas fa-star"></i> تقييمات موظفين شركة العصر الذكي</h1>
-    </header>
+    <div class="loader" id="loading">⏳ جاري تحميل البيانات...</div>
 
-    <div class="container" id="reviews-container">
-        <div class="controls">
-            <button class="action-button primary" onclick="fetchReviews()">
-                <i class="fas fa-sync-alt"></i> <span>تحديث البيانات</span>
-            </button>
-            <button class="action-button danger" onclick="clearTable()">
-                <i class="fas fa-trash-alt"></i> <span>مسح الكل</span>
-            </button>
-            <button class="action-button success" onclick="downloadExcel()">
-                <i class="fas fa-file-excel"></i> <span>تنزيل Excel</span>
-            </button>
-            <select id="gradeFilter" onchange="filterTable()">
-                <option value="">تصفية حسب الدرجة الوظيفية</option>
-            </select>
-            <button class="action-button sort-btn" onclick="sortBy('التقييم حسب عدد العمليات')">
-                <i class="fas fa-sort"></i> <span>عدد العمليات</span>
-            </button>
-            <button class="action-button sort-btn" onclick="sortBy('التقييم الكلي')">
-                <i class="fas fa-sort"></i> <span>التقييم الكلي</span>
-            </button>
-            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
-        </div>
+    <table id="penaltiesTable">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>القسم</th>
+          <th>نوع العقوبة</th>
+          <th>التاريخ</th>
+          <th>سبب العقوبة</th>
+          <th>المدير</th>
+          <th>ملاحظة الغرامة</th>
+          <th>قيمة الغرامة</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
 
-        <div class="loader" id="loading">
-            <i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...
-        </div>
+  <script>
+    // ربط الـ Apps Script مع تمرير اسم الورقة "عقوبات"
+    const SCRIPT_URL = 
+      'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec'
+      + '?sheet=عقوبات';
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>اسم الموظف</th>
-                        <th>القسم</th>
-                        <th>الدرجة الوظيفية</th>
-                        <th>التقييم الكلي</th>
-                        <th>التقييم حسب عدد العمليات</th>
-                        <th>عدد أيام التقييم</th>
-                        <th>تاريخ التقييم</th>
-                    </tr>
-                </thead>
-                <tbody id="reviews-body">
-                    <tr><td colspan="7" class="no-data">لا توجد بيانات لعرضها. اضغط على "تحديث البيانات" لتحميلها.</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    let allData = [];
 
-    <footer>
-        جميع الحقوق محفوظة &copy; <span id="year"></span> | لشركة العصر الذكي
-    </footer>
+    // السماح بالولوج لمستخدمي HR فقط
+    const user = localStorage.getItem('username');
+    if (!user)           location.href = 'login.html';
+    else if (user !== 'hr') location.href = 'index.html';
 
-    <script>
-        let reviewsData = [];
-        let currentSortKey = '';
-        let sortDirection = {}; // Store sort direction for each key
+    function showLoading() { document.getElementById('loading').style.display = 'block'; }
+    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+    function showError(msg) {
+      document.getElementById('tbody').innerHTML = 
+        `<tr><td colspan="8" class="error">⚠️ ${msg}</td></tr>`;
+    }
+    function showEmpty() {
+      document.getElementById('tbody').innerHTML =
+        `<tr><td colspan="8" class="no-data">لا توجد بيانات</td></tr>`;
+    }
 
-        // Set current year in footer
-        document.getElementById("year").textContent = new Date().getFullYear();
+    // جلب البيانات من الـ Apps Script
+    async function fetchData() {
+      showLoading();
+      try {
+        const res = await fetch(SCRIPT_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error);
+        allData = json.data;
+        if (!allData.length) return showEmpty();
+        populateFilter();
+        renderTable(allData);
+      } catch (err) {
+        showError('فشل جلب البيانات: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
 
-        // Authentication check
-        const username = localStorage.getItem("username");
-        if (!username) {
-            window.location.href = "login.html";
-        }
+    // عرض الجدول
+    function renderTable(data) {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = data.map(item => `
+        <tr>
+          <td data-label="الاسم">${item.اسم_الموظف}</td>
+          <td data-label="القسم">${item.القسم}</td>
+          <td data-label="نوع العقوبة">${item.نوع_العقوبة}</td>
+          <td data-label="التاريخ">${item.التاريخ}</td>
+          <td data-label="سبب العقوبة">${item.سبب_العقوبة}</td>
+          <td data-label="المدير">${item.المدير}</td>
+          <td data-label="ملاحظة الغرامة">${item.ملاحظة_الغرامة}</td>
+          <td data-label="قيمة الغرامة">${item.قيمة_الغرامة}</td>
+        </tr>
+      `).join('');
+    }
 
-        // ******** تأكد من أن هذا الرابط هو الصحيح والمحدث من Google Apps Script الخاص بك ********
-        // هذا الرابط يجب أن يكون الرابط المباشر للـ Web App بعد نشره بصلاحية "Anyone"
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات";
-        // ***********************************************************************************
-        
-        const reviewsBody = document.getElementById("reviews-body");
-        const loadingEl = document.getElementById("loading");
-        const gradeFilter = document.getElementById("gradeFilter");
-        const searchInput = document.getElementById("searchInput");
+    // تعبئة قائمة الأقسام للتصفية
+    function populateFilter() {
+      const sel = document.getElementById('deptFilter');
+      const depts = [...new Set(allData.map(i => i.القسم))].sort();
+      sel.innerHTML = '<option value="">كل الأقسام</option>';
+      depts.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
+    }
 
-        function showLoading() { loadingEl.style.display = 'flex'; }
-        function hideLoading() { loadingEl.style.display = 'none'; }
+    // تصفية البحث
+    function filterTable() {
+      const kw   = document.getElementById('search').value.toLowerCase();
+      const dept = document.getElementById('deptFilter').value;
+      const filtered = allData.filter(i =>
+        (!dept || i.القسم === dept) &&
+        (i.اسم_الموظف.toLowerCase().includes(kw) || i.القسم.toLowerCase().includes(kw))
+      );
+      renderTable(filtered);
+    }
 
-        async function fetchReviews() {
-            showLoading();
-            reviewsBody.innerHTML = ''; // Clear existing data
-            try {
-                const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error('خطأ في الاتصال بالسيرفر: ' + response.statusText);
-                const result = await response.json();
+    function clearTable() {
+      allData = [];
+      document.getElementById('tbody').innerHTML = '';
+      document.getElementById('deptFilter').innerHTML = '<option value="">كل الأقسام</option>';
+    }
 
-                // تحقق من بنية الاستجابة
-                if (!result || !result.success || !Array.isArray(result.data)) {
-                    throw new Error(result.error || 'فشل جلب البيانات: بنية غير صحيحة.');
-                }
-                
-                reviewsData = result.data;
-                if (!reviewsData.length) {
-                    showEmpty();
-                } else {
-                    populateGradeFilter();
-                    displayReviews(reviewsData);
-                }
-            } catch (error) {
-                showError(error.message);
-                console.error("Error fetching reviews:", error);
-            } finally {
-                hideLoading();
-            }
-        }
+    function logout() {
+      localStorage.clear();
+      location.href = 'login.html';
+    }
 
-        function displayReviews(reviewsToDisplay) {
-            if (reviewsToDisplay.length === 0) {
-                showEmpty();
-                return;
-            }
-            reviewsBody.innerHTML = reviewsToDisplay.map(review => `
-                <tr>
-                    <td data-label="اسم الموظف">${review['اسم الموظف'] || ''}</td>
-                    <td data-label="القسم">${review['القسم'] || ''}</td>
-                    <td data-label="الدرجة الوظيفية">${review['الدرجه الوضيفيه'] || ''}</td>
-                    <td data-label="التقييم الكلي">${review['التقييم الكلي'] || ''}</td>
-                    <td data-label="التقييم حسب عدد العمليات">${review['التقييم حسب عدد العمليات'] || ''}</td>
-                    <td data-label="عدد أيام التقييم">${review['عدد أيام التقييم'] || ''}</td>
-                    <td data-label="تاريخ التقييم">${review['تاريخ التقييم'] || ''}</td>
-                </tr>
-            `).join('');
-        }
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
 
-        function clearTable() {
-            reviewsData = []; // Clear all data
-            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">تم مسح البيانات مؤقتاً. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
-            gradeFilter.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
-            searchInput.value = '';
-        }
-
-        function downloadExcel() {
-            if (reviewsData.length === 0) {
-                alert("لا توجد بيانات لتصديرها.");
-                return;
-            }
-
-            const headers = [
-                'اسم الموظف', 'القسم', 'الدرجه الوضيفيه', 'التقييم الكلي',
-                'التقييم حسب عدد العمليات', 'عدد أيام التقييم', 'تاريخ التقييم'
-            ];
-            const dataToExport = reviewsData.map(review => [
-                review['اسم الموظف'], review['القسم'], review['الدرجه الوضيفيه'],
-                review['التقييم الكلي'], review['التقييم حسب عدد العمليات'],
-                review['عدد أيام التقييم'], review['تاريخ التقييم']
-            ]);
-
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...dataToExport]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "التقييمات");
-
-            // Adjust column widths
-            const max_width = dataToExport.map(row => headers.map((header, i) => Math.max(
-                header.length,
-                String(row[i]).length
-            ))).reduce((a, b) => a.map((val, i) => Math.max(val, b[i])), Array(headers.length).fill(0));
-            ws['!cols'] = max_width.map(w => ({wch: w + 2}));
-
-            XLSX.writeFile(wb, `تقييمات_الموظفين_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        function filterTable() {
-            const inputVal = searchInput.value.toLowerCase();
-            const selectedGrade = gradeFilter.value;
-
-            const filtered = reviewsData.filter(review => {
-                const searchMatch = 
-                    (review['اسم الموظف'] && review['اسم الموظف'].toLowerCase().includes(inputVal)) ||
-                    (review['القسم'] && review['القسم'].toLowerCase().includes(inputVal)) ||
-                    (review['الدرجه الوضيفيه'] && review['الدرجه الوضيفيه'].toLowerCase().includes(inputVal));
-                
-                const gradeMatch = !selectedGrade || (review['الدرجه الوضيفيه'] === selectedGrade);
-                
-                return searchMatch && gradeMatch;
-            });
-            displayReviews(filtered);
-        }
-
-        function populateGradeFilter() {
-            const select = document.getElementById("gradeFilter");
-            const uniqueGrades = [...new Set(reviewsData.map(r => r['الدرجه الوضيفيه']).filter(Boolean))].sort();
-            select.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
-            uniqueGrades.forEach(grade => {
-                select.innerHTML += `<option value="${grade}">${grade}</option>`;
-            });
-        }
-
-        function sortBy(key) {
-            // Toggle sort direction
-            sortDirection[key] = (sortDirection[key] === 'asc') ? 'desc' : 'asc';
-            const direction = sortDirection[key] === 'asc' ? 1 : -1;
-
-            reviewsData.sort((a, b) => {
-                const valA = parseFloat(a[key]) || 0; // Handle non-numeric or empty values
-                const valB = parseFloat(b[key]) || 0;
-
-                if (valA < valB) return -1 * direction;
-                if (valA > valB) return 1 * direction;
-                return 0;
-            });
-            // Re-apply filters to display sorted data based on current filters
-            filterTable();
-        }
-
-        function toggleDarkMode() {
-            const isDark = document.body.classList.toggle("dark-mode");
-            localStorage.setItem('darkMode', isDark);
-            const icon = document.getElementById('dark-mode-icon');
-            if (isDark) {
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-            } else {
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
-            }
-        }
-
-        function logout() {
-            if (confirm("هل أنت متأكد من تسجيل الخروج؟")) {
-                localStorage.clear();
-                location.href = 'login.html';
-            }
-        }
-        
-        function showEmpty() {
-            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">لا توجد تقييمات حالياً.</td></tr>`;
-        }
-
-        function showError(message) {
-            reviewsBody.innerHTML = `<tr><td colspan="7" class="error"><i class="fas fa-exclamation-triangle"></i> ${message}</td></tr>`;
-        }
-
-        // Apply dark mode preference on load
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-            if (savedDarkMode) {
-                document.body.classList.add('dark-mode');
-                document.getElementById('dark-mode-icon').classList.remove('fa-moon');
-                document.getElementById('dark-mode-icon').classList.add('fa-sun');
-            } else {
-                document.getElementById('dark-mode-icon').classList.remove('fa-sun');
-                document.getElementById('dark-mode-icon').classList.add('fa-moon');
-            }
-            fetchReviews();
-        });
-    </script>
+    // تهيئة الوضع الليلي وجلب البيانات
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
+    window.addEventListener('DOMContentLoaded', fetchData);
+  </script>
 </body>
 </html>
