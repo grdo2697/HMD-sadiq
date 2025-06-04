@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>عقوبات موظفي العصر الذكي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تقييمات موظفين شركة العصر الذكي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -41,13 +41,13 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Adjusted transition for smoother theme change */
         }
 
         body {
             background: var(--background-light);
             color: var(--text-dark);
             line-height: 1.6;
-            transition: background 0.3s ease, color 0.3s ease;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -193,6 +193,14 @@
         .action-button.success:hover {
             background: #16a34a; /* Green 600 */
         }
+        .action-button.sort-btn {
+            background: var(--accent-yellow);
+            color: var(--text-dark);
+        }
+        .action-button.sort-btn:hover {
+            background: #eab308; /* Yellow 600 */
+        }
+
 
         /* --- Loading Indicator --- */
         .loader {
@@ -255,32 +263,6 @@
         }
         tbody tr:empty { /* Hide empty row */
             display: none;
-        }
-
-        /* --- Total Box --- */
-        .total-box {
-            margin-top: 1.5rem;
-            padding: 1.2rem 1.8rem;
-            border: 2px solid var(--primary-blue);
-            border-radius: 12px;
-            background: var(--hover-light);
-            color: var(--text-dark);
-            font-weight: 700;
-            font-size: 1.3rem;
-            text-align: center;
-            display: inline-block; /* Make it fit content and allow float */
-            float: left; /* Align to the left (RTL) */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            opacity: 0;
-            visibility: hidden; /* Hide completely when not visible */
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .total-box.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .total-box span {
-            color: var(--danger-red); /* Highlight the total value */
         }
 
         /* --- No Data / Error messages --- */
@@ -357,13 +339,6 @@
                 width: 45%; /* Give label some width */
                 text-align: right; /* Align label text to right */
             }
-            .total-box {
-                font-size: 1.1rem;
-                padding: 0.8rem 1.2rem;
-                width: 100%; /* Full width on small screens */
-                float: none; /* Remove float */
-                text-align: center; /* Center total */
-            }
         }
 
         @media (max-width: 480px) {
@@ -375,7 +350,13 @@
     </style>
 </head>
 <body>
-    <!-- Fixed Buttons -->
+    <script>
+        const username = localStorage.getItem("username");
+        if (!username) {
+            window.location.href = "login.html";
+        }
+    </script>
+
     <div class="header-actions">
         <button class="header-action-btn" onclick="toggleDarkMode()" aria-label="تبديل الوضع الليلي">
             <i class="fas fa-moon" id="dark-mode-icon"></i>
@@ -389,24 +370,30 @@
     </div>
 
     <header>
-        <h1><i class="fas fa-balance-scale-right"></i> عقوبات موظفي العصر الذكي</h1>
+        <h1><i class="fas fa-star"></i> عرض التقييمات</h1>
     </header>
 
-    <div class="container">
+    <div class="container" id="reviews-container">
         <div class="controls">
-            <button class="action-button primary" onclick="fetchData()">
+            <button class="action-button primary" onclick="fetchReviews()">
                 <i class="fas fa-sync-alt"></i> <span>تحديث البيانات</span>
             </button>
             <button class="action-button danger" onclick="clearTable()">
                 <i class="fas fa-trash-alt"></i> <span>مسح الكل</span>
             </button>
-            <button class="action-button success" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i> <span>تصدير لإكسل</span>
+            <button class="action-button success" onclick="downloadExcel()">
+                <i class="fas fa-file-excel"></i> <span>تنزيل Excel</span>
             </button>
-            <input type="text" id="search" placeholder="ابحث بالاسم أو القسم..." oninput="filterTable()">
-            <select id="deptFilter" onchange="filterTable()">
-                <option value="">كل الأقسام</option>
+            <select id="gradeFilter" onchange="filterTable()">
+                <option value="">تصفية حسب الدرجة الوظيفية</option>
             </select>
+            <button class="action-button sort-btn" onclick="sortBy('operationRating')">
+                <i class="fas fa-sort"></i> <span>عدد العمليات</span>
+            </button>
+            <button class="action-button sort-btn" onclick="sortBy('overallRating')">
+                <i class="fas fa-sort"></i> <span>التقييم الكلي</span>
+            </button>
+            <input type="text" id="searchInput" placeholder="بحث..." oninput="filterTable()">
         </div>
 
         <div class="loader" id="loading">
@@ -414,176 +401,172 @@
         </div>
 
         <div class="table-container">
-            <table id="penaltiesTable">
+            <table>
                 <thead>
                     <tr>
                         <th>اسم الموظف</th>
                         <th>القسم</th>
-                        <th>نوع العقوبة</th>
-                        <th>التاريخ</th>
-                        <th>سبب العقوبة</th>
-                        <th>المدير</th>
-                        <th>ملاحظة الغرامة</th>
-                        <th>قيمة الغرامة</th>
+                        <th>الدرجة الوظيفية</th>
+                        <th>التقييم الكلي</th>
+                        <th>التقييم حسب عدد العمليات</th>
+                        <th>عدد أيام التقييم</th>
+                        <th>تاريخ التقييم</th>
                     </tr>
                 </thead>
-                <tbody id="tbody">
-                    <tr><td colspan="8" class="no-data">لا توجد بيانات لعرضها. اضغط على "تحديث البيانات" لتحميلها.</td></tr>
+                <tbody id="reviews-body">
+                    <tr><td colspan="7" class="no-data">لا توجد بيانات لعرضها. اضغط على "تحديث البيانات" لتحميلها.</td></tr>
                 </tbody>
             </table>
-        </div>
-
-        <div class="total-box" id="totalBox">
-            المجموع الكلي للغرامات: <span id="totalValue">0</span>
         </div>
     </div>
 
     <footer>
-        جميع الحقوق محفوظة &copy; <span id="year"></span> | لشركة العصر الذكي
+        جميع الحقوق محفوظة &copy; <span id="year"></span> | لدى - محمد الجواد
     </footer>
 
     <script>
-        // Set current year in footer
+        let reviewsData = [];
+        let sortOrder = {
+            operationRating: 'asc',
+            overallRating: 'asc'
+        };
+
+        const reviewsBody = document.getElementById("reviews-body");
+        const loadingEl = document.getElementById("loading");
+        const gradeFilter = document.getElementById("gradeFilter");
+        const searchInput = document.getElementById("searchInput");
+
         document.getElementById("year").textContent = new Date().getFullYear();
+        document.getElementById("reviews-container").style.display = "block"; // Keep this to show container on load
 
-        // ******** تأكد من أن هذا الرابط هو الصحيح والمحدث من Google Apps Script الخاص بك ********
-        // هذا الرابط يجب أن يكون الرابط المباشر للـ Web App بعد نشره بصلاحية "Anyone"
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xRG0r1vCKvwfrvyXqYq56fQO-RPuRNz2mB7Jvkn4AFLYHOsScYb-NeWOTSzxhLtKIg/exec?sheet=عقوبات';
-        // ***********************************************************************************
-        
-        let allData = [];
-        const user = localStorage.getItem('username');
-
-        // Authentication check (HR only)
-        if (!user) {
-            location.href = 'login.html';
-        } else if (user !== 'hr') {
-            alert("ليس لديك صلاحية الوصول لهذه الصفحة.");
-            location.href = 'index.html'; // Redirect to main page if not HR
-        }
-
-        const totalValueEl = document.getElementById('totalValue');
-        const loadingEl = document.getElementById('loading');
-        const totalBoxEl = document.getElementById('totalBox');
-        const tbodyEl = document.getElementById('tbody');
-        const searchInput = document.getElementById('search');
-        const deptFilter = document.getElementById('deptFilter');
-
+        // Show/Hide Loading Spinner
         function showLoading() { loadingEl.style.display = 'flex'; }
         function hideLoading() { loadingEl.style.display = 'none'; }
 
-        async function fetchData() {
+        // Fetch Reviews (No change to logic)
+        async function fetchReviews() {
             showLoading();
-            tbodyEl.innerHTML = ''; // Clear table before fetching
-            totalBoxEl.classList.remove('visible'); // Hide total box
-            totalValueEl.textContent = '0'; // Reset total
-
+            reviewsBody.innerHTML = ''; // Clear existing data
             try {
-                const res = await fetch(SCRIPT_URL);
-                if (!res.ok) throw new Error(`HTTP error! Status: ${res.statusText}`);
-                const json = await res.json();
+                // Ensure SCRIPT_URL is correct for your Google Apps Script
+                const response = await fetch("https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات");
+                if (!response.ok) throw new Error('خطأ في جلب البيانات: ' + response.statusText);
+                const result = await response.json();
 
-                // Validate response structure
-                if (!json || !json.success || !Array.isArray(json.data)) {
-                    throw new Error(json.error || 'فشل جلب البيانات: بنية غير صحيحة.');
+                if (!result || !result.success || !Array.isArray(result.data)) {
+                    throw new Error(result.error || 'فشل جلب البيانات: بنية غير صحيحة.');
                 }
-                
-                allData = json.data;
 
-                if (allData.length === 0) {
+                reviewsData = result.data;
+                if (!reviewsData.length) {
                     showEmpty();
                 } else {
-                    populateFilter();
-                    renderTable(allData);
-                    updateTotal(allData);
+                    populateGradeFilter();
+                    displayReviews(reviewsData);
                 }
-            } catch (err) {
-                showError('فشل جلب البيانات: ' + err.message + '. يرجى التحقق من الاتصال والمحاولة مرة أخرى.');
-                console.error("Error fetching data:", err);
-                tbodyEl.innerHTML = `<tr><td colspan="8" class="error">خطأ في تحميل البيانات: ${err.message}</td></tr>`;
+            } catch (error) {
+                showError(error.message);
+                console.error("Error fetching reviews:", error);
             } finally {
                 hideLoading();
             }
         }
 
-        // Function to parse penalty value from string (handles "الف", commas, currency symbols)
-        function parsePenaltyValue(str) {
-            if (!str) return 0;
-            // Remove any currency symbols (like IQD) and then replace comma with dot for decimal
-            const cleanedStr = String(str).replace(/IQD|د.ع|\s/g, '').replace(/,/g, '.');
-            const match = cleanedStr.match(/(\d+(\.\d+)?)/); // Match numbers with optional decimal
-            let num = match ? parseFloat(match[1]) : 0;
-            
-            // Check for "الف" or "ألف" (thousand)
-            if (/الف|ألف/.test(str)) {
-                num *= 1000;
-            }
-            return num;
-        }
-
-        function renderTable(data) {
-            if (data.length === 0) {
+        // Display Reviews (Updated to use data-label for responsive table)
+        function displayReviews(reviews) {
+            if (reviews.length === 0) {
                 showEmpty();
                 return;
             }
-            tbodyEl.innerHTML = data.map(item => `
+            const tbody = document.getElementById("reviews-body");
+            tbody.innerHTML = reviews.map(review => `
                 <tr>
-                    <td data-label="الاسم">${item['اسم الموظف'] || ''}</td>
-                    <td data-label="القسم">${item['القسم'] || ''}</td>
-                    <td data-label="نوع العقوبة">${item['نوع العقوبة'] || ''}</td>
-                    <td data-label="التاريخ">${item['التاريخ'] || ''}</td>
-                    <td data-label="سبب العقوبة">${item['سبب العقوبة'] || ''}</td>
-                    <td data-label="المدير">${item['المدير'] || ''}</td>
-                    <td data-label="ملاحظة الغرامة">${item['ملاحظة الغرامة'] || ''}</td>
-                    <td data-label="قيمة الغرامة">${parsePenaltyValue(item['قيمة الغرامة']).toLocaleString()}</td>
-                </tr>`).join('');
-            totalBoxEl.classList.toggle('visible', data.length > 0);
+                    <td data-label="اسم الموظف">${review.name || ''}</td>
+                    <td data-label="القسم">${review.department || ''}</td>
+                    <td data-label="الدرجة الوظيفية">${review.jobGrade || ''}</td>
+                    <td data-label="التقييم الكلي">${review.overallRating || ''}</td>
+                    <td data-label="التقييم حسب عدد العمليات">${review.operationRating || ''}</td>
+                    <td data-label="عدد أيام التقييم">${review.ratingDays || ''}</td>
+                    <td data-label="تاريخ التقييم">${review.reviewDate || ''}</td>
+                </tr>
+            `).join('');
         }
 
-        function populateFilter() {
-            const departments = [...new Set(allData.map(i => i['القسم']).filter(Boolean))]; // Get unique, non-empty departments
-            departments.sort().forEach(d => { // Sort alphabetically
-                deptFilter.innerHTML += `<option value="${d}">${d}</option>`;
-            });
-        }
-
-        function filterTable() {
-            const kw = searchInput.value.toLowerCase();
-            const dept = deptFilter.value;
-
-            const filtered = allData.filter(row => {
-                const nameMatch = row['اسم الموظف'] && row['اسم الموظف'].toLowerCase().includes(kw);
-                const deptSearchMatch = row['القسم'] && row['القسم'].toLowerCase().includes(kw); // Allow searching department by keyword
-                const deptFilterMatch = (dept === '' || row['القسم'] === dept);
-                return (nameMatch || deptSearchMatch) && deptFilterMatch;
-            });
-            renderTable(filtered);
-            updateTotal(filtered);
-        }
-
-        function updateTotal(data) {
-            const sum = data.reduce((acc, curr) => acc + parsePenaltyValue(curr['قيمة الغرامة']), 0);
-            totalValueEl.textContent = sum.toLocaleString() + " د.ع"; // Add currency symbol
-        }
-
+        // Clear Table (No change to logic)
         function clearTable() {
-            allData = []; // Clear local data as well
-            tbodyEl.innerHTML = `<tr><td colspan="8" class="no-data">تم مسح البيانات مؤقتاً. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
-            totalValueEl.textContent = '0 د.ع';
-            totalBoxEl.classList.remove('visible');
-            searchInput.value = ''; // Clear search
-            deptFilter.innerHTML = '<option value="">كل الأقسام</option>'; // Reset department filter options
+            reviewsData = []; // Clear all data
+            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">تم مسح البيانات مؤقتاً. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
+            gradeFilter.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
+            searchInput.value = '';
         }
 
-        function logout() {
-            if (confirm("هل أنت متأكد من تسجيل الخروج؟")) {
-                localStorage.clear();
-                location.href = 'login.html';
+        // Download Excel (Using XLSX.js for proper Excel file)
+        function downloadExcel() {
+            if (reviewsData.length === 0) {
+                alert("لا توجد بيانات لتصديرها.");
+                return;
             }
+
+            const table = document.querySelector("table");
+            const headers = Array.from(table.querySelectorAll("th")).map(th => th.innerText);
+            
+            const dataToExport = reviewsData.map(review => [
+                review.name || '',
+                review.department || '',
+                review.jobGrade || '',
+                review.overallRating || '',
+                review.operationRating || '',
+                review.ratingDays || '',
+                review.reviewDate || ''
+            ]);
+
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...dataToExport]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "التقييمات");
+
+            // Adjust column widths
+            const max_width = dataToExport.map(row => headers.map((header, i) => Math.max(
+                header.length,
+                String(row[i]).length
+            ))).reduce((a, b) => a.map((val, i) => Math.max(val, b[i])), Array(headers.length).fill(0));
+            ws['!cols'] = max_width.map(w => ({wch: w + 2}));
+
+            XLSX.writeFile(wb, `تقييمات_الموظفين_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
+        // Filter Table (No change to logic)
+        function filterTable() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const grade = document.getElementById("gradeFilter").value;
+            const filtered = reviewsData.filter(r => {
+                const matchSearch = `${r.name} ${r.department} ${r.jobGrade}`.toLowerCase().includes(input);
+                const matchGrade = !grade || r.jobGrade === grade;
+                return matchSearch && matchGrade;
+            });
+            displayReviews(filtered);
+        }
+
+        // Populate Grade Filter (No change to logic)
+        function populateGradeFilter() {
+            const select = document.getElementById("gradeFilter");
+            const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade).filter(Boolean))].sort();
+            select.innerHTML = `<option value="">تصفية حسب الدرجة الوظيفية</option>`;
+            uniqueGrades.forEach(grade => {
+                select.innerHTML += `<option value="${grade}">${grade}</option>`;
+            });
+        }
+
+        // Sort By (No change to logic)
+        function sortBy(key) {
+            const direction = sortOrder[key] === 'asc' ? 1 : -1;
+            reviewsData.sort((a, b) => (parseFloat(a[key]) - parseFloat(b[key])) * direction);
+            sortOrder[key] = sortOrder[key] === 'asc' ? 'desc' : 'asc';
+            filterTable();
+        }
+
+        // Toggle Dark Mode (Updated to change icon)
         function toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.toggle("dark-mode");
             localStorage.setItem('darkMode', isDark);
             const icon = document.getElementById('dark-mode-icon');
             if (isDark) {
@@ -594,77 +577,37 @@
                 icon.classList.add('fa-moon');
             }
         }
-        // Apply dark mode preference on load
-        const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (savedDarkMode) {
-            document.body.classList.add('dark-mode');
-            document.getElementById('dark-mode-icon').classList.remove('fa-moon');
-            document.getElementById('dark-mode-icon').classList.add('fa-sun');
-        } else {
-            document.getElementById('dark-mode-icon').classList.remove('fa-sun');
-            document.getElementById('dark-mode-icon').classList.add('fa-moon');
+
+        // Logout (No change to logic)
+        function logout() {
+            if (confirm("هل أنت متأكد من تسجيل الخروج؟")) {
+                localStorage.clear();
+                location.href = 'login.html';
+            }
         }
 
+        // Show Empty/Error messages in table body
         function showEmpty() {
-            tbodyEl.innerHTML = `<tr><td colspan="8" class="no-data">لا توجد بيانات حالياً.</td></tr>`;
+            reviewsBody.innerHTML = `<tr><td colspan="7" class="no-data">لا توجد تقييمات حالياً.</td></tr>`;
         }
 
         function showError(message) {
-            tbodyEl.innerHTML = `<tr><td colspan="8" class="error"><i class="fas fa-exclamation-triangle"></i> ${message}</td></tr>`;
+            reviewsBody.innerHTML = `<tr><td colspan="7" class="error"><i class="fas fa-exclamation-triangle"></i> ${message}</td></tr>`;
         }
 
-        function exportToExcel() {
-            if (allData.length === 0) {
-                alert("لا توجد بيانات لتصديرها.");
-                return;
+        // Apply dark mode preference on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (savedDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('dark-mode-icon').classList.remove('fa-moon');
+                document.getElementById('dark-mode-icon').classList.add('fa-sun');
+            } else {
+                document.getElementById('dark-mode-icon').classList.remove('fa-sun');
+                document.getElementById('dark-mode-icon').classList.add('fa-moon');
             }
-
-            const kw = searchInput.value.toLowerCase();
-            const dept = deptFilter.value;
-            
-            const filteredData = allData.filter(row => {
-                const nameMatch = row['اسم الموظف'] && row['اسم الموظف'].toLowerCase().includes(kw);
-                const deptSearchMatch = row['القسم'] && row['القسم'].toLowerCase().includes(kw);
-                const deptFilterMatch = (dept === '' || row['القسم'] === dept);
-                return (nameMatch || deptSearchMatch) && deptFilterMatch;
-            });
-
-            if (filteredData.length === 0) {
-                alert("لا توجد بيانات مطابقة للفلترات الحالية لتصديرها.");
-                return;
-            }
-
-            const headers = [
-                'اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ',
-                'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'قيمة الغرامة (رقم)'
-            ];
-            const rows = filteredData.map(item => [
-                item['اسم الموظف'] || '',
-                item['القسم'] || '',
-                item['نوع العقوبة'] || '',
-                item['التاريخ'] || '',
-                item['سبب العقوبة'] || '',
-                item['المدير'] || '',
-                item['ملاحظة الغرامة'] || '',
-                parsePenaltyValue(item['قيمة الغرامة'])
-            ]);
-
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'العقوبات');
-
-            // Adjust column widths
-            const max_width = rows.map(row => headers.map((header, i) => Math.max(
-                header.length,
-                String(row[i]).length
-            ))).reduce((a, b) => a.map((val, i) => Math.max(val, b[i])), Array(headers.length).fill(0));
-            ws['!cols'] = max_width.map(w => ({wch: w + 2}));
-
-            XLSX.writeFile(wb, `عقوبات_الموظفين_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        // Fetch data on page load
-        window.addEventListener('DOMContentLoaded', fetchData);
+            fetchReviews(); // Fetch data when the page loads
+        });
     </script>
 </body>
 </html>
