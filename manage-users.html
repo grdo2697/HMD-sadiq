@@ -1,118 +1,236 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>إدارة المستخدمين - العصر الذكي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <style>
-    body { font-family: 'Cairo', sans-serif; margin:0; padding:2rem; background:#f9fafb; color:#0f172a; }
-    h1 { text-align:center; color:#0ea5e9; }
-    .controls { margin-bottom:1rem; }
-    .controls input, .controls button { padding:0.5rem; margin-right:0.5rem; }
-    table { width:100%; border-collapse:collapse; margin-top:1rem;}
-    th, td { border:1px solid #cbd5e1; padding:0.5rem; text-align:right; }
-    .badge { cursor:pointer; padding:0.2em 0.5em; border-radius:4px; margin-left:0.3em;}
-    .bg-primary { background:#0ea5e9; color:#fff; }
-    .bg-success { background:#22c55e; color:#fff; }
-    .bg-danger  { background:#ef4444; color:#fff; }
-    .logout { position:fixed; top:1rem; left:1rem; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - العصر الذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    :root {
+      --primary-blue: #0ea5e9;
+      --secondary-blue: #38bdf8;
+      --background-light: #f8fafc;
+      --text-dark: #1e293b;
+      --border-light: #e2e8f0;
+      --card-bg-light: #ffffff;
+      --shadow-light: rgba(15, 23, 42, 0.05);
+    }
+    .dark-mode {
+      --background-light: #1f2937;
+      --text-dark: #f1f5f9;
+      --border-light: #475569;
+      --card-bg-light: #374151;
+      --shadow-light: rgba(0, 0, 0, 0.3);
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--background-light);
+      color: var(--text-dark);
+      transition: background 0.3s, color 0.3s;
+      margin: 0;
+    }
+    .login-container {
+      background: var(--card-bg-light);
+      padding: 3rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px var(--shadow-light);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    h1 {
+      color: var(--primary-blue);
+      margin-bottom: 2rem;
+      font-size: 2.2rem;
+    }
+    .input-group {
+      margin-bottom: 1.5rem;
+      text-align: right;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 0.9rem;
+      border: 2px solid var(--border-light);
+      border-radius: 10px;
+      background: var(--background-light);
+      color: var(--text-dark);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .input-group input:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+    .login-button {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    .login-button:hover {
+      background: var(--secondary-blue);
+      transform: translateY(-2px);
+    }
+    .error-message {
+      color: #ef4444;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    .toggle-dark-mode {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: var(--card-bg-light);
+      border: 2px solid var(--border-light);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 1.3rem;
+      color: var(--text-dark);
+      box-shadow: 0 2px 5px var(--shadow-light);
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .toggle-dark-mode:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow-light);
+    }
+  </style>
 </head>
 <body>
+  <button class="toggle-dark-mode" onclick="toggleDarkMode()">
+    <i class="fas fa-moon" id="dark-mode-icon"></i>
+  </button>
 
-  <button class="logout" onclick="logout()">🚪 تسجيل خروج</button>
-  <h1>إدارة المستخدمين</h1>
+  <div class="login-container">
+    <h1>تسجيل الدخول <i class="fas fa-sign-in-alt"></i></h1>
+    <div class="input-group">
+      <label for="username">اسم المستخدم:</label>
+      <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+    </div>
+    <div class="input-group">
+      <label for="password">كلمة المرور:</label>
+      <input type="password" id="password" placeholder="أدخل كلمة المرور">
+    </div>
+    <button class="login-button" onclick="login()">
+      <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+    </button>
+    <p id="error-message" class="error-message" style="display:none;"></p>
+  </div>
 
-  <div class="controls">
-    <input id="new-username" placeholder="اسم المستخدم" />
-    <input id="new-password" type="password" placeholder="كلمة المرور" />
-    <span>أذونات:</span>
-    <span class="badge bg-primary permission" data-perm="manage_users">إدارة مستخدمين</span>
-    <span class="badge bg-primary permission" data-perm="view_penalties">عقوبات</span>
-    <span class="badge bg-primary permission" data-perm="view_ratings">تقييمات</span>
-    <span class="badge bg-primary permission" data-perm="view_requests">طلبات توظيف</span>
-    <button onclick="addUser()">➕ أضف مستخدم</button>
-  </div>
+  <script>
+    const SECRET_KEY = 'smart_era_secret_@2024';
 
-  <table>
-    <thead>
-      <tr>
-        <th>المستخدم</th><th>أذونات</th><th>إجراءات</th>
-      </tr>
-    </thead>
-    <tbody id="users-body"></tbody>
-  </table>
+    // تحقق إذا كان المستخدم مسجلاً دخوله بالفعل
+    if (sessionStorage.getItem('auth')) {
+      window.location.href = 'index.html'; // أو الصفحة الرئيسية
+    }
 
-  <script>
-    const SECRET_KEY = 'smart_era_secret_@2024';
+    function getUsers() {
+      const encryptedUsers = localStorage.getItem('users');
+      if (!encryptedUsers) return [];
+      try {
+        const decrypted = CryptoJS.AES.decrypt(encryptedUsers, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+        return JSON.parse(decrypted || '[]');
+      } catch (e) {
+        console.error("Error decrypting users data:", e);
+        return [];
+      }
+    }
 
-    // retrieve & decrypt or seed defaults
-    function getUsers() {
-      const e = localStorage.getItem('users');
-      if (!e) {
-        const defaults = [
-          { u:'hr', p:'100200300', perms:['manage_users','view_penalties','view_ratings','view_requests'] }
-        ];
-        localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(defaults), SECRET_KEY).toString());
-        return defaults;
-      }
-      const json = CryptoJS.AES.decrypt(e, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-      return JSON.parse(json||'[]');
-    }
+    async function login() {
+      const usernameInput = document.getElementById('username').value.trim();
+      const passwordInput = document.getElementById('password').value;
+      const errorMessage = document.getElementById('error-message');
 
-    function saveUsers(arr) {
-      localStorage.setItem('users', CryptoJS.AES.encrypt(JSON.stringify(arr), SECRET_KEY).toString());
-    }
+      errorMessage.style.display = 'none';
 
-    function render() {
-      const body = document.getElementById('users-body');
-      body.innerHTML = '';
-      getUsers().forEach((u,i) => {
-        const perms = u.perms.map(p=>`<span class="badge bg-success">${p}</span>`).join('');
-        body.innerHTML += `
-          <tr>
-            <td>${u.u}</td>
-            <td>${perms}</td>
-            <td><button onclick="deleteUser(${i})">❌</button></td>
-          </tr>`;
-      });
-    }
+      if (!usernameInput || !passwordInput) {
+        errorMessage.textContent = 'الرجاء إدخال اسم المستخدم وكلمة المرور.';
+        errorMessage.style.display = 'block';
+        return;
+      }
 
-    function addUser() {
-      const name = document.getElementById('new-username').value.trim();
-      const pass = document.getElementById('new-password').value;
-      if (!name||!pass) return alert('أدخل اسم ومفتاح');
-      // collect permissions
-      const perms = Array.from(document.querySelectorAll('.permission.bg-success'))
-                         .map(b=>b.dataset.perm);
-      const users = getUsers();
-      if (users.find(u=>u.u===name)) return alert('المستخدم موجود');
-      users.push({u:name,p:pass,perms});
-      saveUsers(users);
-      render();
-    }
+      const users = getUsers();
+      const foundUser = users.find(u => u.u === usernameInput);
 
-    function deleteUser(idx) {
-      const users = getUsers();
-      users.splice(idx,1);
-      saveUsers(users);
-      render();
-    }
+      if (foundUser) {
+        const hashedPassword = CryptoJS.SHA256(passwordInput).toString();
+        if (hashedPassword === foundUser.p) {
+          // تسجيل الدخول بنجاح، حفظ بيانات الجلسة
+          const authData = {
+            username: foundUser.u,
+            permissions: foundUser.perms
+          };
+          sessionStorage.setItem('auth', JSON.stringify(authData));
+          window.location.href = 'index.html'; // إعادة التوجيه إلى الصفحة الرئيسية
+        } else {
+          errorMessage.textContent = 'كلمة مرور غير صحيحة.';
+          errorMessage.style.display = 'block';
+        }
+      } else {
+        errorMessage.textContent = 'اسم المستخدم غير موجود.';
+        errorMessage.style.display = 'block';
+      }
+    }
 
-    // toggle badge selection
-    document.querySelectorAll('.permission').forEach(b=>{
-      b.onclick = ()=> b.classList.toggle('bg-success');
-    });
+    // تبديل الوضع الليلي
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle("dark-mode");
+      localStorage.setItem('darkMode', isDark);
+      const icon = document.getElementById('dark-mode-icon');
+      if (isDark) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+      } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+      }
+    }
 
-    function logout() {
-      sessionStorage.removeItem('auth');
-      window.location.href='login.html';
-    }
-
-    // init
-    render();
-  </script>
+    // تطبيق وضع الظلام عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+      if (savedDarkMode) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('dark-mode-icon').classList.remove('fa-moon');
+        document.getElementById('dark-mode-icon').classList.add('fa-sun');
+      } else {
+        document.getElementById('dark-mode-icon').classList.remove('fa-sun');
+        document.getElementById('dark-mode-icon').classList.add('fa-moon');
+      }
+      // إضافة حدث Enter للضغط على زر تسجيل الدخول
+      document.getElementById('password').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          login();
+        }
+      });
+      document.getElementById('username').focus(); // تركيز على حقل اسم المستخدم
+    });
+  </script>
 </body>
 </html>
