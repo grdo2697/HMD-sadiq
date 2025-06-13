@@ -421,6 +421,7 @@
     function renderTable(records) {
       const tbody = document.getElementById('tbody');
       if (records.length === 0) {
+        // تم زيادة colspan إلى 8 ليتناسب مع الأعمدة الثمانية الجديدة
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-medium);">لا توجد بيانات لعرضها حالياً.</td></tr>';
         return;
       }
@@ -428,10 +429,13 @@
         <tr>
           <td>${record.name || ''}</td>
           <td>${record.department || ''}</td>
-          <td>${record.penaltyType || ''}</td> <td>${record.date || ''}</td>
+          <td>${record.penaltyType || ''}</td>
+          <td>${record.date || ''}</td>
           <td>${record.reason || ''}</td>
           <td>${record.manager || ''}</td>
-          <td>${record.fineNote || ''}</td> <td>${record.total || ''}</td> </tr>
+          <td>${record.fineNote || ''}</td>
+          <td>${record.total || ''}</td>
+        </tr>
       `).join('');
     }
 
@@ -440,6 +444,7 @@
      */
     function clearTable() {
       penaltiesData = [];
+      // تم زيادة colspan إلى 8
       document.getElementById('tbody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-medium);">تم مسح جميع البيانات بنجاح.</td></tr>';
       document.getElementById('search').value = '';
       document.getElementById('deptFilter').value = '';
@@ -469,17 +474,18 @@
      * تنزيل بيانات الجدول الحالية كملف Excel بصيغة CSV.
      */
     function downloadExcel() {
+      // الأهم هنا: تأكد أن رؤوس الأعمدة هذه تطابق ترتيب المفاتيح في مصفوفة record أدناه
       const header = ['اسم الموظف','القسم','نوع العقوبة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة','المجموع'];
       
       const rows = [header, ...penaltiesData.map(record => [
         record.name,
         record.department,
-        record.penaltyType, // استخدم نفس الاسم هنا
+        record.penaltyType, // تأكد من استخدام نفس اسم المفتاح هنا
         record.date,
         record.reason,
         record.manager,
-        record.fineNote, // استخدم نفس الاسم هنا
-        record.total // حقل "المجموع" الجديد
+        record.fineNote,     // تأكد من استخدام نفس اسم المفتاح هنا
+        record.total         // تأكد من استخدام نفس اسم المفتاح هنا
       ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
       const csvContent = rows.map(row => row.join(',')).join('\n');
