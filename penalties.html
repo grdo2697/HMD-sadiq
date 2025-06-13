@@ -3,181 +3,331 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>عقوبات موظفي العصر الذكي - لوحة تحكم الموارد البشرية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <title>نظام عقوبات الموظفين - العصر الذكي</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
   <style>
-    /* تعريف المتغيرات (CSS Variables) للتحكم في الألوان والخطوط.
-     * يسهل هذا التعديل على الثيمات (مثل الوضع الداكن).
-     */
+    /* ------------------------------------- */
+    /* 1. المتغيرات والألوان الأساسية (Theming) */
+    /* ------------------------------------- */
     :root {
-      --primary: #0ea5e9; /* أزرق سماوي - اللون الأساسي */
-      --secondary: #38bdf8; /* أزرق فاتح - لون ثانوي */
-      --accent: #facc15; /* أصفر - لون مميز/للتنبيه */
-      --background: #f9fafb; /* أبيض مائل للرمادي - خلفية فاتحة */
-      --text: #0f172a; /* كحلي داكن - لون النص الأساسي */
-      --border: #cbd5e1; /* رمادي فاتح - لون الحدود */
-      --hover: #e0f2fe; /* أزرق فاتح جداً - لون التفاعل عند التحويم */
+      --primary-color: #3B82F6;   /* أزرق جذاب */
+      --secondary-color: #60A5FA; /* أزرق فاتح */
+      --accent-color: #FACC15;    /* أصفر ذهبي - للعمليات الرئيسية */
+      --background-light: #F8FAFC; /* خلفية فاتحة جداً */
+      --background-card: #FFFFFF; /* خلفية البطاقات/العناصر البيضاء */
+      --text-dark: #1F2937;       /* نص غامق جداً */
+      --text-medium: #4B5563;     /* نص متوسط */
+      --border-color: #E5E7EB;    /* حدود فاتحة */
+      --shadow-light: rgba(0, 0, 0, 0.05); /* ظل خفيف جداً */
+      --hover-light: #EFF6FF;     /* لون تحويم فاتح جداً */
     }
-    /* تعريف ألوان الوضع الداكن (Dark Mode) */
+
     .dark-mode {
-      --background: #0f172a; /* كحلي داكن - خلفية الوضع الداكن */
-      --text: #f9fafb; /* أبيض مائل للرمادي - نص الوضع الداكن */
-      --border: #334155; /* رمادي مزرق - حدود الوضع الداكن */
-      --hover: #1e293b; /* رمادي غامق جداً - تفاعل الوضع الداكن */
+      --primary-color: #60A5FA;
+      --secondary-color: #3B82F6;
+      --accent-color: #FDE047;
+      --background-light: #1F2937; /* خلفية داكنة */
+      --background-card: #374151; /* خلفية البطاقات/العناصر في الوضع الداكن */
+      --text-dark: #F9FAFB;       /* نص فاتح جداً */
+      --text-medium: #D1D5DB;     /* نص متوسط فاتح */
+      --border-color: #4B5563;    /* حدود داكنة */
+      --shadow-light: rgba(0, 0, 0, 0.2);
+      --hover-light: #4B5563;
     }
-    /* إعادة تعيين الأنماط الأساسية وعائلة الخطوط */
+
+    /* ------------------------------------- */
+    /* 2. الأنماط الأساسية (Base Styles)      */
+    /* ------------------------------------- */
     * {
       font-family: 'Cairo', sans-serif;
       box-sizing: border-box;
-    }
-    body {
       margin: 0;
-      background: var(--background);
-      color: var(--text);
+      padding: 0;
+    }
+
+    body {
+      background: var(--background-light);
+      color: var(--text-dark);
       min-height: 100vh;
       display: flex;
-      flex-direction: column; /* لجعل الفوتر يلتصق بالأسفل */
-      transition: background 0.3s ease, color 0.3s ease; /* انتقال سلس عند تبديل الوضع الداكن */
+      flex-direction: column;
+      transition: background 0.4s ease, color 0.4s ease; /* انتقال سلس للوضع الداكن */
     }
-    /* أنماط رأس الصفحة (Header) */
+
+    /* ------------------------------------- */
+    /* 3. الهيكل العام (Layout)              */
+    /* ------------------------------------- */
     header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      padding: 2rem 1rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      padding: 2.5rem 1.5rem;
       text-align: center;
       color: #fff;
+      box-shadow: 0 4px 10px var(--shadow-light);
     }
     header h1 {
       margin: 0;
-      font-size: 2.5rem;
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
-    /* أنماط قسم عناصر التحكم (Controls) */
+
+    .container {
+      max-width: 1300px; /* زيادة عرض المحتوى */
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+      flex-grow: 1; /* لتوسيع المحتوى ودفع الفوتر للأسفل */
+    }
+
+    /* ------------------------------------- */
+    /* 4. عناصر التحكم (Controls)            */
+    /* ------------------------------------- */
     .controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 0.75rem; /* مسافة بين العناصر */
-      padding: 1rem;
-      align-items: center;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* أزرار أكبر */
+      gap: 1rem;
+      padding: 1.5rem;
+      background: var(--background-card);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px var(--shadow-light);
+      margin-bottom: 1.5rem;
     }
+
     .controls button,
     .controls input,
     .controls select {
-      padding: 0.75rem;
-      border: 2px solid var(--border);
+      padding: 0.85rem 1.2rem;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      background: var(--background);
-      cursor: pointer;
+      background: var(--background-light); /* خلفية خفيفة لعناصر التحكم */
+      color: var(--text-dark);
       font-size: 1rem;
       text-align: right;
-      transition: all 0.2s ease-in-out; /* انتقال سلس للتأثيرات البصرية */
+      cursor: pointer;
+      transition: all 0.3s ease;
+      -webkit-appearance: none; /* إزالة أنماط المتصفح الافتراضية */
+      -moz-appearance: none;
+      appearance: none;
     }
-    /* أنماط الأزرار الأساسية (Primary Buttons) */
-    .controls button.primary {
-      background: var(--accent);
-      color: #1e293b;
-      border: none;
+
+    .controls input:focus,
+    .controls select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* ظل أزرق عند التركيز */
+    }
+
+    .controls button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
       font-weight: 600;
+      text-decoration: none; /* للأزرار التي قد تكون روابط */
+    }
+
+    .controls button i {
+      font-size: 1.1rem;
+    }
+
+    .controls button.primary {
+      background: var(--accent-color);
+      color: var(--text-dark); /* نص غامق على الأصفر */
+      border: none;
+      font-weight: 700;
     }
     .controls button.primary:hover {
-      background: #fde047;
-      transform: translateY(-2px); /* رفع خفيف عند التحويم */
+      background: #FACC15; /* لون أصفر أغمق قليلاً عند التحويم */
+      transform: translateY(-3px); /* رفع أكثر عند التحويم */
+      box-shadow: 0 6px 12px rgba(250, 204, 21, 0.2);
     }
-    /* أنماط الأزرار الأخرى عند التحويم */
+
     .controls button:not(.primary):hover {
-      border-color: var(--primary); /* إبراز الحدود بلون أساسي */
+      background: var(--hover-light);
+      border-color: var(--primary-color);
     }
-    /* أنماط الجدول */
+
+    /* ------------------------------------- */
+    /* 5. الجدول (Table)                    */
+    /* ------------------------------------- */
+    .table-responsive {
+        overflow-x: auto; /* لجعل الجدول قابل للتمرير أفقيا على الشاشات الصغيرة */
+        border-radius: 12px;
+        box-shadow: 0 4px 10px var(--shadow-light);
+        background: var(--background-card);
+    }
+
     table {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* ظل خفيف للجدول */
+      border-collapse: separate; /* لتطبيق border-radius على الخلايا */
+      border-spacing: 0;
+      min-width: 900px; /* عرض أدنى للجدول لضمان وضوح الأعمدة */
     }
+
     th, td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.2rem;
       text-align: right;
+      border-bottom: 1px solid var(--border-color);
     }
+
     th {
-      background: rgba(14, 165, 233, 0.1);
-      color: var(--primary);
-      font-weight: 600;
+      background: var(--primary-color);
+      color: #fff;
+      font-weight: 700;
+      position: sticky; /* لتثبيت رؤوس الأعمدة عند التمرير */
+      top: 0;
+      z-index: 10;
     }
-    tr:hover {
-      background: var(--hover);
+
+    tr:last-child td {
+      border-bottom: none; /* إزالة الحدود السفلية لآخر صف */
     }
-    /* أنماط الأزرار المثبتة (وضع داكن وتسجيل خروج) */
-    .toggle-dark, .logout-btn {
-      position: fixed;
-      top: 1rem;
-      width: 40px;
-      height: 40px;
-      border: 2px solid var(--border);
+
+    tbody tr:hover {
+      background: var(--hover-light);
+      cursor: pointer;
+    }
+
+    /* ------------------------------------- */
+    /* 6. الأزرار العائمة (Fixed Buttons)   */
+    /* ------------------------------------- */
+    .fixed-buttons {
+        position: fixed;
+        top: 1.5rem;
+        left: 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        z-index: 200; /* لضمان ظهورها فوق كل شيء */
+    }
+
+    .fixed-buttons button {
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
+      background: var(--background-card);
+      border: 1px solid var(--border-color);
       display: grid;
       place-items: center;
-      background: var(--background);
+      font-size: 1.4rem;
       cursor: pointer;
-      font-size: 1.2rem;
-      transition: all 0.2s ease-in-out;
-      z-index: 100; /* للتأكد من أنها تظهر فوق باقي العناصر */
+      box-shadow: 0 2px 5px var(--shadow-light);
+      transition: all 0.3s ease;
+      color: var(--text-medium);
     }
-    .toggle-dark {
-      left: 1rem;
+    .fixed-buttons button:hover {
+      background: var(--hover-light);
+      border-color: var(--primary-color);
+      transform: scale(1.1) rotate(5deg);
+      color: var(--primary-color);
     }
-    .logout-btn {
-      left: 4.5rem;
-    }
-    .toggle-dark:hover, .logout-btn:hover {
-      background: var(--hover);
-      border-color: var(--primary);
-      transform: scale(1.05); /* تكبير خفيف عند التحويم */
-    }
-    /* أنماط الفوتر (Footer) */
+
+    /* ------------------------------------- */
+    /* 7. الفوتر (Footer)                   */
+    /* ------------------------------------- */
     footer {
       text-align: center;
-      padding: 1rem;
-      border-top: 1px solid var(--border);
-      margin-top: auto; /* يدفع الفوتر إلى أسفل الصفحة */
-      background: var(--background);
-      color: var(--text);
+      padding: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem; /* مسافة من الجدول */
+      background: var(--background-light);
+      color: var(--text-medium);
       font-size: 0.9rem;
+    }
+
+    /* ------------------------------------- */
+    /* 8. مؤشر التحميل (Loading Spinner)     */
+    /* ------------------------------------- */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3); /* خلفية شبه شفافة */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .loading-overlay.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+    .spinner {
+      border: 8px solid var(--border-color);
+      border-top: 8px solid var(--primary-color);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <button class="toggle-dark" aria-label="تبديل الوضع الليلي/النهاري" onclick="document.body.classList.toggle('dark-mode')">🌙</button>
-  <button class="logout-btn" aria-label="تسجيل الخروج" onclick="logout()">🚪</button>
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="fixed-buttons">
+    <button aria-label="تبديل الوضع الليلي/النهاري" onclick="document.body.classList.toggle('dark-mode')">
+      <i class="fas fa-moon"></i>
+    </button>
+    <button aria-label="تسجيل الخروج" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+    </button>
+  </div>
 
   <header>
-    <h1>عقوبات موظفي العصر الذكي</h1>
+    <h1>نظام عقوبات الموظفين</h1>
   </header>
 
   <main class="container">
     <div class="controls">
-      <button class="primary" onclick="fetchData()">🔄 تحديث البيانات</button>
-      <button class="primary" onclick="clearTable()">🗑️ مسح الكل</button>
-      <button class="primary" onclick="downloadExcel()">📥 تنزيل Excel</button>
-      <button class="primary" onclick="window.location.href='index.html'">رجوع للموظفين</button>
+      <button class="primary" onclick="fetchData()">
+        <i class="fas fa-sync-alt"></i> تحديث البيانات
+      </button>
+      <button class="primary" onclick="clearTable()">
+        <i class="fas fa-trash-alt"></i> مسح الكل
+      </button>
+      <button class="primary" onclick="downloadExcel()">
+        <i class="fas fa-download"></i> تنزيل Excel
+      </button>
+      <button class="primary" onclick="window.location.href='index.html'">
+        <i class="fas fa-users"></i> رجوع للموظفين
+      </button>
       <select id="deptFilter" onchange="filterTable()">
         <option value="">كل الأقسام</option>
       </select>
       <input type="text" id="search" placeholder="بحث باسم الموظف أو سبب العقوبة..." oninput="filterTable()" />
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>اسم الموظف</th>
-          <th>القسم</th>
-          <th>العقوبة/الغرامة</th>
-          <th>التاريخ</th>
-          <th>سبب العقوبة</th>
-          <th>المدير</th>
-          <th>ملاحظة الغرامة</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>اسم الموظف</th>
+            <th>القسم</th>
+            <th>نوع العقوبة</th>
+            <th>التاريخ</th>
+            <th>سبب العقوبة</th>
+            <th>المدير</th>
+            <th>ملاحظة الغرامة</th>
+            <th>المجموع</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          </tbody>
+      </table>
+    </div>
   </main>
 
   <footer>
@@ -192,35 +342,45 @@
     // أو إلى صفحة الموظفين الرئيسية إذا كان مسجلاً ولكنه ليس "hr".
     const user = localStorage.getItem('username');
     if (!user) {
-      // إذا لم يكن هناك مستخدم مسجل → توجيه لصفحة تسجيل الدخول
       window.location.href = 'login.html';
     } else if (user !== 'hr') {
-      // إذا كان المستخدم مسجلاً ولكنه ليس "hr" → توجيه لصفحة الموظفين الرئيسية
       window.location.href = 'index.html';
     }
 
     // عرض السنة الحالية في الفوتر (الجزء السفلي من الصفحة)
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // متغير لتخزين بيانات العقوبات التي يتم جلبها من السيرفر
-    let penaltiesData = []; // تم تغيير اسم المتغير من 'data' إلى 'penaltiesData' للوضوح
+    let penaltiesData = []; // متغير لتخزين بيانات العقوبات
 
-    // --- معالجة وجلب البيانات ---
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    /**
+     * إظهار مؤشر التحميل.
+     */
+    function showLoading() {
+      loadingOverlay.classList.add('visible');
+    }
+
+    /**
+     * إخفاء مؤشر التحميل.
+     */
+    function hideLoading() {
+      loadingOverlay.classList.remove('visible');
+    }
+
+    // --- جلب البيانات من Google Apps Script ---
 
     /**
      * جلب بيانات العقوبات من Google Apps Script.
-     * بعد الجلب بنجاح، تقوم بتعبئة قائمة الأقسام وعرض البيانات في الجدول.
+     * تظهر مؤشر التحميل قبل الجلب وتخفيه بعد الانتهاء.
      */
     async function fetchData() {
+      showLoading(); // إظهار مؤشر التحميل
       try {
-        // يمكنك إضافة مؤشر تحميل هنا (مثل أيقونة دوارة)
-        // document.body.classList.add('loading');
-
         const response = await fetch(
           'https://script.google.com/macros/s/AKfycbz-Cx0mhpOeFz7X1concAY8SJhinisxHUfn40PF8BgJCr83DIwGvd0QGfKZa5K9uOuDDg/exec?sheet=عقوبات'
         );
 
-        // التحقق مما إذا كانت الاستجابة ناجحة (حالة HTTP 200 OK)
         if (!response.ok) {
           throw new Error(`خطأ في جلب البيانات: ${response.status}`);
         }
@@ -229,141 +389,126 @@
         populateDeptFilter(); // تعبئة قائمة الأقسام
         renderTable(penaltiesData); // عرض البيانات في الجدول
       } catch (error) {
-        // إظهار رسالة خطأ للمستخدم وتسجيل الخطأ في المتصفح
         alert('فشل تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت أو المحاولة مرة أخرى لاحقًا.');
         console.error('خطأ في جلب البيانات:', error);
+        renderTable([]); // عرض جدول فارغ مع رسالة خطأ
       } finally {
-        // إخفاء مؤشر التحميل (إذا كان موجوداً)
-        // document.body.classList.remove('loading');
+        hideLoading(); // إخفاء مؤشر التحميل
       }
     }
 
+    // --- معالجة البيانات وعرضها ---
+
     /**
-     * تعبئة قائمة الأقسام المنسدلة بأسماء الأقسام الفريدة الموجودة في البيانات.
+     * تعبئة قائمة الأقسام المنسدلة بأسماء الأقسام الفريدة.
      */
     function populateDeptFilter() {
-      // استخراج الأقسام الفريدة وفرزها أبجدياً
       const departments = [...new Set(penaltiesData.map(record => record.department))].sort();
       const departmentSelect = document.getElementById('deptFilter');
-      
-      // إضافة خيار "كل الأقسام" في البداية
       departmentSelect.innerHTML = '<option value="">كل الأقسام</option>';
 
-      // إضافة كل قسم كخيار في القائمة المنسدلة
       departments.forEach(dept => {
-        // التأكد من أن اسم القسم ليس فارغاً قبل إضافته
-        if (dept) {
+        if (dept) { // تأكد أن القسم ليس فارغا
           departmentSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
         }
       });
     }
 
     /**
-     * عرض مصفوفة من سجلات العقوبات في جسم الجدول (tbody).
+     * عرض مصفوفة من سجلات العقوبات في جسم الجدول.
      * @param {Array<Object>} records - مصفوفة كائنات العقوبات لعرضها.
      */
     function renderTable(records) {
       const tbody = document.getElementById('tbody');
-      // إذا لم تكن هناك سجلات لعرضها، أظهر رسالة مناسبة
       if (records.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">لا توجد بيانات لعرضها حالياً.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-medium);">لا توجد بيانات لعرضها حالياً.</td></tr>';
         return;
       }
-      // تحويل كل سجل إلى صف HTML وعرضه في الجدول
       tbody.innerHTML = records.map(record => `
         <tr>
           <td>${record.name || ''}</td>
           <td>${record.department || ''}</td>
-          <td>${record.penalty || ''}</td> <td>${record.date || ''}</td>
+          <td>${record.penaltyType || ''}</td> <td>${record.date || ''}</td>
           <td>${record.reason || ''}</td>
           <td>${record.manager || ''}</td>
-          <td>${record.notes || ''}</td> </tr>
-      `).join(''); // دمج كل الصفوف في سلسلة HTML واحدة
+          <td>${record.fineNote || ''}</td> <td>${record.total || ''}</td> </tr>
+      `).join('');
     }
 
     /**
      * مسح جميع البيانات من الجدول ومن الذاكرة المؤقتة.
      */
     function clearTable() {
-      penaltiesData = []; // تفريغ مصفوفة البيانات
-      document.getElementById('tbody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">تم مسح جميع البيانات بنجاح. يرجى تحديث الصفحة لجلبها مجدداً.</td></tr>';
-      document.getElementById('search').value = ''; // مسح حقل البحث
-      document.getElementById('deptFilter').value = ''; // إعادة تعيين فلتر الأقسام
+      penaltiesData = [];
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-medium);">تم مسح جميع البيانات بنجاح.</td></tr>';
+      document.getElementById('search').value = '';
+      document.getElementById('deptFilter').value = '';
     }
 
     /**
      * تصفية بيانات الجدول بناءً على كلمة البحث والقسم المختار.
      */
     function filterTable() {
-      // جلب كلمة البحث وتحويلها إلى أحرف صغيرة وإزالة المسافات الزائدة
       const searchTerm = document.getElementById('search').value.toLowerCase().trim();
-      // جلب القسم المختار من القائمة المنسدلة
       const departmentFilter = document.getElementById('deptFilter').value;
 
-      // تصفية البيانات الأصلية
       const filteredData = penaltiesData.filter(record => {
-        // التحقق من مطابقة القسم (إذا لم يكن هناك فلتر قسم، فكل الأقسام مطابقة)
         const matchesDepartment = departmentFilter === '' || record.department === departmentFilter;
-        // التحقق من مطابقة كلمة البحث في اسم الموظف أو سبب العقوبة
         const matchesSearch =
           (record.name && record.name.toLowerCase().includes(searchTerm)) ||
           (record.reason && record.reason.toLowerCase().includes(searchTerm));
         
-        return matchesDepartment && matchesSearch; // يجب أن تتطابق كلتا الشرطين
+        return matchesDepartment && matchesSearch;
       });
-      renderTable(filteredData); // عرض البيانات المصفاة
+      renderTable(filteredData);
     }
+
+    // --- وظائف التنزيل والتسجيل ---
 
     /**
      * تنزيل بيانات الجدول الحالية كملف Excel بصيغة CSV.
      */
     function downloadExcel() {
-      // رأس الجدول الذي سيظهر في ملف CSV
-      const header = ['اسم الموظف','القسم','العقوبة/الغرامة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة'];
+      const header = ['اسم الموظف','القسم','نوع العقوبة','التاريخ','سبب العقوبة','المدير','ملاحظة الغرامة','المجموع'];
       
-      // تحويل بيانات العقوبات إلى صفوف تتوافق مع الترويسة، مع التعامل مع القيم الفارغة
-      // وتغليف كل حقل بعلامات اقتباس لضمان التعامل الصحيح مع الفواصل داخل البيانات
       const rows = [header, ...penaltiesData.map(record => [
         record.name,
         record.department,
-        record.penalty, // تأكد أن هذا المفتاح يتوافق مع Apps Script
+        record.penaltyType, // استخدم نفس الاسم هنا
         record.date,
         record.reason,
         record.manager,
-        record.notes // تأكد أن هذا المفتاح يتوافق مع Apps Script
-      ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))]; // للتعامل مع الفواصل وعلامات الاقتباس داخل البيانات
+        record.fineNote, // استخدم نفس الاسم هنا
+        record.total // حقل "المجموع" الجديد
+      ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
-      // إنشاء محتوى CSV: دمج الصفوف بعلامة سطر جديد، والحقول بفاصلة
       const csvContent = rows.map(row => row.join(',')).join('\n');
       
-      // إنشاء كائن Blob يحتوي على محتوى CSV، مع إضافة BOM (علامة ترتيب البايت)
-      // لضمان فتح الملف بشكل صحيح في Excel مع دعم اللغة العربية.
-      const blob = new Blob(['\uFEFF' + csvContent], { // '\uFEFF' هو BOM لـ UTF-8
+      const blob = new Blob(['\uFEFF' + csvContent], {
         type: 'text/csv;charset=utf-8;'
       });
 
-      // إنشاء رابط مؤقت لتنزيل الملف
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'عقوبات_الموظفين.csv'; // اسم الملف الذي سيتم تنزيله (تغيير إلى .csv)
-      document.body.appendChild(a); // يجب إضافة العنصر إلى DOM ليتم النقر عليه برمجياً
-      a.click(); // محاكاة النقر لتنزيل الملف
-      document.body.removeChild(a); // إزالة العنصر المؤقت بعد النقر
-      URL.revokeObjectURL(url); // تحرير URL الكائن من الذاكرة
+      a.download = 'عقوبات_الموظفين.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     /**
-     * تسجيل خروج المستخدم عن طريق مسح بياناته من التخزين المحلي (LocalStorage)
+     * تسجيل خروج المستخدم عن طريق مسح بياناته من التخزين المحلي
      * وإعادة توجيهه إلى صفحة تسجيل الدخول.
      */
     function logout() {
-      localStorage.clear(); // مسح جميع البيانات المخزنة محلياً
-      window.location.href = 'login.html'; // التوجيه لصفحة تسجيل الدخول
+      localStorage.clear();
+      window.location.href = 'login.html';
     }
 
     // --- إطلاق الوظائف عند تحميل الصفحة ---
-    fetchData(); // جلب البيانات عند تحميل الصفحة لأول مرة
+    fetchData();
   </script>
 </body>
 </html>
