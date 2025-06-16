@@ -482,7 +482,9 @@
 
             records.forEach(record => {
                 // التأكد من أن قيمة الغرامة رقم صالح قبل إضافتها للمجموع
-                const fineValue = parseFloat(record.قيمة_الغرامة);
+                // ونقوم بإزالة أي رموز عملة أو فواصل آلاف قبل التحويل لضمان صحة الرقم
+                const rawFineValue = record.قيمة_الغرامة ? String(record.قيمة_الغرامة).replace(/[^\d.]/g, '') : '';
+                const fineValue = parseFloat(rawFineValue);
                 if (!isNaN(fineValue)) {
                     totalFine += fineValue;
                 }
@@ -493,7 +495,7 @@
             tfoot.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: right; padding-right: 20px;">المجموع الكلي للغرامات:</td>
-                    <td>${totalFine.toLocaleString('ar-IQ')}</td> </tr>
+                    <td>${totalFine.toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td> </tr>
             `;
         }
 
