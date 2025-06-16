@@ -356,8 +356,7 @@
                         <th>سبب العقوبة</th>
                         <th>المدير</th>
                         <th>ملاحظة الغرامة</th>
-                        <th>قيمة الغرامة</th>
-                    </tr>
+                        <th>قيمة الغرامة</th> </tr>
                 </thead>
                 <tbody id="tbody">
                     </tbody>
@@ -464,7 +463,7 @@
                     <td>${record.سبب_العقوبة || '—'}</td>
                     <td>${record.المدير || '—'}</td>
                     <td>${record.ملاحظة_الغرامة || '—'}</td>
-                    <td>${(parseFloat(record.قيمة_الغرامة) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
+                    <td>${(parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
                 </tr>
             `).join('');
 
@@ -484,7 +483,8 @@
                 // التأكد من أن قيمة الغرامة رقم صالح قبل إضافتها للمجموع
                 // ونقوم بإزالة أي رموز عملة أو فواصل آلاف قبل التحويل لضمان صحة الرقم
                 // نحول القيمة إلى String أولاً للتأكد من استخدام .replace بشكل صحيح
-                const rawFineValue = record.قيمة_الغرامة ? String(record.قيمة_الغرامة).replace(/[^\d.]/g, '') : '';
+                // تعديل هنا: استخدام record.المجموع
+                const rawFineValue = record.المجموع ? String(record.المجموع).replace(/[^\d.]/g, '') : '';
                 const fineValue = parseFloat(rawFineValue);
                 if (!isNaN(fineValue)) {
                     totalFine += fineValue;
@@ -517,6 +517,7 @@
                 const matchesDepartment = departmentFilter === '' || record.القسم === departmentFilter;
                 const matchesSearch =
                     (record.الاسم && record.الاسم.toLowerCase().includes(searchTerm)) ||
+                    (record.المدير && record.المدير.toLowerCase().includes(searchTerm)) || // أضفت البحث بالمدير
                     (record.سبب_العقوبة && record.سبب_العقوبة.toLowerCase().includes(searchTerm));
                 
                 return matchesDepartment && matchesSearch;
@@ -530,7 +531,8 @@
                 return;
             }
 
-            const header = ['اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ', 'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'قيمة الغرامة'];
+            // تعديل هنا: استخدام "المجموع" كعنوان للعمود في ملف Excel
+            const header = ['اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ', 'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'المجموع'];
             
             // للحفاظ على تنسيق العملة في ملف Excel (CSV)، قد تحتاج لتركه كرقم وتنسيقه في Excel نفسه،
             // أو إضافته كنص مع "د.ع" إذا كان هذا مقبولاً لملف CSV.
@@ -543,8 +545,8 @@
                 record.سبب_العقوبة,
                 record.المدير,
                 record.ملاحظة_الغرامة,
-                // تنسيق القيمة لملف CSV أيضاً
-                (parseFloat(record.قيمة_الغرامة) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
+                // تنسيق القيمة لملف CSV أيضاً، باستخدام record.المجموع
+                (parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
             ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
             const csvContent = rows.map(row => row.join(',')).join('\n');
