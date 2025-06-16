@@ -196,8 +196,8 @@
             z-index: 10; /* لضمان ظهورها فوق محتوى الجدول */
         }
 
-        /* إزالة الحدود السفلية لآخر صف في الجدول */
-        tr:last-child td {
+        /* إزالة الحدود السفلية لآخر صف في الجدول (لكل من tbody و tfoot) */
+        tbody tr:last-child td, tfoot tr:last-child td {
             border-bottom: none;
         }
 
@@ -206,6 +206,23 @@
             background: var(--hover-light);
             cursor: pointer;
         }
+
+        /* أنماط صف المجموع في tfoot */
+        tfoot tr {
+            background-color: var(--secondary-color); /* خلفية مميزة لصف المجموع */
+            color: #fff; /* نص أبيض */
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        tfoot td {
+            border-top: 2px solid var(--primary-color); /* حد علوي سميك */
+            padding: 1.2rem;
+            text-align: center !important; /* توسيط النص */
+        }
+        tfoot td:first-child {
+            text-align: right !important; /* محاذاة النص لليمين لأول خلية في الفوتر */
+        }
+
 
         /* ------------------------------------- */
         /* 6. الأزرار العائمة (Fixed Buttons)   */
@@ -339,10 +356,13 @@
                         <th>سبب العقوبة</th>
                         <th>المدير</th>
                         <th>ملاحظة الغرامة</th>
-                        <th>قيمة الغرامة</th> </tr>
+                        <th>قيمة الغرامة</th>
+                    </tr>
                 </thead>
                 <tbody id="tbody">
-                </tbody>
+                    </tbody>
+                <tfoot id="tfoot">
+                    </tfoot>
             </table>
         </div>
     </main>
@@ -354,107 +374,87 @@
     <script>
         // --- التحكم بالوصول والتهيئة الأولية ---
 
-        // 1. التحكم بالوصول: يُسمح فقط للمستخدم "hr" بالدخول لهذه الصفحة.
-        // يتم التوجيه إلى صفحة تسجيل الدخول إذا لم يكن المستخدم مسجلاً،
-        // أو إلى صفحة الموظفين الرئيسية إذا كان مسجلاً ولكنه ليس "hr".
         const user = localStorage.getItem('username');
         if (!user) {
-            window.location.href = 'login.html'; // توجيه إلى صفحة تسجيل الدخول
+            window.location.href = 'login.html';
         } else if (user !== 'hr') {
-            window.location.href = 'index.html'; // توجيه إلى صفحة الموظفين الرئيسية
+            window.location.href = 'index.html';
         }
 
-        // عرض السنة الحالية في الفوتر (الجزء السفلي من الصفحة)
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        let penaltiesData = []; // متغير لتخزين بيانات العقوبات التي يتم جلبها
+        let penaltiesData = [];
+        const loadingOverlay = document.getElementById('loadingOverlay');
 
-        const loadingOverlay = document.getElementById('loadingOverlay'); // عنصر مؤشر التحميل
-
-        /**
-         * وظيفة لإظهار مؤشر التحميل.
-         */
         function showLoading() {
             loadingOverlay.classList.add('visible');
         }
 
-        /**
-         * وظيفة لإخفاء مؤشر التحميل.
-         */
         function hideLoading() {
             loadingOverlay.classList.remove('visible');
         }
 
         // --- جلب البيانات من Google Apps Script ---
 
-        /**
-         * وظيفة لجلب بيانات العقوبات من Google Apps Script.
-         * تُظهر مؤشر التحميل قبل الجلب وتخفيه بعد الانتهاء.
-         */
         async function fetchData() {
-            showLoading(); // إظهار مؤشر التحميل
+            showLoading();
             try {
                 // *** تم تحديث هذا الرابط بالرابط الجديد الذي أرسلته لي ***
                 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyESkGrUrI-Kume1NwgjhEuGdJOIdMR4hfKf8E1Kj9DxvFQPUAwWAI1Qpqw8RWfarKVCA/exec?sheet=عقوبات';
                 const response = await fetch(SCRIPT_URL);
 
-                if (!response.ok) { // التحقق من نجاح الاستجابة الأولية للـ fetch
+                if (!response.ok) {
                     throw new Error(`خطأ في الشبكة أو الخادم: ${response.status}`);
                 }
 
-                const result = await response.json(); // تحويل الاستجابة إلى JSON
+                const result = await response.json();
 
-                if (!result.success) { // التحقق من خاصية success التي يرجعها السكريبت
+                if (!result.success) {
                     throw new Error(result.error || 'خطأ غير معروف من السيرفر.');
                 }
 
-                penaltiesData = result.data; // بيانات العقوبات ستكون داخل خاصية 'data'
-                populateDeptFilter(); // تعبئة قائمة الأقسام المنسدلة
-                renderTable(penaltiesData); // عرض البيانات في الجدول
+                penaltiesData = result.data;
+                populateDeptFilter();
+                renderTable(penaltiesData); // استدعاء لعرض الجدول والمجموع
             } catch (error) {
-                // رسالة خطأ للمستخدم وتسجيل الخطأ في الكونسول
                 alert(`فشل تحميل البيانات: ${error.message}. يرجى التأكد من اتصالك بالإنترنت أو المحاولة مرة أخرى لاحقًا.`);
                 console.error('خطأ في جلب البيانات:', error);
-                renderTable([]); // عرض جدول فارغ برسالة خطأ في حالة الفشل
+                renderTable([]); // عرض جدول فارغ مع رسالة الخطأ
             } finally {
-                hideLoading(); // إخفاء مؤشر التحميل في جميع الأحوال (سواء نجح أو فشل)
+                hideLoading();
             }
         }
 
         // --- معالجة البيانات وعرضها ---
 
-        /**
-         * وظيفة لتعبئة قائمة الأقسام المنسدلة بأسماء الأقسام الفريدة الموجودة في البيانات.
-         */
         function populateDeptFilter() {
-            // استخراج الأقسام الفريدة وفرزها أبجدياً
             const departments = [...new Set(penaltiesData.map(record => record.القسم))].sort();
             const departmentSelect = document.getElementById('deptFilter');
             
-            // إضافة خيار "كل الأقسام" كخيار افتراضي
             departmentSelect.innerHTML = '<option value="">كل الأقسام</option>';
 
-            // إضافة كل قسم كخيار في القائمة المنسدلة
             departments.forEach(dept => {
-                if (dept && dept !== '—') { // التأكد من أن اسم القسم ليس فارغاً أو '—' قبل إضافته
+                if (dept && dept !== '—') {
                     departmentSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
                 }
             });
         }
 
         /**
-         * وظيفة لعرض مصفوفة من سجلات العقوبات في جسم الجدول (tbody).
+         * وظيفة لعرض مصفوفة من سجلات العقوبات في جسم الجدول (tbody)
+         * وحساب وعرض مجموع الغرامات في tfoot.
          * @param {Array<Object>} records - مصفوفة كائنات العقوبات لعرضها.
          */
         function renderTable(records) {
             const tbody = document.getElementById('tbody');
+            const tfoot = document.getElementById('tfoot'); // الحصول على عنصر tfoot
+            
             if (records.length === 0) {
-                // عرض رسالة "لا توجد بيانات" إذا كانت المصفوفة فارغة
-                // colspan = 8 لأن لدينا 8 أعمدة الآن
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-medium);">لا توجد بيانات لعرضها حالياً.</td></tr>';
+                tfoot.innerHTML = ''; // إزالة أي محتوى سابق من tfoot
                 return;
             }
-            // تحويل كل سجل (record) إلى صف HTML (<tr>) وعرضه في الجدول
+
             tbody.innerHTML = records.map(record => `
                 <tr>
                     <td>${record.الاسم || '—'}</td>
@@ -464,59 +464,71 @@
                     <td>${record.سبب_العقوبة || '—'}</td>
                     <td>${record.المدير || '—'}</td>
                     <td>${record.ملاحظة_الغرامة || '—'}</td>
-                    <td>${record.قيمة_الغرامة || '—'}</td> </tr>
-            `).join(''); // دمج كل الصفوف في سلسلة HTML واحدة
+                    <td>${record.قيمة_الغرامة || '—'}</td>
+                </tr>
+            `).join('');
+
+            // حساب وعرض المجموع
+            calculateAndDisplayTotal(records);
         }
 
         /**
-         * وظيفة لمسح جميع البيانات من الجدول ومن الذاكرة المؤقتة.
+         * وظيفة لحساب المجموع الكلي لعمود "قيمة الغرامة" وعرضه في tfoot.
+         * @param {Array<Object>} records - مصفوفة كائنات العقوبات لحساب المجموع منها.
          */
+        function calculateAndDisplayTotal(records) {
+            const tfoot = document.getElementById('tfoot');
+            let totalFine = 0;
+
+            records.forEach(record => {
+                // التأكد من أن قيمة الغرامة رقم صالح قبل إضافتها للمجموع
+                const fineValue = parseFloat(record.قيمة_الغرامة);
+                if (!isNaN(fineValue)) {
+                    totalFine += fineValue;
+                }
+            });
+
+            // إنشاء صف المجموع
+            // colspan = 7 لأننا نريد أن يمتد النص على 7 أعمدة، ويبقى عمود واحد للمجموع الفعلي
+            tfoot.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: right; padding-right: 20px;">المجموع الكلي للغرامات:</td>
+                    <td>${totalFine.toLocaleString('ar-IQ')}</td> </tr>
+            `;
+        }
+
         function clearTable() {
-            penaltiesData = []; // تفريغ مصفوفة البيانات
-            // عرض رسالة تأكيد المسح في الجدول (colspan = 8)
+            penaltiesData = [];
+            // colspan = 8 لرؤوس الأعمدة، و <tfoot> سيكون فارغًا
             document.getElementById('tbody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-medium);">تم مسح جميع البيانات بنجاح.</td></tr>';
-            document.getElementById('search').value = ''; // مسح حقل البحث
-            document.getElementById('deptFilter').value = ''; // إعادة تعيين فلتر الأقسام
+            document.getElementById('tfoot').innerHTML = ''; // مسح صف المجموع عند مسح الجدول
+            document.getElementById('search').value = '';
+            document.getElementById('deptFilter').value = '';
         }
 
-        /**
-         * وظيفة لتصفية بيانات الجدول بناءً على كلمة البحث والقسم المختار.
-         */
         function filterTable() {
-            // جلب كلمة البحث وتحويلها إلى أحرف صغيرة وإزالة المسافات الزائدة
             const searchTerm = document.getElementById('search').value.toLowerCase().trim();
-            // جلب القسم المختار من القائمة المنسدلة
             const departmentFilter = document.getElementById('deptFilter').value;
 
-            // تصفية البيانات الأصلية المخزنة في penaltiesData
             const filteredData = penaltiesData.filter(record => {
-                // الشرط الأول: مطابقة القسم
                 const matchesDepartment = departmentFilter === '' || record.القسم === departmentFilter;
-                // الشرط الثاني: مطابقة كلمة البحث في اسم الموظف أو سبب العقوبة
                 const matchesSearch =
                     (record.الاسم && record.الاسم.toLowerCase().includes(searchTerm)) ||
                     (record.سبب_العقوبة && record.سبب_العقوبة.toLowerCase().includes(searchTerm));
                 
-                return matchesDepartment && matchesSearch; // يجب أن تتطابق كلتا الشرطين
+                return matchesDepartment && matchesSearch;
             });
-            renderTable(filteredData); // عرض البيانات المصفاة
+            renderTable(filteredData); // ستقوم renderTable بتحديث المجموع تلقائياً
         }
 
-        // --- وظائف التنزيل والتسجيل ---
-
-        /**
-         * وظيفة لتنزيل بيانات الجدول الحالية كملف Excel بصيغة CSV.
-         */
         function downloadExcel() {
             if (penaltiesData.length === 0) {
                 alert('لا توجد بيانات لتنزيلها.');
                 return;
             }
 
-            // رؤوس الأعمدة التي ستظهر في ملف CSV
             const header = ['اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ', 'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'قيمة الغرامة'];
             
-            // تحويل بيانات العقوبات إلى صفوف تتوافق مع الترويسة، مع التعامل مع القيم الفارغة
             const rows = [header, ...penaltiesData.map(record => [
                 record.الاسم,
                 record.القسم,
@@ -526,13 +538,11 @@
                 record.المدير,
                 record.ملاحظة_الغرامة,
                 record.قيمة_الغرامة
-            ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))]; // التعامل مع القيم الفارغة وعلامات الاقتباس
+            ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
-            // إنشاء محتوى CSV
             const csvContent = rows.map(row => row.join(',')).join('\n');
             
-            // إنشاء كائن Blob وتنزيل الملف
-            const blob = new Blob(['\uFEFF' + csvContent], { // '\uFEFF' هو BOM لـ UTF-8
+            const blob = new Blob(['\uFEFF' + csvContent], {
                 type: 'text/csv;charset=utf-8;'
             });
 
@@ -546,17 +556,12 @@
             URL.revokeObjectURL(url);
         }
 
-        /**
-         * وظيفة لتسجيل خروج المستخدم عن طريق مسح بياناته من التخزين المحلي (LocalStorage)
-         * وإعادة توجيهه إلى صفحة تسجيل الدخول.
-         */
         function logout() {
-            localStorage.clear(); // مسح جميع البيانات المخزنة محلياً
-            window.location.href = 'login.html'; // التوجيه لصفحة تسجيل الدخول
+            localStorage.clear();
+            window.location.href = 'login.html';
         }
 
-        // --- إطلاق الوظائف عند تحميل الصفحة ---
-        fetchData(); // جلب البيانات عند تحميل الصفحة لأول مرة
+        fetchData();
     </script>
 </body>
 </html>
