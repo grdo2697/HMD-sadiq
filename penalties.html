@@ -464,7 +464,7 @@
                     <td>${record.سبب_العقوبة || '—'}</td>
                     <td>${record.المدير || '—'}</td>
                     <td>${record.ملاحظة_الغرامة || '—'}</td>
-                    <td>${record.قيمة_الغرامة || '—'}</td>
+                    <td>${(parseFloat(record.قيمة_الغرامة) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
                 </tr>
             `).join('');
 
@@ -483,6 +483,7 @@
             records.forEach(record => {
                 // التأكد من أن قيمة الغرامة رقم صالح قبل إضافتها للمجموع
                 // ونقوم بإزالة أي رموز عملة أو فواصل آلاف قبل التحويل لضمان صحة الرقم
+                // نحول القيمة إلى String أولاً للتأكد من استخدام .replace بشكل صحيح
                 const rawFineValue = record.قيمة_الغرامة ? String(record.قيمة_الغرامة).replace(/[^\d.]/g, '') : '';
                 const fineValue = parseFloat(rawFineValue);
                 if (!isNaN(fineValue)) {
@@ -531,6 +532,9 @@
 
             const header = ['اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ', 'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'قيمة الغرامة'];
             
+            // للحفاظ على تنسيق العملة في ملف Excel (CSV)، قد تحتاج لتركه كرقم وتنسيقه في Excel نفسه،
+            // أو إضافته كنص مع "د.ع" إذا كان هذا مقبولاً لملف CSV.
+            // هنا سنعيد استخدام التنسيق لضمان أن ما يظهر في CSV هو نفسه في الجدول
             const rows = [header, ...penaltiesData.map(record => [
                 record.الاسم,
                 record.القسم,
@@ -539,7 +543,8 @@
                 record.سبب_العقوبة,
                 record.المدير,
                 record.ملاحظة_الغرامة,
-                record.قيمة_الغرامة
+                // تنسيق القيمة لملف CSV أيضاً
+                (parseFloat(record.قيمة_الغرامة) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
             ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
             const csvContent = rows.map(row => row.join(',')).join('\n');
