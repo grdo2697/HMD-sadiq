@@ -463,7 +463,7 @@
                     <td>${record.سبب_العقوبة || '—'}</td>
                     <td>${record.المدير || '—'}</td>
                     <td>${record.ملاحظة_الغرامة || '—'}</td>
-                    <td>${(parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
+                    <td>${(Number(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
                 </tr>
             `).join('');
 
