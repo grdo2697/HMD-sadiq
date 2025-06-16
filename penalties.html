@@ -394,10 +394,8 @@
         async function fetchData() {
             showLoading(); // إظهار مؤشر التحميل
             try {
-                // *** تأكد من تحديث هذا الرابط بالرابط الخاص بسكريبت Google Apps Script المنشور كتطبيق ويب ***
-                // *** يجب أن يكون الرابط الخاص بك مشابهًا لـ: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec ***
-                // *** ونضيف له ?sheet=عقوبات ليطلب بيانات ورقة العقوبات بالتحديد ***
-                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-Cx0mhpOeFz7X1concAY8SJhinisxHUfn40PF8BgJCr83DIwGvd0QGfKZa5K9uOuDDg/exec?sheet=عقوبات';
+                // *** تم تحديث هذا الرابط بالرابط الجديد الذي أرسلته لي ***
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyESkGrUrI-Kume1NwgjhEuGdJOIdMR4hfKf8E1Kj9DxvFQPUAwWAI1Qpqw8RWfarKVCA/exec?sheet=عقوبات';
                 const response = await fetch(SCRIPT_URL);
 
                 if (!response.ok) { // التحقق من نجاح الاستجابة الأولية للـ fetch
@@ -492,11 +490,9 @@
 
             // تصفية البيانات الأصلية المخزنة في penaltiesData
             const filteredData = penaltiesData.filter(record => {
-                // الشرط الأول: مطابقة القسم (إذا لم يكن هناك فلتر قسم، فكل الأقسام مطابقة)
-                // يستخدم record.القسم بدلًا من record.department
+                // الشرط الأول: مطابقة القسم
                 const matchesDepartment = departmentFilter === '' || record.القسم === departmentFilter;
                 // الشرط الثاني: مطابقة كلمة البحث في اسم الموظف أو سبب العقوبة
-                // يستخدم record.الاسم و record.سبب_العقوبة بدلًا من record.name و record.reason
                 const matchesSearch =
                     (record.الاسم && record.الاسم.toLowerCase().includes(searchTerm)) ||
                     (record.سبب_العقوبة && record.سبب_العقوبة.toLowerCase().includes(searchTerm));
@@ -518,11 +514,9 @@
             }
 
             // رؤوس الأعمدة التي ستظهر في ملف CSV
-            // تم تحديثها لتتوافق مع أسماء المفاتيح العربية التي يرجعها السكريبت
             const header = ['اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ', 'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'قيمة الغرامة'];
             
             // تحويل بيانات العقوبات إلى صفوف تتوافق مع الترويسة، مع التعامل مع القيم الفارغة
-            // وتغليف كل حقل بعلامات اقتباس لضمان التعامل الصحيح مع الفواصل داخل البيانات
             const rows = [header, ...penaltiesData.map(record => [
                 record.الاسم,
                 record.القسم,
@@ -534,24 +528,22 @@
                 record.قيمة_الغرامة
             ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))]; // التعامل مع القيم الفارغة وعلامات الاقتباس
 
-            // إنشاء محتوى CSV: دمج الصفوف بعلامة سطر جديد، والحقول بفاصلة
+            // إنشاء محتوى CSV
             const csvContent = rows.map(row => row.join(',')).join('\n');
             
-            // إنشاء كائن Blob يحتوي على محتوى CSV، مع إضافة BOM (علامة ترتيب البايت)
-            // لضمان فتح الملف بشكل صحيح في Excel مع دعم اللغة العربية.
+            // إنشاء كائن Blob وتنزيل الملف
             const blob = new Blob(['\uFEFF' + csvContent], { // '\uFEFF' هو BOM لـ UTF-8
-                type: 'text/csv;charset=utf-8;' // تحديد نوع الملف والتشفير
+                type: 'text/csv;charset=utf-8;'
             });
 
-            // إنشاء رابط مؤقت لتنزيل الملف
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); // إنشاء عنصر <a> مؤقت
-            a.href = url; // تعيين رابط التنزيل
-            a.download = 'عقوبات_الموظفين.csv'; // اسم الملف الذي سيتم تنزيله
-            document.body.appendChild(a); // يجب إضافة العنصر إلى DOM ليتم النقر عليه برمجياً
-            a.click(); // محاكاة النقر لتنزيل الملف
-            document.body.removeChild(a); // إزالة العنصر المؤقت بعد النقر
-            URL.revokeObjectURL(url); // تحرير URL الكائن من الذاكرة لعدم استهلاكها
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'عقوبات_الموظفين.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         /**
