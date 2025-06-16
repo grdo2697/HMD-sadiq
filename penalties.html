@@ -356,7 +356,8 @@
                         <th>سبب العقوبة</th>
                         <th>المدير</th>
                         <th>ملاحظة الغرامة</th>
-                        <th>قيمة الغرامة</th> </tr>
+                        <th>قيمة الغرامة</th>
+                    </tr>
                 </thead>
                 <tbody id="tbody">
                     </tbody>
@@ -398,8 +399,8 @@
         async function fetchData() {
             showLoading();
             try {
-                // *** تم تحديث هذا الرابط بالرابط الجديد الذي أرسلته لي ***
-                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyESkGrUrI-Kume1NwgjhEuGdJOIdMR4hfKf8E1Kj9DxvFQPUAwWAI1Qpqw8RWfarKVCA/exec?sheet=عقوبات';
+                // *** هذا هو الرابط الجديد الذي أرسلته لي ***
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuq_GOfJwKM2pXIScuION4mwKNVZuq7zi9ca48OVnf5VRvEupJ_zYz2fw3AYQc0nvbXQ/exec?sheet=عقوبات';
                 const response = await fetch(SCRIPT_URL);
 
                 if (!response.ok) {
@@ -463,7 +464,7 @@
                     <td>${record.سبب_العقوبة || '—'}</td>
                     <td>${record.المدير || '—'}</td>
                     <td>${record.ملاحظة_الغرامة || '—'}</td>
-                    <td>${(parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
+                    <td>${(typeof record.المجموع === 'number' ? record.المجموع : parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
                 </tr>
             `).join('');
 
@@ -482,10 +483,8 @@
             records.forEach(record => {
                 // التأكد من أن قيمة الغرامة رقم صالح قبل إضافتها للمجموع
                 // ونقوم بإزالة أي رموز عملة أو فواصل آلاف قبل التحويل لضمان صحة الرقم
-                // نحول القيمة إلى String أولاً للتأكد من استخدام .replace بشكل صحيح
-                // تعديل هنا: استخدام record.المجموع
-                const rawFineValue = record.المجموع ? String(record.المجموع).replace(/[^\d.]/g, '') : '';
-                const fineValue = parseFloat(rawFineValue);
+                // المفتاح الصحيح الآن هو 'المجموع'
+                const fineValue = typeof record.المجموع === 'number' ? record.المجموع : parseFloat(String(record.المجموع || '0').replace(/[^\d.]/g, ''));
                 if (!isNaN(fineValue)) {
                     totalFine += fineValue;
                 }
@@ -534,9 +533,6 @@
             // تعديل هنا: استخدام "المجموع" كعنوان للعمود في ملف Excel
             const header = ['اسم الموظف', 'القسم', 'نوع العقوبة', 'التاريخ', 'سبب العقوبة', 'المدير', 'ملاحظة الغرامة', 'المجموع'];
             
-            // للحفاظ على تنسيق العملة في ملف Excel (CSV)، قد تحتاج لتركه كرقم وتنسيقه في Excel نفسه،
-            // أو إضافته كنص مع "د.ع" إذا كان هذا مقبولاً لملف CSV.
-            // هنا سنعيد استخدام التنسيق لضمان أن ما يظهر في CSV هو نفسه في الجدول
             const rows = [header, ...penaltiesData.map(record => [
                 record.الاسم,
                 record.القسم,
@@ -546,7 +542,7 @@
                 record.المدير,
                 record.ملاحظة_الغرامة,
                 // تنسيق القيمة لملف CSV أيضاً، باستخدام record.المجموع
-                (parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
+                (typeof record.المجموع === 'number' ? record.المجموع : parseFloat(String(record.المجموع || '0').replace(/[^\d.]/g, '')) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
             ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
             const csvContent = rows.map(row => row.join(',')).join('\n');
