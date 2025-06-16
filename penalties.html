@@ -41,7 +41,7 @@
         }
 
         /* ------------------------------------- */
-        /* 2. الأنماط الأساسية (Base Styles)      */
+        /* 2. الأنماط الأساسية (Base Styles)     */
         /* ------------------------------------- */
         /* إعادة تعيين الأنماط الافتراضية للمتصفح وتطبيق الخط */
         * {
@@ -88,7 +88,7 @@
         }
 
         /* ------------------------------------- */
-        /* 4. عناصر التحكم (Controls)            */
+        /* 4. عناصر التحكم (Controls)             */
         /* ------------------------------------- */
         .controls {
             display: grid; /* استخدام Grid لترتيب العناصر */
@@ -484,11 +484,8 @@
                 // ونقوم بإزالة أي رموز عملة أو فواصل آلاف قبل التحويل لضمان صحة الرقم
                 // نحول القيمة إلى String أولاً للتأكد من استخدام .replace بشكل صحيح
                 // تعديل هنا: استخدام record.المجموع
-                const rawFineValue = record.المجموع ? String(record.المجموع).replace(/[^\d.]/g, '') : '';
-                const fineValue = parseFloat(rawFineValue);
-                if (!isNaN(fineValue)) {
-                    totalFine += fineValue;
-                }
+                const fineValue = Number(record.المجموع) || 0;
+                totalFine += fineValue;
             });
 
             // إنشاء صف المجموع
@@ -546,7 +543,7 @@
                 record.المدير,
                 record.ملاحظة_الغرامة,
                 // تنسيق القيمة لملف CSV أيضاً، باستخدام record.المجموع
-                (parseFloat(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
+                (Number(record.المجموع) || 0).toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })
             ].map(item => `"${(item || '').toString().replace(/"/g, '""')}"`))];
 
             const csvContent = rows.map(row => row.join(',')).join('\n');
