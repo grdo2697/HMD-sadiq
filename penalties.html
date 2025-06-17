@@ -356,12 +356,13 @@
                         <th>سبب العقوبة</th>
                         <th>المدير</th>
                         <th>ملاحظة الغرامة</th>
-                        <th>قيمة الغرامة</th> </tr>
+                        <th>قيمة الغرامة</th>
+                    </tr>
                 </thead>
                 <tbody id="tbody">
-                    </tbody>
+                </tbody>
                 <tfoot id="tfoot">
-                    </tfoot>
+                </tfoot>
             </table>
         </div>
     </main>
@@ -399,7 +400,7 @@
             showLoading();
             try {
                 // *** تم تحديث هذا الرابط بالرابط الجديد الذي أرسلته لي ***
-                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyESkGrUrI-Kume1NwgjhEuGdJOIdMR4hfKf8E1Kj9DxvFQPUAwWAI1Qpqw8RWfarKVCA/exec?sheet=عقوبات';
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwtvelbl-c2Af2tV8LRz0F8xmLQtXIuUM0ZGcwMVw7T2wiu8epGqiw5kDN9z0AjOkWTw/exec?sheet=عقوبات'; // <--- تم تحديث الرابط هنا
                 const response = await fetch(SCRIPT_URL);
 
                 if (!response.ok) {
@@ -493,7 +494,8 @@
             tfoot.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: right; padding-right: 20px;">المجموع الكلي للغرامات:</td>
-                    <td>${totalFine.toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td> </tr>
+                    <td>${totalFine.toLocaleString('ar-IQ', { style: 'currency', currency: 'IQD' })}</td>
+                </tr>
             `;
         }
 
