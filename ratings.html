@@ -485,14 +485,30 @@
         document.getElementById('loading').style.display = 'flex';
         document.getElementById('reviews-body').innerHTML = '';
         
-        const response = await fetch("https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec?sheet=تقييمات");
-        const reviews = await response.json();
+        // استخدم رابط النشر الخاص بك من Google Apps Script
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbxhHEfV_ULXVaANmeT8hkfSoFVbmTOSIoHJ3GL8evZtDVROEpRGJxlwWSCpOpU8S7AutQ/exec";
         
-        reviewsData = reviews.map(review => ({
-          ...review,
-          overallRating: parseFloat(review.overallRating) || 0,
-          operationRating: parseFloat(review.operationRating) || 0,
-          ratingDays: parseInt(review.ratingDays) || 0
+        const response = await fetch(`${scriptUrl}?sheet=تقييمات`);
+        
+        if (!response.ok) {
+          throw new Error(`خطأ في الشبكة: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || 'فشل جلب البيانات');
+        }
+        
+        // تحويل البيانات لتتطابق مع الهيكل المطلوب
+        reviewsData = result.data.map(review => ({
+          name: review.الاسم || 'غير محدد',
+          department: review.القسم || 'غير محدد',
+          jobGrade: review.الدرجة_الوظيفية || review.الدرجة || 'غير محدد',
+          overallRating: parseFloat(review.التقييم) || 0,
+          operationRating: parseFloat(review.تقييم_العمليات || review.تقييم_الأداء || 0) || 0,
+          ratingDays: parseInt(review.أيام_التقييم || review.مدة_التقييم || 0) || 0,
+          reviewDate: review.التاريخ || review.تاريخ_التقييم || 'غير محدد'
         }));
         
         populateGradeFilter();
@@ -500,7 +516,7 @@
         showToast('تم تحديث البيانات بنجاح', 'success');
       } catch (error) {
         console.error("Error fetching reviews:", error);
-        showToast('حدث خطأ أثناء جلب البيانات', 'error');
+        showToast(`حدث خطأ أثناء جلب البيانات: ${error.message}`, 'error');
         document.getElementById('reviews-body').innerHTML = `
           <tr>
             <td colspan="7" class="empty-state">
@@ -520,7 +536,7 @@
     function displayReviews(reviews) {
       const tbody = document.getElementById("reviews-body");
       
-      if (reviews.length === 0) {
+      if (!reviews || reviews.length === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="7" class="empty-state">
@@ -542,13 +558,13 @@
         
         const row = `
           <tr>
-            <td>${review.name || 'غير محدد'}</td>
-            <td>${review.department || 'غير محدد'}</td>
-            <td>${review.jobGrade || 'غير محدد'}</td>
+            <td>${review.name}</td>
+            <td>${review.department}</td>
+            <td>${review.jobGrade}</td>
             <td class="rating-cell ${overallRatingClass}">${review.overallRating.toFixed(1)}</td>
             <td class="rating-cell ${operationRatingClass}">${review.operationRating.toFixed(1)}</td>
             <td>${review.ratingDays}</td>
-            <td>${review.reviewDate || 'غير محدد'}</td>
+            <td>${review.reviewDate}</td>
           </tr>
         `;
         tbody.innerHTML += row;
@@ -559,6 +575,16 @@
       if (rating >= 4) return 'high-rating';
       if (rating >= 2.5) return 'medium-rating';
       return 'low-rating';
+    }
+
+    function populateGradeFilter() {
+      const select = document.getElementById("gradeFilter");
+      const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade).filter(Boolean))].sort();
+      
+      select.innerHTML = `<option value="">جميع الدرجات الوظيفية</option>`;
+      uniqueGrades.forEach(grade => {
+        select.innerHTML += `<option value="${grade}">${grade}</option>`;
+      });
     }
 
     function clearTable() {
@@ -647,16 +673,6 @@
       document.getElementById("searchInput").value = '';
       document.getElementById("gradeFilter").value = '';
       filterTable();
-    }
-
-    function populateGradeFilter() {
-      const select = document.getElementById("gradeFilter");
-      const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade).filter(Boolean)].sort();
-      
-      select.innerHTML = `<option value="">جميع الدرجات الوظيفية</option>`;
-      uniqueGrades.forEach(grade => {
-        select.innerHTML += `<option value="${grade}">${grade}</option>`;
-      });
     }
 
     function sortBy(column) {
