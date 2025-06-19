@@ -493,9 +493,9 @@
       try {
         showLoading();
         
-        // استبدل هذا الرابط برابط النشر الخاص بك من Google Apps Script
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbz8XfV3zzAw4DhpyfOSQ5A9LxLQ9Jprzsb4ofD8uYi81dss6bJ9GnpzpsaL65P-m5K0_g/exec";
-        const response = await fetch(`${scriptUrl}?sheet=تقييمات`);
+        // رابط النشر الجديد للسكربت
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbzp4YDJJcQa1TPrZ_MX9fkfit040iZ2guBXZY3DKjMKqOBCjpBTwy-cz2ukKdV46rCwQQ/exec";
+        const response = await fetch(`${scriptUrl}?action=getReviews`);
         
         if (!response.ok) throw new Error(`خطأ في الشبكة: ${response.status}`);
         
