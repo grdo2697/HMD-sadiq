@@ -201,13 +201,13 @@
       border-radius: var(--radius);
       overflow: hidden;
       box-shadow: var(--shadow);
-      overflow-x: auto;
+      overflow-x: auto; /* Allow horizontal scrolling */
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 800px;
+      min-width: 1000px; /* Adjusted min-width for new column */
     }
 
     th, td {
@@ -413,12 +413,11 @@
             <th onclick="sortBy('operationsRating')">التقييم حسب العمليات <i class="fas fa-sort"></i></th>
             <th onclick="sortBy('evaluationDays')">أيام التقييم <i class="fas fa-sort"></i></th>
             <th onclick="sortBy('date')">تاريخ التقييم <i class="fas fa-sort"></i></th>
-          </tr>
+            <th>الملاحظات</th> </tr>
         </thead>
         <tbody id="reviews-body">
           <tr>
-            <td colspan="7" class="empty-state">
-              <i class="fas fa-database"></i>
+            <td colspan="8" class="empty-state"> <i class="fas fa-database"></i>
               <p>لا توجد بيانات لعرضها</p>
               <button class="btn" onclick="fetchReviews()">
                 <i class="fas fa-sync-alt"></i> جلب البيانات
@@ -477,8 +476,7 @@
     function showErrorState(errorMessage) {
       document.getElementById('reviews-body').innerHTML = `
         <tr>
-          <td colspan="7" class="empty-state">
-            <i class="fas fa-exclamation-triangle"></i>
+          <td colspan="8" class="empty-state"> <i class="fas fa-exclamation-triangle"></i>
             <p>حدث خطأ في جلب البيانات</p>
             <p style="color: var(--error); font-size: 0.9rem;">${errorMessage}</p>
             <button class="btn" onclick="fetchReviews()">
@@ -493,9 +491,10 @@
       try {
         showLoading();
         
-        // **الرابط الجديد للسكريبت الذي زودتني به:**
-        const scriptUrl = "https://script.google.com/macros/s/AKfycby_UyVBm5QMsprEkL09T-7gI3kKxE5793NeFT1OSpifweF9dTuYTxK6k4NplbL1HhUNmg/exec"; // تم تحديث الرابط هنا
-        const response = await fetch(`${scriptUrl}?action=getReviews&sheet=تقييمات`); // أضفنا &sheet=تقييمات لتحديد الورقة
+        // **مهم جداً: تأكد أن هذا الرابط هو آخر رابط نشرته من Google Apps Script**
+        // أستخدم آخر رابط زودتني به:
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbx6WVkCXcI7kTfTNHPzPjWGtcMQuY0_LC2ivOneqyrPRK8x_q0A5mJJRb0m7P7PuCDoiA/exec";
+        const response = await fetch(`${scriptUrl}?action=getReviews&sheet=تقييمات`);
         
         if (!response.ok) throw new Error(`خطأ في الشبكة: ${response.status}`);
         
@@ -511,7 +510,8 @@
           totalRating: parseFloat(review['التقييم الكلي']) || 0,
           operationsRating: parseFloat(review['التقييم حسب عدد العمليات']) || 0,
           evaluationDays: parseInt(review['عدد أيام التقييم']) || 0,
-          date: review['تاريخ التقييم'] || 'غير محدد'
+          date: review['تاريخ التقييم'] || 'غير محدد',
+          notes: review['الملاحظات'] || '—' // حقل الملاحظات الجديد
         }));
         
         populateDepartmentFilter();
@@ -532,8 +532,7 @@
       if (!reviews || reviews.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="empty-state">
-              <i class="fas fa-search"></i>
+            <td colspan="8" class="empty-state"> <i class="fas fa-search"></i>
               <p>لا توجد نتائج مطابقة للبحث</p>
               <button class="btn" onclick="clearFilters()">
                 <i class="fas fa-times"></i> مسح الفلتر
@@ -558,7 +557,7 @@
             <td class="rating-cell ${operationsRatingClass}">${review.operationsRating.toFixed(1)}</td>
             <td>${review.evaluationDays}</td>
             <td>${review.date}</td>
-          </tr>
+            <td>${review.notes}</td> </tr>
         `;
         tbody.innerHTML += row;
       });
@@ -589,14 +588,14 @@
       try {
         let csvContent = "data:text/csv;charset=utf-8,";
         
-        // Headers
+        // Headers - تم إضافة "الملاحظات"
         const headers = [
           'اسم الموظف', 'القسم', 'الدرجة الوظيفية', 'التقييم الكلي', 
-          'التقييم حسب العمليات', 'أيام التقييم', 'تاريخ التقييم'
+          'التقييم حسب العمليات', 'أيام التقييم', 'تاريخ التقييم', 'الملاحظات'
         ];
         csvContent += headers.join(",") + "\r\n";
         
-        // Data rows
+        // Data rows - تم إضافة حقل الملاحظات
         reviewsData.forEach(review => {
           const row = [
             `"${review.name || ''}"`,
@@ -605,7 +604,8 @@
             review.totalRating.toFixed(1),
             review.operationsRating.toFixed(1),
             review.evaluationDays,
-            `"${review.date || ''}"`
+            `"${review.date || ''}"`,
+            `"${review.notes || ''}"` // حقل الملاحظات لتصدير Excel
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -631,7 +631,8 @@
       
       const filtered = reviewsData.filter(r => {
         const matchSearch = r.name.toLowerCase().includes(input) || 
-                            r.jobGrade.toLowerCase().includes(input);
+                            r.jobGrade.toLowerCase().includes(input) ||
+                            r.notes.toLowerCase().includes(input); // إضافة البحث في الملاحظات
         const matchDepartment = !department || r.department === department;
         return matchSearch && matchDepartment;
       });
