@@ -390,9 +390,11 @@
       <button class="btn btn-accent" onclick="downloadExcel()">
         <i class="fas fa-file-excel"></i> تصدير Excel
       </button>
-      <select id="departmentFilter" onchange="filterTable()">
-        <option value="">جميع الأقسام</option>
+      
+      <select id="jobGradeFilter" onchange="filterTable()">
+        <option value="">جميع الدرجات الوظيفية</option>
       </select>
+      
       <div class="search-container">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="ابحث عن موظف..." oninput="filterTable()">
@@ -413,11 +415,13 @@
             <th onclick="sortBy('operationsRating')">التقييم حسب العمليات <i class="fas fa-sort"></i></th>
             <th onclick="sortBy('evaluationDays')">أيام التقييم <i class="fas fa-sort"></i></th>
             <th onclick="sortBy('date')">تاريخ التقييم <i class="fas fa-sort"></i></th>
-            <th>الملاحظات</th> </tr>
+            <th>الملاحظات</th> 
+          </tr>
         </thead>
         <tbody id="reviews-body">
           <tr>
-            <td colspan="8" class="empty-state"> <i class="fas fa-database"></i>
+            <td colspan="8" class="empty-state"> 
+              <i class="fas fa-database"></i>
               <p>لا توجد بيانات لعرضها</p>
               <button class="btn" onclick="fetchReviews()">
                 <i class="fas fa-sync-alt"></i> جلب البيانات
@@ -476,7 +480,8 @@
     function showErrorState(errorMessage) {
       document.getElementById('reviews-body').innerHTML = `
         <tr>
-          <td colspan="8" class="empty-state"> <i class="fas fa-exclamation-triangle"></i>
+          <td colspan="8" class="empty-state"> 
+            <i class="fas fa-exclamation-triangle"></i>
             <p>حدث خطأ في جلب البيانات</p>
             <p style="color: var(--error); font-size: 0.9rem;">${errorMessage}</p>
             <button class="btn" onclick="fetchReviews()">
@@ -492,7 +497,6 @@
         showLoading();
         
         // **مهم جداً: تأكد أن هذا الرابط هو آخر رابط نشرته من Google Apps Script**
-        // أستخدم آخر رابط زودتني به:
         const scriptUrl = "https://script.google.com/macros/s/AKfycbx6WVkCXcI7kTfTNHPzPjWGtcMQuY0_LC2ivOneqyrPRK8x_q0A5mJJRb0m7P7PuCDoiA/exec";
         const response = await fetch(`${scriptUrl}?action=getReviews&sheet=تقييمات`);
         
@@ -502,7 +506,6 @@
         
         if (!result.success) throw new Error(result.error || 'فشل جلب البيانات');
         
-        // معالجة البيانات حسب الهيكل الجديد المرسل من السكريبت
         reviewsData = result.data.map(review => ({
           name: review['اسم الموظف'] || 'غير محدد',
           department: review['القسم'] || 'غير محدد',
@@ -511,10 +514,10 @@
           operationsRating: parseFloat(review['التقييم حسب عدد العمليات']) || 0,
           evaluationDays: parseInt(review['عدد أيام التقييم']) || 0,
           date: review['تاريخ التقييم'] || 'غير محدد',
-          notes: review['الملاحظات'] || '—' // حقل الملاحظات الجديد
+          notes: review['الملاحظات'] || '—' 
         }));
         
-        populateDepartmentFilter();
+        populateJobGradeFilter(); // تم تغيير اسم الدالة هنا
         displayReviews(reviewsData);
         showToast('تم تحديث البيانات بنجاح', 'success');
       } catch (error) {
@@ -532,7 +535,8 @@
       if (!reviews || reviews.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="8" class="empty-state"> <i class="fas fa-search"></i>
+            <td colspan="8" class="empty-state"> 
+              <i class="fas fa-search"></i>
               <p>لا توجد نتائج مطابقة للبحث</p>
               <button class="btn" onclick="clearFilters()">
                 <i class="fas fa-times"></i> مسح الفلتر
@@ -557,7 +561,8 @@
             <td class="rating-cell ${operationsRatingClass}">${review.operationsRating.toFixed(1)}</td>
             <td>${review.evaluationDays}</td>
             <td>${review.date}</td>
-            <td>${review.notes}</td> </tr>
+            <td>${review.notes}</td> 
+          </tr>
         `;
         tbody.innerHTML += row;
       });
@@ -569,13 +574,15 @@
       return 'low-rating';
     }
 
-    function populateDepartmentFilter() {
-      const select = document.getElementById("departmentFilter");
-      const uniqueDepartments = [...new Set(reviewsData.map(r => r.department).filter(Boolean))].sort();
+    // تم تعديل اسم الدالة ونوع الحقل الذي يتم تصفية عليه
+    function populateJobGradeFilter() {
+      const select = document.getElementById("jobGradeFilter");
+      // التأكد من أن حقل jobGrade موجود وغير فارغ قبل إضافته للمجموعة الفريدة
+      const uniqueJobGrades = [...new Set(reviewsData.map(r => r.jobGrade).filter(Boolean))].sort();
       
-      select.innerHTML = `<option value="">جميع الأقسام</option>`;
-      uniqueDepartments.forEach(dept => {
-        select.innerHTML += `<option value="${dept}">${dept}</option>`;
+      select.innerHTML = `<option value="">جميع الدرجات الوظيفية</option>`;
+      uniqueJobGrades.forEach(grade => {
+        select.innerHTML += `<option value="${grade}">${grade}</option>`;
       });
     }
 
@@ -588,14 +595,14 @@
       try {
         let csvContent = "data:text/csv;charset=utf-8,";
         
-        // Headers - تم إضافة "الملاحظات"
+        // Headers 
         const headers = [
           'اسم الموظف', 'القسم', 'الدرجة الوظيفية', 'التقييم الكلي', 
           'التقييم حسب العمليات', 'أيام التقييم', 'تاريخ التقييم', 'الملاحظات'
         ];
         csvContent += headers.join(",") + "\r\n";
         
-        // Data rows - تم إضافة حقل الملاحظات
+        // Data rows 
         reviewsData.forEach(review => {
           const row = [
             `"${review.name || ''}"`,
@@ -605,7 +612,7 @@
             review.operationsRating.toFixed(1),
             review.evaluationDays,
             `"${review.date || ''}"`,
-            `"${review.notes || ''}"` // حقل الملاحظات لتصدير Excel
+            `"${review.notes || ''}"` 
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -627,14 +634,16 @@
 
     function filterTable() {
       const input = document.getElementById("searchInput").value.toLowerCase();
-      const department = document.getElementById("departmentFilter").value;
+      // تم تغيير اسم المتغير والـ ID هنا
+      const selectedJobGrade = document.getElementById("jobGradeFilter").value; 
       
       const filtered = reviewsData.filter(r => {
         const matchSearch = r.name.toLowerCase().includes(input) || 
                             r.jobGrade.toLowerCase().includes(input) ||
-                            r.notes.toLowerCase().includes(input); // إضافة البحث في الملاحظات
-        const matchDepartment = !department || r.department === department;
-        return matchSearch && matchDepartment;
+                            r.notes.toLowerCase().includes(input);
+        // تم تغيير الحقل الذي يتم الفلترة عليه
+        const matchJobGrade = !selectedJobGrade || r.jobGrade === selectedJobGrade; 
+        return matchSearch && matchJobGrade;
       });
       
       displayReviews(filtered);
@@ -642,7 +651,8 @@
 
     function clearFilters() {
       document.getElementById("searchInput").value = '';
-      document.getElementById("departmentFilter").value = '';
+      // تم تغيير الـ ID هنا
+      document.getElementById("jobGradeFilter").value = ''; 
       filterTable();
     }
 
