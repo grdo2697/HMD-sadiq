@@ -387,27 +387,15 @@
       <button class="btn btn-success" onclick="fetchReviews()">
         <i class="fas fa-sync-alt"></i> تحديث البيانات
       </button>
-      <button class="btn btn-danger" onclick="clearTable()">
-        <i class="fas fa-trash"></i> مسح الكل
-      </button>
       <button class="btn btn-accent" onclick="downloadExcel()">
         <i class="fas fa-file-excel"></i> تصدير Excel
       </button>
-      <select id="gradeFilter" onchange="filterTable()">
-        <option value="">جميع الدرجات الوظيفية</option>
+      <select id="departmentFilter" onchange="filterTable()">
+        <option value="">جميع الأقسام</option>
       </select>
-      <button class="btn btn-outline" onclick="sortBy('operationRating')">
-        <i class="fas fa-sort-amount-down"></i> عدد العمليات
-      </button>
-      <button class="btn btn-outline" onclick="sortBy('overallRating')">
-        <i class="fas fa-star"></i> التقييم الكلي
-      </button>
-      <button class="btn" onclick="toggleDarkMode()">
-        <i class="fas fa-moon"></i> وضع ليلي
-      </button>
       <div class="search-container">
         <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="ابحث عن موظف أو قسم..." oninput="filterTable()">
+        <input type="text" id="searchInput" placeholder="ابحث عن موظف..." oninput="filterTable()">
       </div>
       <button class="btn" onclick="window.location.href='index.html'">
         <i class="fas fa-arrow-right"></i> رجوع
@@ -420,16 +408,14 @@
           <tr>
             <th onclick="sortBy('name')">اسم الموظف <i class="fas fa-sort"></i></th>
             <th onclick="sortBy('department')">القسم <i class="fas fa-sort"></i></th>
-            <th onclick="sortBy('jobGrade')">الدرجة الوظيفية <i class="fas fa-sort"></i></th>
-            <th onclick="sortBy('overallRating')">التقييم الكلي <i class="fas fa-sort"></i></th>
-            <th onclick="sortBy('operationRating')">تقييم العمليات <i class="fas fa-sort"></i></th>
-            <th onclick="sortBy('ratingDays')">أيام التقييم <i class="fas fa-sort"></i></th>
-            <th onclick="sortBy('reviewDate')">تاريخ التقييم <i class="fas fa-sort"></i></th>
+            <th onclick="sortBy('rating')">التقييم <i class="fas fa-sort"></i></th>
+            <th onclick="sortBy('date')">تاريخ التقييم <i class="fas fa-sort"></i></th>
+            <th onclick="sortBy('notes')">الملاحظات <i class="fas fa-sort"></i></th>
           </tr>
         </thead>
         <tbody id="reviews-body">
           <tr>
-            <td colspan="7" class="empty-state">
+            <td colspan="5" class="empty-state">
               <i class="fas fa-database"></i>
               <p>لا توجد بيانات لعرضها</p>
               <button class="btn" onclick="fetchReviews()">
@@ -456,10 +442,7 @@
 
   <script>
     let reviewsData = [];
-    let currentSort = {
-      column: null,
-      direction: 'asc'
-    };
+    let currentSort = { column: null, direction: 'asc' };
 
     document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -480,56 +463,62 @@
       }, 3000);
     }
 
+    function showLoading() {
+      document.getElementById('loading').style.display = 'flex';
+      document.getElementById('reviews-body').innerHTML = '';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    function showErrorState(errorMessage) {
+      document.getElementById('reviews-body').innerHTML = `
+        <tr>
+          <td colspan="5" class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>حدث خطأ في جلب البيانات</p>
+            <p style="color: var(--error); font-size: 0.9rem;">${errorMessage}</p>
+            <button class="btn" onclick="fetchReviews()">
+              <i class="fas fa-sync-alt"></i> المحاولة مرة أخرى
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
     async function fetchReviews() {
       try {
-        document.getElementById('loading').style.display = 'flex';
-        document.getElementById('reviews-body').innerHTML = '';
+        showLoading();
         
-        // استخدم رابط النشر الخاص بك من Google Apps Script
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbz8XfV3zzAw4DhpyfOSQ5A9LxLQ9Jprzsb4ofD8uYi81dss6bJ9GnpzpsaL65P-m5K0_g/exec
-        
+        // استبدل هذا الرابط برابط النشر الخاص بك من Google Apps Script
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbz8XfV3zzAw4DhpyfOSQ5A9LxLQ9Jprzsb4ofD8uYi81dss6bJ9GnpzpsaL65P-m5K0_g/exec";
         const response = await fetch(`${scriptUrl}?sheet=تقييمات`);
         
-        if (!response.ok) {
-          throw new Error(`خطأ في الشبكة: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`خطأ في الشبكة: ${response.status}`);
         
         const result = await response.json();
         
-        if (!result.success) {
-          throw new Error(result.error || 'فشل جلب البيانات');
-        }
+        if (!result.success) throw new Error(result.error || 'فشل جلب البيانات');
         
-        // تحويل البيانات لتتطابق مع الهيكل المطلوب
+        // معالجة البيانات حسب الهيكل الجديد
         reviewsData = result.data.map(review => ({
           name: review.الاسم || 'غير محدد',
           department: review.القسم || 'غير محدد',
-          jobGrade: review.الدرجة_الوظيفية || review.الدرجة || 'غير محدد',
-          overallRating: parseFloat(review.التقييم) || 0,
-          operationRating: parseFloat(review.تقييم_العمليات || review.تقييم_الأداء || 0) || 0,
-          ratingDays: parseInt(review.أيام_التقييم || review.مدة_التقييم || 0) || 0,
-          reviewDate: review.التاريخ || review.تاريخ_التقييم || 'غير محدد'
+          rating: parseFloat(review.التقييم) || 0,
+          date: review.التاريخ || 'غير محدد',
+          notes: review.الملاحظات || 'لا توجد ملاحظات'
         }));
         
-        populateGradeFilter();
+        populateDepartmentFilter();
         displayReviews(reviewsData);
         showToast('تم تحديث البيانات بنجاح', 'success');
       } catch (error) {
         console.error("Error fetching reviews:", error);
+        showErrorState(error.message);
         showToast(`حدث خطأ أثناء جلب البيانات: ${error.message}`, 'error');
-        document.getElementById('reviews-body').innerHTML = `
-          <tr>
-            <td colspan="7" class="empty-state">
-              <i class="fas fa-exclamation-triangle"></i>
-              <p>حدث خطأ في جلب البيانات</p>
-              <button class="btn" onclick="fetchReviews()">
-                <i class="fas fa-sync-alt"></i> المحاولة مرة أخرى
-              </button>
-            </td>
-          </tr>
-        `;
       } finally {
-        document.getElementById('loading').style.display = 'none';
+        hideLoading();
       }
     }
 
@@ -539,7 +528,7 @@
       if (!reviews || reviews.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="empty-state">
+            <td colspan="5" class="empty-state">
               <i class="fas fa-search"></i>
               <p>لا توجد نتائج مطابقة للبحث</p>
               <button class="btn" onclick="clearFilters()">
@@ -553,18 +542,15 @@
       
       tbody.innerHTML = "";
       reviews.forEach(review => {
-        const overallRatingClass = getRatingClass(review.overallRating);
-        const operationRatingClass = getRatingClass(review.operationRating);
+        const ratingClass = getRatingClass(review.rating);
         
         const row = `
           <tr>
             <td>${review.name}</td>
             <td>${review.department}</td>
-            <td>${review.jobGrade}</td>
-            <td class="rating-cell ${overallRatingClass}">${review.overallRating.toFixed(1)}</td>
-            <td class="rating-cell ${operationRatingClass}">${review.operationRating.toFixed(1)}</td>
-            <td>${review.ratingDays}</td>
-            <td>${review.reviewDate}</td>
+            <td class="rating-cell ${ratingClass}">${review.rating.toFixed(1)}</td>
+            <td>${review.date}</td>
+            <td>${review.notes}</td>
           </tr>
         `;
         tbody.innerHTML += row;
@@ -577,37 +563,14 @@
       return 'low-rating';
     }
 
-    function populateGradeFilter() {
-      const select = document.getElementById("gradeFilter");
-      const uniqueGrades = [...new Set(reviewsData.map(r => r.jobGrade).filter(Boolean))].sort();
+    function populateDepartmentFilter() {
+      const select = document.getElementById("departmentFilter");
+      const uniqueDepartments = [...new Set(reviewsData.map(r => r.department).filter(Boolean))].sort();
       
-      select.innerHTML = `<option value="">جميع الدرجات الوظيفية</option>`;
-      uniqueGrades.forEach(grade => {
-        select.innerHTML += `<option value="${grade}">${grade}</option>`;
+      select.innerHTML = `<option value="">جميع الأقسام</option>`;
+      uniqueDepartments.forEach(dept => {
+        select.innerHTML += `<option value="${dept}">${dept}</option>`;
       });
-    }
-
-    function clearTable() {
-      if (reviewsData.length === 0) {
-        showToast('لا توجد بيانات لمسحها', 'error');
-        return;
-      }
-      
-      if (confirm('هل أنت متأكد من رغبتك في مسح جميع البيانات المعروضة؟')) {
-        reviewsData = [];
-        document.getElementById("reviews-body").innerHTML = `
-          <tr>
-            <td colspan="7" class="empty-state">
-              <i class="fas fa-database"></i>
-              <p>لا توجد بيانات لعرضها</p>
-              <button class="btn" onclick="fetchReviews()">
-                <i class="fas fa-sync-alt"></i> جلب البيانات
-              </button>
-            </td>
-          </tr>
-        `;
-        showToast('تم مسح البيانات بنجاح', 'success');
-      }
     }
 
     function downloadExcel() {
@@ -621,8 +584,7 @@
         
         // Headers
         const headers = [
-          'اسم الموظف', 'القسم', 'الدرجة الوظيفية', 
-          'التقييم الكلي', 'تقييم العمليات', 'أيام التقييم', 'تاريخ التقييم'
+          'اسم الموظف', 'القسم', 'التقييم', 'تاريخ التقييم', 'الملاحظات'
         ];
         csvContent += headers.join(",") + "\r\n";
         
@@ -631,11 +593,9 @@
           const row = [
             `"${review.name || ''}"`,
             `"${review.department || ''}"`,
-            `"${review.jobGrade || ''}"`,
-            review.overallRating.toFixed(1),
-            review.operationRating.toFixed(1),
-            review.ratingDays,
-            `"${review.reviewDate || ''}"`
+            review.rating.toFixed(1),
+            `"${review.date || ''}"`,
+            `"${review.notes || ''}"`
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -657,13 +617,12 @@
 
     function filterTable() {
       const input = document.getElementById("searchInput").value.toLowerCase();
-      const grade = document.getElementById("gradeFilter").value;
+      const department = document.getElementById("departmentFilter").value;
       
       const filtered = reviewsData.filter(r => {
-        const searchFields = `${r.name || ''} ${r.department || ''} ${r.jobGrade || ''}`.toLowerCase();
-        const matchSearch = searchFields.includes(input);
-        const matchGrade = !grade || r.jobGrade === grade;
-        return matchSearch && matchGrade;
+        const matchSearch = r.name.toLowerCase().includes(input);
+        const matchDepartment = !department || r.department === department;
+        return matchSearch && matchDepartment;
       });
       
       displayReviews(filtered);
@@ -671,7 +630,7 @@
 
     function clearFilters() {
       document.getElementById("searchInput").value = '';
-      document.getElementById("gradeFilter").value = '';
+      document.getElementById("departmentFilter").value = '';
       filterTable();
     }
 
@@ -714,24 +673,6 @@
       });
       
       displayReviews(reviewsData);
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
-      const isDark = document.body.classList.contains("dark-mode");
-      localStorage.setItem('darkMode', isDark);
-      
-      const icon = document.querySelector('button[onclick="toggleDarkMode()"] i');
-      icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-      
-      showToast(`تم تفعيل الوضع ${isDark ? 'الليلي' : 'النهاري'}`, 'success');
-    }
-
-    // Initialize dark mode from localStorage
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add("dark-mode");
-      const icon = document.querySelector('button[onclick="toggleDarkMode()"] i');
-      if (icon) icon.className = 'fas fa-sun';
     }
 
     // Initial fetch
