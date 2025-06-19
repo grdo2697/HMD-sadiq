@@ -493,9 +493,9 @@
       try {
         showLoading();
         
-        // رابط النشر الجديد للسكربت
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbzp4YDJJcQa1TPrZ_MX9fkfit040iZ2guBXZY3DKjMKqOBCjpBTwy-cz2ukKdV46rCwQQ/exec";
-        const response = await fetch(`${scriptUrl}?action=getReviews`);
+        // **الرابط الجديد للسكريبت الذي زودتني به:**
+        const scriptUrl = "https://script.google.com/macros/s/AKfycby_UyVBm5QMsprEkL09T-7gI3kKxE5793NeFT1OSpifweF9dTuYTxK6k4NplbL1HhUNmg/exec"; // تم تحديث الرابط هنا
+        const response = await fetch(`${scriptUrl}?action=getReviews&sheet=تقييمات`); // أضفنا &sheet=تقييمات لتحديد الورقة
         
         if (!response.ok) throw new Error(`خطأ في الشبكة: ${response.status}`);
         
@@ -503,7 +503,7 @@
         
         if (!result.success) throw new Error(result.error || 'فشل جلب البيانات');
         
-        // معالجة البيانات حسب الهيكل الجديد
+        // معالجة البيانات حسب الهيكل الجديد المرسل من السكريبت
         reviewsData = result.data.map(review => ({
           name: review['اسم الموظف'] || 'غير محدد',
           department: review['القسم'] || 'غير محدد',
@@ -631,7 +631,7 @@
       
       const filtered = reviewsData.filter(r => {
         const matchSearch = r.name.toLowerCase().includes(input) || 
-                           r.jobGrade.toLowerCase().includes(input);
+                            r.jobGrade.toLowerCase().includes(input);
         const matchDepartment = !department || r.department === department;
         return matchSearch && matchDepartment;
       });
