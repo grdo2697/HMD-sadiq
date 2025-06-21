@@ -65,6 +65,25 @@
             z-index: 100;
         }
 
+        .header-content {
+            display: flex; /* لعرض الشعار والعنوان بجانب بعض */
+            align-items: center; /* لمحاذاة العناصر عمودياً في المنتصف */
+            justify-content: center; /* لتوسيط المحتوى أفقياً */
+            gap: 1.5rem; /* مسافة بين الشعار والعنوان */
+            margin-top: 1rem; /* لتحريك الشعار والعنوان لأسفل قليلاً داخل الهيدر */
+        }
+
+        .header-logo {
+            height: 70px; /* حجم الشعار - تقدر تعدله حسب الرغبة */
+            width: auto; /* يحافظ على نسبة العرض إلى الارتفاع */
+            object-fit: contain; /* يضمن عرض الصورة بالكامل ضمن المساحة المحددة */
+            transition: transform 0.3s ease; /* إضافة تأثير عند التحويم */
+        }
+
+        .header-logo:hover {
+            transform: scale(1.05); /* تكبير الشعار قليلاً عند التحويم */
+        }
+
         h1 {
             font-size: 2.8rem;
             margin: 0;
@@ -337,6 +356,14 @@
         }
 
         @media (max-width: 768px) {
+            .header-logo {
+                height: 50px; /* حجم أصغر للشعار على الأجهزة اللوحية */
+            }
+            .header-content {
+                flex-direction: column; /* جعل الشعار والعنوان يظهران فوق بعض على الشاشات الأصغر */
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+            }
             h1 { font-size: 2rem; }
             header { padding: 2.2rem 1rem; border-radius: 0 0 30px 30px; } /* Adjusted header padding */
             .header-actions { top: 1rem; left: 1rem; gap: 0.5rem;}
@@ -392,6 +419,9 @@
         }
 
         @media (max-width: 480px) {
+            .header-logo {
+                height: 40px; /* حجم أصغر للشعار على الموبايل */
+            }
             h1 { font-size: 1.6rem; } /* Smaller font for extra small screens */
             .header-actions { top: 0.75rem; left: 0.75rem; gap: 0.4rem;}
             .header-action-btn { width: 36px; height: 36px; font-size: 0.9rem; } /* Even smaller buttons */
@@ -421,7 +451,10 @@
         <div class="hamburger" onclick="toggleNav()">
             <i class="fas fa-bars"></i>
         </div>
-        <h1>موظفين شركة العصر الذكي</h1>
+        <div class="header-content">
+            <img src="images/logo.png" alt="شعار العصر الذكي" class="header-logo">
+            <h1>موظفين شركة العصر الذكي</h1>
+        </div>
         <nav id="nav-menu">
             <button onclick="downloadExcel()">
                 <i class="fas fa-file-excel"></i> تنزيل Excel
@@ -635,7 +668,7 @@
             const csvHeader = "الاسم,الرقم,المنصب,الحالة";
             const csvRows = allEmployees.map(e => `${e.name || ''},${e.id || ''},${e.role || ''},${e.status || ''}`);
             const csvContent = [csvHeader, ...csvRows].join("\n");
-            
+
             const blob = new Blob(["\uFEFF" + csvContent], {type:'text/csv;charset=utf-8;'});
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
