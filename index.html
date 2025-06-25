@@ -416,6 +416,12 @@
             body:not(.is-hr) td[data-label="الرقم"]::before {
                 display: none;
             }
+            /* Hide the new columns' labels for non-HR on mobile */
+            body:not(.is-hr) td[data-label="المنطقه"]::before,
+            body:not(.is-hr) td[data-label="رقم الاتصال بالعائلة"]::before,
+            body:not(.is-hr) td[data-label="صلة القرابة"]::before {
+                display: none;
+            }
         }
 
         @media (max-width: 480px) {
@@ -514,6 +520,9 @@
                     <th id="col-id">الرقم</th>
                     <th>المنصب</th>
                     <th>الحالة</th>
+                    <th id="col-area">المنطقه</th>
+                    <th id="col-phone">رقم الاتصال بالعائلة</th>
+                    <th id="col-relation">صلة القرابة</th>
                 </tr>
             </thead>
             <tbody id="employee-body"></tbody>
@@ -547,13 +556,24 @@
             document.body.classList.add('is-hr');
         }
 
-        // Initially hide/show the ID column
-        document.getElementById("col-id").style.display = isHR ? "" : "none";
-        // Set display for navigation buttons based on HR status
-        document.getElementById("penaltyBtn").style.display = isHR ? "flex" : "none";
-        document.getElementById("employmentRequestsBtn").style.display = isHR ? "flex" : "none";
-        document.getElementById("bikesBtn").style.display = isHR ? "flex" : "none";
-        document.getElementById("complianceBtn").style.display = isHR ? "flex" : "none";
+        // Initially hide/show HR-only columns and buttons
+        function updateHRVisibility() {
+            const idCol = document.getElementById("col-id");
+            const areaCol = document.getElementById("col-area");
+            const phoneCol = document.getElementById("col-phone");
+            const relationCol = document.getElementById("col-relation");
+
+            if (idCol) idCol.style.display = isHR ? "" : "none";
+            if (areaCol) areaCol.style.display = isHR ? "" : "none";
+            if (phoneCol) phoneCol.style.display = isHR ? "" : "none";
+            if (relationCol) relationCol.style.display = isHR ? "" : "none";
+
+            document.getElementById("penaltyBtn").style.display = isHR ? "flex" : "none";
+            document.getElementById("employmentRequestsBtn").style.display = isHR ? "flex" : "none";
+            document.getElementById("bikesBtn").style.display = isHR ? "flex" : "none";
+            document.getElementById("complianceBtn").style.display = isHR ? "flex" : "none";
+        }
+        updateHRVisibility(); // Call on load
 
         // Toggle hamburger navigation
         function toggleNav(){
@@ -576,23 +596,33 @@
         const loadingSpinner = document.getElementById("loading-spinner");
         const employeeBody = document.getElementById("employee-body");
 
+        // *** تحديث رابط النشر للسكريبت الجديد هنا ***
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYeAF4JtFRn1Ig2WpXrmBpgB75TqwMmLJvK9NSJOui16tAqRfvj3M1X53RFwEpgQeOLg/exec";
+
         async function fetchEmployees(){
             loadingSpinner.style.display = "block"; // Show loading indicator
             employeeBody.innerHTML = ''; // Clear table before loading new data
 
             try {
-                const res = await fetch("https://script.google.com/macros/s/AKfycbx4vXm_J_nmdrbTkQzbLMfVT65E9VNpgZlw5e94UMcAZ4D69ZWgyFLSJgdXiNCjs2mKiQ/exec");
+                // *** التأكد من أننا نطلب ورقة "موظفين الشركة" صراحةً ***
+                const res = await fetch(`${SCRIPT_URL}?sheet=موظفين الشركة`);
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);
                 }
-                allEmployees = await res.json();
-                updateFilters();
-                displayEmployees(allEmployees);
+                const data = await res.json();
+                if (data.success) {
+                    allEmployees = data.data;
+                    updateFilters();
+                    displayEmployees(allEmployees);
+                } else {
+                    throw new Error(data.error || "Failed to fetch data with unknown error.");
+                }
             } catch(e){
-                alert("فشل تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.");
+                alert(`فشل تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت وأن السكريبت يعمل بشكل صحيح: ${e.message}`);
                 console.error("Error fetching employees:", e);
-                // Display error message in table if fetch fails
-                employeeBody.innerHTML = `<tr><td colspan="${isHR ? '4' : '3'}" style="text-align:center; padding: 2rem; color: var(--danger-red);">فشل تحميل البيانات.</td></tr>`;
+                // Calculate colspan based on HR status
+                const colspan = isHR ? '7' : '4'; // 4 for non-HR (name, id, role, status), 7 for HR (all 7 columns)
+                employeeBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center; padding: 2rem; color: var(--danger-red);">فشل تحميل البيانات.</td></tr>`;
             } finally {
                 loadingSpinner.style.display = "none"; // Hide loading indicator
             }
@@ -600,20 +630,48 @@
 
         function displayEmployees(data){
             employeeBody.innerHTML = "";
+            const currentColspan = isHR ? 7 : 4; // Total columns for HR vs non-HR
             if (data.length === 0) {
-                employeeBody.innerHTML = `<tr><td colspan="${isHR ? '4' : '3'}" style="text-align:center; padding: 2rem;">لا توجد بيانات لعرضها.</td></tr>`;
+                employeeBody.innerHTML = `<tr><td colspan="${currentColspan}" style="text-align:center; padding: 2rem;">لا توجد بيانات لعرضها.</td></tr>`;
                 return;
             }
 
             data.forEach(emp => {
-                const idCell = isHR ? `<td data-label="الرقم">${emp.id || 'N/A'}</td>` : "";
-                employeeBody.innerHTML += `
+                // تذكر أن أسماء المفاتيح في كائن JSON هي كما تم تعريفها في Apps Script
+                // اسم_الموظف, الرقم, المنصب, الحالة, المنطقه, رقم_الاتصال_بالعائلة, صلة_القرابة
+
+                // الخلايا التي تظهر دائمًا
+                let rowHtml = `
                     <tr>
-                        <td data-label="اسم الموظف">${emp.name || 'N/A'}</td>
-                        ${idCell}
-                        <td data-label="المنصب">${emp.role || 'N/A'}</td>
-                        <td data-label="الحالة">${emp.status || 'N/A'}</td>
-                    </tr>`;
+                        <td data-label="اسم الموظف">${emp.اسم_الموظف || 'N/A'}</td>
+                        <td data-label="الرقم">${emp.الرقم || 'N/A'}</td>
+                        <td data-label="المنصب">${emp.المنصب || 'N/A'}</td>
+                        <td data-label="الحالة">${emp.الحالة || 'N/A'}</td>
+                `;
+
+                // إضافة الأعمدة الخاصة بالموارد البشرية فقط
+                if (isHR) {
+                    rowHtml += `
+                        <td data-label="المنطقه">${emp.المنطقه || 'N/A'}</td>
+                        <td data-label="رقم الاتصال بالعائلة">${emp.رقم_الاتصال_بالعائلة || 'N/A'}</td>
+                        <td data-label="صلة القرابة">${emp.صلة_القرابة || 'N/A'}</td>
+                    `;
+                }
+                rowHtml += `</tr>`;
+                employeeBody.innerHTML += rowHtml;
+            });
+
+            // After populating the table, hide HR-specific columns if not HR
+            const cells = employeeBody.querySelectorAll('td');
+            cells.forEach(cell => {
+                if (!isHR) {
+                    if (cell.getAttribute('data-label') === 'الرقم' ||
+                        cell.getAttribute('data-label') === 'المنطقه' ||
+                        cell.getAttribute('data-label') === 'رقم الاتصال بالعائلة' ||
+                        cell.getAttribute('data-label') === 'صلة القرابة') {
+                        cell.style.display = 'none';
+                    }
+                }
             });
         }
 
@@ -623,19 +681,24 @@
             const st = document.getElementById("filter-status").value;
 
             const filtered = allEmployees.filter(emp => {
-                const nameMatch = emp.name && emp.name.toLowerCase().includes(s);
-                const idMatch = isHR && emp.id ? String(emp.id).includes(s) : false;
-                const roleMatch = !r || (emp.role && emp.role === r);
-                const statusMatch = !st || (emp.status && emp.status === st);
-                return (nameMatch || idMatch) && roleMatch && statusMatch;
+                // لاحظ أننا نستخدم أسماء المفاتيح الجديدة من الـ JSON هنا
+                const nameMatch = emp.اسم_الموظف && emp.اسم_الموظف.toLowerCase().includes(s);
+                const idMatch = isHR && emp.الرقم ? String(emp.الرقم).toLowerCase().includes(s) : false; // for 'الرقم'
+                const areaMatch = isHR && emp.المنطقه ? emp.المنطقه.toLowerCase().includes(s) : false; // for 'المنطقه'
+                const phoneMatch = isHR && emp.رقم_الاتصال_بالعائلة ? emp.رقم_الاتصال_بالعائلة.toLowerCase().includes(s) : false; // for 'رقم الاتصال بالعائلة'
+
+                const roleMatch = !r || (emp.المنصب && emp.المنصب === r); // 'المنصب' بدلاً من 'role'
+                const statusMatch = !st || (emp.الحالة && emp.الحالة === st); // 'الحالة' بدلاً من 'status'
+
+                return (nameMatch || idMatch || areaMatch || phoneMatch) && roleMatch && statusMatch;
             });
             displayEmployees(filtered);
         }
 
         function updateFilters(){
-            // Filter out any undefined/null values before creating sets
-            const roles = [...new Set(allEmployees.map(e => e.role).filter(Boolean))];
-            const statuses = [...new Set(allEmployees.map(e => e.status).filter(Boolean))];
+            // استخدام المفاتيح الجديدة: 'المنصب' و 'الحالة'
+            const roles = [...new Set(allEmployees.map(e => e.المنصب).filter(Boolean))];
+            const statuses = [...new Set(allEmployees.map(e => e.الحالة).filter(Boolean))];
 
             const selR = document.getElementById("filter-role");
             const selS = document.getElementById("filter-status");
@@ -652,7 +715,8 @@
         }
 
         function clearTable(){
-            employeeBody.innerHTML = `<tr><td colspan="${isHR ? '4' : '3'}" style="text-align:center; padding: 2rem;">لا توجد بيانات. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
+            const currentColspan = isHR ? 7 : 4;
+            employeeBody.innerHTML = `<tr><td colspan="${currentColspan}" style="text-align:center; padding: 2rem;">لا توجد بيانات. اضغط على "تحديث البيانات" لإعادة التحميل.</td></tr>`;
             allEmployees = []; // Clear the data array
             document.getElementById("search").value = ""; // Clear search
             document.getElementById("filter-role").value = ""; // Reset filters
@@ -665,8 +729,12 @@
                 alert("ليس لديك صلاحية لتنزيل ملف Excel.");
                 return;
             }
-            const csvHeader = "الاسم,الرقم,المنصب,الحالة";
-            const csvRows = allEmployees.map(e => `${e.name || ''},${e.id || ''},${e.role || ''},${e.status || ''}`);
+            // *** تحديث رؤوس وأعمدة الـ CSV لتعكس الأعمدة الجديدة ***
+            const csvHeader = "اسم الموظف,الرقم,المنصب,الحالة,المنطقه,رقم الاتصال بالعائلة,صلة القرابة";
+            const csvRows = allEmployees.map(e =>
+                `${e.اسم_الموظف || ''},${e.الرقم || ''},${e.المنصب || ''},${e.الحالة || ''},` +
+                `${e.المنطقه || ''},${e.رقم_الاتصال_بالعائلة || ''},${e.صلة_القرابة || ''}`
+            );
             const csvContent = [csvHeader, ...csvRows].join("\n");
 
             const blob = new Blob(["\uFEFF" + csvContent], {type:'text/csv;charset=utf-8;'});
